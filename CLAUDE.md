@@ -7,6 +7,7 @@ Ce fichier dit comment travailler. `docs/spec.md` dit quoi construire. Lis les d
 - `docs/spec.md` est la copie du [document de spécifications](https://claude.ai/artifact/71tMXdJNxRnPD14BioaLJb). Si les deux diffèrent, le document en ligne fait foi.
 - Avant d'écrire du code, lis « Principes du produit » puis les sections que cite ton ticket.
 - Le code ne change jamais une règle. Pour changer une règle, on met d'abord à jour la spec et ses scénarios, avec l'accord du propriétaire du projet.
+- Ne modifie jamais `docs/spec.md` toi-même : c'est une copie que le propriétaire fait ré-exporter quand il change le document en ligne. Si une règle doit changer, écris dans le ticket le texte actuel et le texte proposé, et mets l'étiquette `besoin de toi`.
 
 ## Comment on avance
 

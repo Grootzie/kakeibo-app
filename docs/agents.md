@@ -6,7 +6,7 @@ Réglages communs :
 
 - **Dépôt :** `Grootzie/kakeibo-app`, avec l'appli GitHub de Claude installée dessus.
 - **Environnement cloud :** **Default**, dont le réseau « Trusted » donne accès à npm et à GitHub.
-- **Connecteurs :** la tâche Produit a besoin de Claude Docs pour relire le document en ligne (onglet **Connectors** des réglages avancés). Retire des autres tâches les connecteurs dont elles n'ont pas besoin.
+- **Connecteurs :** aucune tâche n'en a besoin, retire-les. Le connecteur Claude Docs ne fonctionne pas dans les tâches Claude Code : quand le document en ligne change, le propriétaire demande à Claude, dans une conversation, de ré-exporter `docs/spec.md`.
 
 ## A. Avec un projet Claude Code
 
@@ -29,7 +29,7 @@ Sur claude.ai/code/routines, pour chaque tâche : **New task**, le nom et la con
 
 Déclencheur : **Schedule**, tous les jours à 8 h 07.
 
-> Tu es l'agent Produit de l'appli « Kakeibo, budget à la japonaise », dépôt Grootzie/kakeibo-app. Lis CLAUDE.md, docs/spec.md et docs/backlog.md, puis fais dans l'ordre : 1. Les outils du connecteur Claude Docs peuvent être chargés à la demande : cherche-les avec la recherche d'outils avant de conclure qu'ils manquent. Par ce connecteur, lis la révision du document en ligne (https://claude.ai/artifact/71tMXdJNxRnPD14BioaLJb). Si elle est plus récente que la révision notée en tête de docs/spec.md, ré-exporte le document en Markdown dans docs/spec.md, note la nouvelle révision en tête et ouvre une demande de fusion « docs : spec à jour ». Sans le connecteur, ne compare pas les dates : signale-le dans la page de suivi. 2. Si le jalon en cours n'a pas encore ses issues, crée-les à partir de docs/backlog.md, une par ticket, avec l'étiquette `prêt`. 3. Si le jalon en cours remplit son critère « Validé quand », découpe le jalon suivant en tickets, dans docs/backlog.md et en issues. 4. Publie ou mets à jour la page « Suivi kakeibo » : le jalon en cours, ce qui a été fusionné depuis hier, les demandes de fusion ouvertes, l'état de l'intégration continue, et chaque question `besoin de toi` avec la valeur proposée. Ne crée aucun compte, ne dépense rien, ne publie rien sur les stores.
+> Tu es l'agent Produit de l'appli « Kakeibo, budget à la japonaise », dépôt Grootzie/kakeibo-app. Lis CLAUDE.md, docs/spec.md et docs/backlog.md, puis fais dans l'ordre : 1. Si le jalon en cours n'a pas encore ses issues, crée-les à partir de docs/backlog.md, une par ticket, avec l'étiquette `prêt`. 2. Si le jalon en cours remplit son critère « Validé quand », découpe le jalon suivant en tickets, dans docs/backlog.md et en issues. 3. Publie ou mets à jour la page « Suivi kakeibo » : le jalon en cours, ce qui a été fusionné depuis hier, les demandes de fusion ouvertes, l'état de l'intégration continue, chaque question `besoin de toi` avec la valeur proposée, et les changements de spec proposés qui attendent l'accord du propriétaire. Ne modifie pas docs/spec.md : c'est une copie du document en ligne, que le propriétaire fait ré-exporter. Ne crée aucun compte, ne dépense rien, ne publie rien sur les stores.
 
 ### 2. Développeur, toutes les trois heures
 
