@@ -26,6 +26,10 @@ describe('fr.ts', () => {
     });
   });
 
+  it('utilise des guillemets anglais pour la citation imbriquée de la carte méthode', () => {
+    expect(fr.explications.bienvenueMethode).toContain('le “livre de comptes du foyer”');
+  });
+
   it('ne contient ni emoji ni série de points d’exclamation', () => {
     textes.forEach((t) => {
       expect(t).not.toMatch(/\p{Extended_Pictographic}/u);

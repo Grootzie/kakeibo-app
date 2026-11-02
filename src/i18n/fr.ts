@@ -111,7 +111,7 @@ export const fr = {
 
   explications: {
     bienvenueMethode:
-      'Le kakeibo, le « livre de comptes du foyer », est né au Japon en 1904 : Motoko Hani, première femme journaliste du pays, l’a imaginé pour tenir ses comptes à la main. On n’y cherche pas à tout contrôler, mais à prendre conscience de ce qu’on dépense.',
+      'Le kakeibo, le “livre de comptes du foyer”, est né au Japon en 1904 : Motoko Hani, première femme journaliste du pays, l’a imaginé pour tenir ses comptes à la main. On n’y cherche pas à tout contrôler, mais à prendre conscience de ce qu’on dépense.',
     bienvenueCategories:
       'Chaque dépense va dans l’une des quatre catégories : Essentiel, Envies, Culture, Imprévus. Semaine après semaine, tu verras où va ton argent.',
     bienvenueMois:
