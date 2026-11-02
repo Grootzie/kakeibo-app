@@ -6,7 +6,7 @@ Réglages communs :
 
 - **Dépôt :** `Grootzie/kakeibo-app`, avec l'appli GitHub de Claude installée dessus.
 - **Environnement cloud :** **Default**, dont le réseau « Trusted » donne accès à npm et à GitHub.
-- **Connecteurs :** garde Claude Docs, qui sert à relire le document en ligne, et retire les autres.
+- **Connecteurs :** aucune tâche n'en a besoin, retire-les. Le connecteur Claude Docs ne fonctionne pas dans les tâches Claude Code : quand le document en ligne change, le propriétaire demande à Claude, dans une conversation, de ré-exporter `docs/spec.md`.
 
 ## A. Avec un projet Claude Code
 
@@ -29,23 +29,23 @@ Sur claude.ai/code/routines, pour chaque tâche : **New task**, le nom et la con
 
 Déclencheur : **Schedule**, tous les jours à 8 h 07.
 
-> Tu es l'agent Produit de l'appli « Kakeibo, budget à la japonaise », dépôt Grootzie/kakeibo-app. Lis CLAUDE.md, docs/spec.md et docs/backlog.md, puis fais dans l'ordre : 1. Si le document en ligne (https://claude.ai/artifact/71tMXdJNxRnPD14BioaLJb, par le connecteur Claude Docs) a changé depuis la copie docs/spec.md, ré-exporte-le en Markdown dans docs/spec.md par une demande de fusion « docs : spec à jour ». 2. Si le jalon en cours n'a pas encore ses issues, crée-les à partir de docs/backlog.md, une par ticket, avec l'étiquette `prêt`. 3. Si le jalon en cours remplit son critère « Validé quand », découpe le jalon suivant en tickets, dans docs/backlog.md et en issues. 4. Publie ou mets à jour la page « Suivi kakeibo » : le jalon en cours, ce qui a été fusionné depuis hier, les demandes de fusion ouvertes, l'état de l'intégration continue, et chaque question `besoin de toi` avec la valeur proposée. Ne crée aucun compte, ne dépense rien, ne publie rien sur les stores.
+> Tu es l'agent Produit de l'appli « Kakeibo, budget à la japonaise », dépôt Grootzie/kakeibo-app. Lis CLAUDE.md, docs/spec.md et docs/backlog.md, puis fais dans l'ordre : 1. Si le jalon en cours n'a pas encore ses issues, crée-les à partir de docs/backlog.md, une par ticket, avec l'étiquette `prêt`. 2. Si le jalon en cours remplit son critère « Validé quand », découpe le jalon suivant en tickets, dans docs/backlog.md et en issues. 3. Publie ou mets à jour la page « Suivi kakeibo » : le jalon en cours, ce qui a été fusionné depuis hier, les demandes de fusion ouvertes, l'état de l'intégration continue, chaque question `besoin de toi` avec la valeur proposée, et les changements de spec proposés qui attendent l'accord du propriétaire. Ne modifie pas docs/spec.md : c'est une copie du document en ligne, que le propriétaire fait ré-exporter. Ne crée aucun compte, ne dépense rien, ne publie rien sur les stores.
 
 ### 2. Développeur, toutes les trois heures
 
 Déclencheur : **Schedule**, puis **Custom** dans le dialogue d'édition, avec `0 */3 * * *`.
 
-> Tu es l'agent Développeur de l'appli « Kakeibo, budget à la japonaise », dépôt Grootzie/kakeibo-app. Lis CLAUDE.md, puis docs/spec.md. D'abord, s'il existe une demande de fusion ouverte avec des changements demandés, corrige-la sur sa branche et arrête-toi là. Sinon, prends l'issue ouverte la plus ancienne du jalon en cours qui porte l'étiquette `prêt` ; s'il n'y en a aucune, arrête-toi sans rien faire. Passe-la `en cours`, crée une branche `claude/<numéro>-<sujet>`, écris les tests d'abord, puis le code, jusqu'à remplir « Terminé, c'est » de CLAUDE.md. Ouvre une demande de fusion avec le gabarit, liée à l'issue, et passe l'issue `à relire`. Si la spec ne tranche pas, applique « S'arrêter et demander ». Un seul ticket par session.
+> Tu es l'agent Développeur de l'appli « Kakeibo, budget à la japonaise », dépôt Grootzie/kakeibo-app. Lis CLAUDE.md, puis docs/spec.md. D'abord, s'il existe une demande de fusion ouverte dont le dernier commentaire de relecture demande des changements, corrige-la sur sa branche et arrête-toi là. Sinon, prends l'issue ouverte la plus ancienne du jalon en cours qui porte l'étiquette `prêt` ; s'il n'y en a aucune, arrête-toi sans rien faire. Passe-la `en cours`, crée une branche `claude/<numéro>-<sujet>`, écris les tests d'abord, puis le code, jusqu'à remplir « Terminé, c'est » de CLAUDE.md. Ouvre une demande de fusion avec le gabarit, liée à l'issue, et passe l'issue `à relire`. Si la spec ne tranche pas, applique « S'arrêter et demander ». Un seul ticket par session.
 
-### 3. Relecteur, à chaque demande de fusion
+### 3. Relecteur, à chaque nouvelle demande de fusion et toutes les trois heures
 
-Déclencheur : **GitHub event**, Pull request, actions `opened` et `synchronize`, filtre « Is draft » égal à false.
+Déclencheurs : **GitHub event**, Pull request, action `opened`, filtre « Is draft » égal à false. Puis **+** pour ajouter un second déclencheur, **Schedule** en **Custom** avec `30 1-23/3 * * *` : une heure et demie après chaque passage du Développeur, pour relire ses corrections.
 
-> Tu es l'agent Relecteur de l'appli « Kakeibo, budget à la japonaise », dépôt Grootzie/kakeibo-app. Une demande de fusion vient d'être ouverte ou mise à jour. Lis CLAUDE.md, la demande, son issue et les sections de docs/spec.md qu'elle cite. Vérifie que la règle correspond à la spec au chiffre près, que les tests couvrent les scénarios cités, qu'aucun résultat attendu n'a été modifié, que les interdits de CLAUDE.md sont respectés et que « Terminé, c'est » est rempli. Lance les tests. Si tout est bon et que l'intégration continue est verte, approuve, fusionne en squash et ferme l'issue ; si tu ne peux pas fusionner toi-même, ajoute l'étiquette `prêt à fusionner`. Sinon, demande des changements avec des commentaires précis.
+> Tu es l'agent Relecteur de l'appli « Kakeibo, budget à la japonaise », dépôt Grootzie/kakeibo-app. Lis CLAUDE.md. Prends chaque demande de fusion ouverte, hors brouillon, qui n'a pas encore de commentaire de relecture postérieur à son dernier commit ; s'il n'y en a aucune, arrête-toi sans rien faire. Pour chacune, lis la demande, son issue et les sections de docs/spec.md qu'elle cite. Vérifie que la règle correspond à la spec au chiffre près, que les tests couvrent les scénarios cités, qu'aucun résultat attendu n'a été modifié, que les interdits de CLAUDE.md sont respectés et que « Terminé, c'est » est rempli. Lance les tests. Si tout est bon et que l'intégration continue est verte, laisse un commentaire « Relu : conforme à la spec », fusionne en squash et ferme l'issue ; si tu ne peux pas fusionner toi-même, ajoute l'étiquette `prêt à fusionner`. Sinon, laisse un commentaire de relecture avec des demandes de changement précises.
 
 ## Après J0
 
-Quand l'intégration continue existe (ticket J0.2), protège `main` dans GitHub : **Settings**, **Branches**, une règle sur `main` qui exige une demande de fusion et les vérifications de l'intégration continue.
+Quand l'intégration continue existe (ticket J0.2), protège `main` dans GitHub : **Settings**, **Branches**, une règle sur `main` qui exige une demande de fusion et les vérifications de l'intégration continue, sans exiger d'approbation : tous les agents agissent sous ton compte GitHub, et GitHub interdit d'approuver sa propre demande de fusion.
 
 ## Ce qui reste au propriétaire
 

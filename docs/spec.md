@@ -1,6 +1,6 @@
 # Spécifications · appli kakeibo (V1)
 
-> Copie du [document de spécifications](https://claude.ai/artifact/71tMXdJNxRnPD14BioaLJb), exportée le 2 novembre 2026. Si les deux diffèrent, le document en ligne fait foi : l'agent Produit ré-exporte cette copie quand il change.
+> Copie du [document de spécifications](https://claude.ai/artifact/71tMXdJNxRnPD14BioaLJb), révision 829, exportée le 2 novembre 2026. Si les deux diffèrent, le document en ligne fait foi : le propriétaire fait ré-exporter cette copie quand il le change.
 
 ## Résumé
 
