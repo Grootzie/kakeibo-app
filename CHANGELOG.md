@@ -6,3 +6,4 @@
 - Projet Expo (TypeScript strict, expo-router, ESLint, Prettier, Jest) avec les dossiers de la structure du code et les scripts `typecheck`, `lint` et `test` (#1).
 - Intégration continue GitHub Actions : types, lint et tests sur chaque demande de fusion et sur `main` ; workflow d'émulateur Android avec Maestro, lancé à la main (#2).
 - Base locale : expo-sqlite, migration SQL versionnée 1 avec les neuf tables du modèle de données, exécuteur de migrations transactionnel, dépôts vides et tests (#3).
+- Textes et thème : `src/i18n/fr.ts` (vocabulaire, catégories, messages et cartes d'explication de la spec, montants à la française), thème neutre avec les couleurs et icônes des catégories, tests de typographie, de contraste et d'absence de texte en dur (#4).
