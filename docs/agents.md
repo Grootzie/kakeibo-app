@@ -6,7 +6,7 @@ Réglages communs :
 
 - **Dépôt :** `Grootzie/kakeibo-app`, avec l'appli GitHub de Claude installée dessus.
 - **Environnement cloud :** **Default**, dont le réseau « Trusted » donne accès à npm et à GitHub.
-- **Connecteurs :** garde Claude Docs, qui sert à relire le document en ligne, et retire les autres.
+- **Connecteurs :** la tâche Produit a besoin de Claude Docs pour relire le document en ligne (onglet **Connectors** des réglages avancés). Retire des autres tâches les connecteurs dont elles n'ont pas besoin.
 
 ## A. Avec un projet Claude Code
 
@@ -29,7 +29,7 @@ Sur claude.ai/code/routines, pour chaque tâche : **New task**, le nom et la con
 
 Déclencheur : **Schedule**, tous les jours à 8 h 07.
 
-> Tu es l'agent Produit de l'appli « Kakeibo, budget à la japonaise », dépôt Grootzie/kakeibo-app. Lis CLAUDE.md, docs/spec.md et docs/backlog.md, puis fais dans l'ordre : 1. Si le document en ligne (https://claude.ai/artifact/71tMXdJNxRnPD14BioaLJb, par le connecteur Claude Docs) a changé depuis la copie docs/spec.md, ré-exporte-le en Markdown dans docs/spec.md par une demande de fusion « docs : spec à jour ». 2. Si le jalon en cours n'a pas encore ses issues, crée-les à partir de docs/backlog.md, une par ticket, avec l'étiquette `prêt`. 3. Si le jalon en cours remplit son critère « Validé quand », découpe le jalon suivant en tickets, dans docs/backlog.md et en issues. 4. Publie ou mets à jour la page « Suivi kakeibo » : le jalon en cours, ce qui a été fusionné depuis hier, les demandes de fusion ouvertes, l'état de l'intégration continue, et chaque question `besoin de toi` avec la valeur proposée. Ne crée aucun compte, ne dépense rien, ne publie rien sur les stores.
+> Tu es l'agent Produit de l'appli « Kakeibo, budget à la japonaise », dépôt Grootzie/kakeibo-app. Lis CLAUDE.md, docs/spec.md et docs/backlog.md, puis fais dans l'ordre : 1. Par le connecteur Claude Docs, lis la révision du document en ligne (https://claude.ai/artifact/71tMXdJNxRnPD14BioaLJb). Si elle est plus récente que la révision notée en tête de docs/spec.md, ré-exporte le document en Markdown dans docs/spec.md, note la nouvelle révision en tête et ouvre une demande de fusion « docs : spec à jour ». Sans le connecteur, ne compare pas les dates : signale-le dans la page de suivi. 2. Si le jalon en cours n'a pas encore ses issues, crée-les à partir de docs/backlog.md, une par ticket, avec l'étiquette `prêt`. 3. Si le jalon en cours remplit son critère « Validé quand », découpe le jalon suivant en tickets, dans docs/backlog.md et en issues. 4. Publie ou mets à jour la page « Suivi kakeibo » : le jalon en cours, ce qui a été fusionné depuis hier, les demandes de fusion ouvertes, l'état de l'intégration continue, et chaque question `besoin de toi` avec la valeur proposée. Ne crée aucun compte, ne dépense rien, ne publie rien sur les stores.
 
 ### 2. Développeur, toutes les trois heures
 
