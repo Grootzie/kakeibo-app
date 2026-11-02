@@ -42,6 +42,16 @@ export const fr = {
     name: 'Kakeibo',
   },
 
+  dev: {
+    horlogeTitre: 'Horloge de test',
+    horlogeEtat: (jours: number) => `Décalage : ${jours} jour${jours > 1 ? 's' : ''}`,
+    plusUnJour: '+1 jour',
+    plusUneSemaine: '+1 semaine',
+    plusUnMois: '+1 mois',
+    reinitialiser: 'Réinitialiser',
+    libelleOuvrir: 'Ouvrir l’horloge de test',
+  },
+
   vocabulaire: {
     noter: 'Noter',
     cloturer: 'Clôturer',
