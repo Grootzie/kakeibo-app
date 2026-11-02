@@ -7,3 +7,5 @@ coverage/
 .env
 .env.*
 .DS_Store
+.expo/
+expo-env.d.ts
