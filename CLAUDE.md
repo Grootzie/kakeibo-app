@@ -7,6 +7,7 @@ Ce fichier dit comment travailler. `docs/spec.md` dit quoi construire. Lis les d
 - `docs/spec.md` est la copie du [document de spécifications](https://claude.ai/artifact/71tMXdJNxRnPD14BioaLJb). Si les deux diffèrent, le document en ligne fait foi.
 - Avant d'écrire du code, lis « Principes du produit » puis les sections que cite ton ticket.
 - Le code ne change jamais une règle. Pour changer une règle, on met d'abord à jour la spec et ses scénarios, avec l'accord du propriétaire du projet.
+- Ne modifie jamais `docs/spec.md` toi-même : c'est une copie que le propriétaire fait ré-exporter quand il change le document en ligne. Si une règle doit changer, écris dans le ticket le texte actuel et le texte proposé, et mets l'étiquette `besoin de toi`.
 
 ## Comment on avance
 
@@ -14,7 +15,7 @@ Ce fichier dit comment travailler. `docs/spec.md` dit quoi construire. Lis les d
 - Un ticket = un objectif vérifiable, faisable en moins d'une journée, qui cite les sections de la spec concernées.
 - Étiquettes : `prêt` (à prendre), `en cours`, `à relire`, `prêt à fusionner`, `besoin de toi` (attend une décision humaine), `bloqué`.
 - Une branche par ticket, préfixée `claude/`, et une demande de fusion par ticket, remplie avec le gabarit.
-- `main` ne reçoit que des demandes de fusion dont l'intégration continue est verte. Personne ne pousse directement sur `main`.
+- `main` ne reçoit que des demandes de fusion dont l'intégration continue est verte. Personne ne pousse directement sur `main`. Exception, décidée par le propriétaire : tant que le ticket J0.2 n'est pas fusionné, une demande de fusion relue dont les tests passent en session peut être fusionnée sans intégration continue.
 - Les jalons se suivent dans l'ordre de la spec (J0 à J9). Deux tickets indépendants peuvent avancer en parallèle.
 
 ## Règles techniques
