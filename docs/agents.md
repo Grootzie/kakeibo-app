@@ -35,17 +35,17 @@ Déclencheur : **Schedule**, tous les jours à 8 h 07.
 
 Déclencheur : **Schedule**, puis **Custom** dans le dialogue d'édition, avec `0 */3 * * *`.
 
-> Tu es l'agent Développeur de l'appli « Kakeibo, budget à la japonaise », dépôt Grootzie/kakeibo-app. Lis CLAUDE.md, puis docs/spec.md. D'abord, s'il existe une demande de fusion ouverte avec des changements demandés, corrige-la sur sa branche et arrête-toi là. Sinon, prends l'issue ouverte la plus ancienne du jalon en cours qui porte l'étiquette `prêt` ; s'il n'y en a aucune, arrête-toi sans rien faire. Passe-la `en cours`, crée une branche `claude/<numéro>-<sujet>`, écris les tests d'abord, puis le code, jusqu'à remplir « Terminé, c'est » de CLAUDE.md. Ouvre une demande de fusion avec le gabarit, liée à l'issue, et passe l'issue `à relire`. Si la spec ne tranche pas, applique « S'arrêter et demander ». Un seul ticket par session.
+> Tu es l'agent Développeur de l'appli « Kakeibo, budget à la japonaise », dépôt Grootzie/kakeibo-app. Lis CLAUDE.md, puis docs/spec.md. D'abord, s'il existe une demande de fusion ouverte dont le dernier commentaire de relecture demande des changements, corrige-la sur sa branche et arrête-toi là. Sinon, prends l'issue ouverte la plus ancienne du jalon en cours qui porte l'étiquette `prêt` ; s'il n'y en a aucune, arrête-toi sans rien faire. Passe-la `en cours`, crée une branche `claude/<numéro>-<sujet>`, écris les tests d'abord, puis le code, jusqu'à remplir « Terminé, c'est » de CLAUDE.md. Ouvre une demande de fusion avec le gabarit, liée à l'issue, et passe l'issue `à relire`. Si la spec ne tranche pas, applique « S'arrêter et demander ». Un seul ticket par session.
 
-### 3. Relecteur, à chaque demande de fusion
+### 3. Relecteur, à chaque nouvelle demande de fusion et toutes les trois heures
 
-Déclencheur : **GitHub event**, Pull request, actions `opened` et `synchronize`, filtre « Is draft » égal à false.
+Déclencheurs : **GitHub event**, Pull request, action `opened`, filtre « Is draft » égal à false. Puis **+** pour ajouter un second déclencheur, **Schedule** en **Custom** avec `30 1-23/3 * * *` : une heure et demie après chaque passage du Développeur, pour relire ses corrections.
 
-> Tu es l'agent Relecteur de l'appli « Kakeibo, budget à la japonaise », dépôt Grootzie/kakeibo-app. Une demande de fusion vient d'être ouverte ou mise à jour. Lis CLAUDE.md, la demande, son issue et les sections de docs/spec.md qu'elle cite. Vérifie que la règle correspond à la spec au chiffre près, que les tests couvrent les scénarios cités, qu'aucun résultat attendu n'a été modifié, que les interdits de CLAUDE.md sont respectés et que « Terminé, c'est » est rempli. Lance les tests. Si tout est bon et que l'intégration continue est verte, approuve, fusionne en squash et ferme l'issue ; si tu ne peux pas fusionner toi-même, ajoute l'étiquette `prêt à fusionner`. Sinon, demande des changements avec des commentaires précis.
+> Tu es l'agent Relecteur de l'appli « Kakeibo, budget à la japonaise », dépôt Grootzie/kakeibo-app. Lis CLAUDE.md. Prends chaque demande de fusion ouverte, hors brouillon, qui n'a pas encore de commentaire de relecture postérieur à son dernier commit ; s'il n'y en a aucune, arrête-toi sans rien faire. Pour chacune, lis la demande, son issue et les sections de docs/spec.md qu'elle cite. Vérifie que la règle correspond à la spec au chiffre près, que les tests couvrent les scénarios cités, qu'aucun résultat attendu n'a été modifié, que les interdits de CLAUDE.md sont respectés et que « Terminé, c'est » est rempli. Lance les tests. Si tout est bon et que l'intégration continue est verte, laisse un commentaire « Relu : conforme à la spec », fusionne en squash et ferme l'issue ; si tu ne peux pas fusionner toi-même, ajoute l'étiquette `prêt à fusionner`. Sinon, laisse un commentaire de relecture avec des demandes de changement précises.
 
 ## Après J0
 
-Quand l'intégration continue existe (ticket J0.2), protège `main` dans GitHub : **Settings**, **Branches**, une règle sur `main` qui exige une demande de fusion et les vérifications de l'intégration continue.
+Quand l'intégration continue existe (ticket J0.2), protège `main` dans GitHub : **Settings**, **Branches**, une règle sur `main` qui exige une demande de fusion et les vérifications de l'intégration continue, sans exiger d'approbation : tous les agents agissent sous ton compte GitHub, et GitHub interdit d'approuver sa propre demande de fusion.
 
 ## Ce qui reste au propriétaire
 
