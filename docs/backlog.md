@@ -12,6 +12,10 @@ Validé quand : l'appli démarre sur l'émulateur Android et en version web, int
 - **J0.4 · Textes et thème.** `src/i18n/fr.ts` et thème neutre avec les couleurs des catégories. Sections : Textes et ton, Fiche des visuels.
 - **J0.5 · Horloge de test.** Réglage caché des builds de développement qui avance l'heure. Sections : Horloge de test.
 
+- **J0.6 · Démarrage vérifié.** Export web vérifié dans l'intégration continue, premier passage de l'émulateur Android avec un APK de développement. Ajouté par décision du propriétaire (#12) : à traiter en parallèle de J1, fusionné avant le premier ticket de J2. Sections : Architecture technique, Choix techniques.
+
+Statut : J0.1 à J0.5 fusionnés, J0 validé par le propriétaire le 2026-11-03 (#12). Issues : J0.6 = #13, J1.0 à J1.8 = #14 à #22.
+
 ## J1 · Règles du jeu
 
 Validé quand : les 23 scénarios passent, sans dépendance à l'interface. Tout se passe dans `src/domain`.
