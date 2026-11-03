@@ -18,6 +18,22 @@ describe('intégration continue', () => {
     expect(ci).toMatch(/npm test/);
   });
 
+  it("exporte la version web, et l'intégration continue échoue si l'export échoue", () => {
+    expect(ci).toMatch(/npm run export:web/);
+    expect(ci).not.toMatch(/continue-on-error/);
+    expect(readFileSync(join(__dirname, '..', 'package.json'), 'utf8')).toMatch(
+      /"export:web": "expo export --platform web"/,
+    );
+  });
+
+  it("construit un APK de développement sans compte avant de lancer l'émulateur", () => {
+    const android = lire('android.yml');
+    expect(android).toMatch(/expo prebuild --platform android/);
+    expect(android).toMatch(/assembleRelease/);
+    expect(android).toMatch(/adb install/);
+    expect(android).toMatch(/needs: apk/);
+  });
+
   it("prévoit l'émulateur Android, lancé à la demande", () => {
     const android = lire('android.yml');
     expect(android).toMatch(/workflow_dispatch:/);

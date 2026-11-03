@@ -8,3 +8,4 @@
 - Base locale : expo-sqlite, migration SQL versionnée 1 avec les neuf tables du modèle de données, exécuteur de migrations transactionnel, dépôts vides et tests (#3).
 - Textes et thème : `src/i18n/fr.ts` (vocabulaire, catégories, messages et cartes d'explication de la spec, montants à la française), thème neutre avec les couleurs et icônes des catégories, tests de typographie, de contraste et d'absence de texte en dur (#4).
 - Horloge de test : réglage caché des builds de développement (appui long sur le titre) qui avance l’heure d’un jour, d’une semaine ou d’un mois ; inactif dans les builds publiés ; le domaine ne la lit jamais (#5).
+- Démarrage vérifié : l’intégration continue exporte la version web et échoue si l’export échoue ; le workflow « Émulateur Android » construit un APK de développement (sans compte ni dépense), l’installe, lance l’appli et capture l’écran d’accueil (#13).

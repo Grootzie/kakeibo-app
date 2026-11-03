@@ -1,5 +1,6 @@
 # Émulateur Android pour les parcours Maestro et les captures d'écran.
-# Lancé à la main tant qu'il n'y a ni build Android ni parcours dans e2e/.
+# Lancé à la main. Sans chemin d'APK, construit lui-même un APK de développement
+# (expo prebuild + Gradle, signé avec la clé de débogage : ni compte Expo/EAS, ni dépense).
 # Maestro est libre et gratuit ; aucun secret, aucun service en ligne.
 name: Émulateur Android
 
@@ -7,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       apk:
-        description: "Chemin de l'APK à installer (vide : seulement démarrer l'émulateur)"
+        description: "Chemin d'un APK déjà construit (vide : en construire un de développement)"
         required: false
         default: ''
 
@@ -15,7 +16,35 @@ permissions:
   contents: read
 
 jobs:
+  apk:
+    name: APK de développement
+    if: ${{ inputs.apk == '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm ci
+      - name: Projet Android natif
+        run: npx expo prebuild --platform android --no-install
+      - name: Construire l'APK
+        run: ./gradlew assembleRelease --no-daemon
+        working-directory: android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-developpement
+          path: android/app/build/outputs/apk/release/app-release.apk
+
   parcours:
+    needs: apk
+    if: ${{ !cancelled() && (needs.apk.result == 'success' || needs.apk.result == 'skipped') }}
     name: Parcours Maestro et captures
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -25,6 +54,11 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+      - uses: actions/download-artifact@v4
+        if: ${{ inputs.apk == '' }}
+        with:
+          name: apk-developpement
+          path: apk
       - name: Activer KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -42,7 +76,10 @@ jobs:
           profile: pixel_6
           script: |
             mkdir -p captures
-            if [ -n "${{ inputs.apk }}" ]; then adb install "${{ inputs.apk }}"; fi
+            APK="${{ inputs.apk }}"; [ -n "$APK" ] || APK=apk/app-release.apk
+            adb install "$APK"
+            adb shell monkey -p app.kakeibo -c android.intent.category.LAUNCHER 1
+            sleep 20
             if ls e2e/*.yaml >/dev/null 2>&1; then maestro test e2e --format junit --output captures/maestro.xml; else echo "Aucun parcours dans e2e/"; fi
             adb exec-out screencap -p > captures/ecran.png
       - uses: actions/upload-artifact@v4

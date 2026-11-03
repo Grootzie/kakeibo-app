@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   verifier:
-    name: Types, lint et tests
+    name: Types, lint, tests et export web
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -30,3 +30,5 @@ jobs:
         run: npm run lint
       - name: Tests
         run: npm test -- --ci
+      - name: Export web
+        run: npm run export:web
