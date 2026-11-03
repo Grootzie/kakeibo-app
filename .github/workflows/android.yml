@@ -70,13 +70,15 @@ jobs:
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
       - name: Émulateur, parcours et captures
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          # Chaque ligne du script s'exécute dans son propre shell : le chemin passe par l'environnement.
+          APK: ${{ inputs.apk || 'apk/app-release.apk' }}
         with:
           api-level: 34
           arch: x86_64
           profile: pixel_6
           script: |
             mkdir -p captures
-            APK="${{ inputs.apk }}"; [ -n "$APK" ] || APK=apk/app-release.apk
             adb install "$APK"
             adb shell monkey -p app.kakeibo -c android.intent.category.LAUNCHER 1
             sleep 20
