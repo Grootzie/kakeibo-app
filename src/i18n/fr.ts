@@ -71,6 +71,8 @@ export const fr = {
   },
 
   accueil: {
+    noterDepense: 'Noter une dépense',
+    noterDepenseLibelle: 'Noter une dépense',
     reste: (centimes: number, jusqua: string) =>
       `Il te reste ${formatEuros(centimes)} jusqu’à ${jusqua}`,
     depassement: (centimes: number) => `Tu as dépassé de ${formatEuros(centimes)} cette semaine`,

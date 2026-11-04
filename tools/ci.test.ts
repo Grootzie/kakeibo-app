@@ -34,9 +34,10 @@ describe('intégration continue', () => {
     expect(android).toMatch(/needs: apk/);
   });
 
-  it("prévoit l'émulateur Android, lancé à la demande", () => {
+  it("prévoit l'émulateur Android, lancé sur chaque demande de fusion et à la demande", () => {
     const android = lire('android.yml');
     expect(android).toMatch(/workflow_dispatch:/);
+    expect(android).toMatch(/pull_request:/);
     expect(android).toMatch(/android-emulator-runner/);
     expect(android).toMatch(/maestro/i);
   });

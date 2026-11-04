@@ -1,10 +1,11 @@
 # Émulateur Android pour les parcours Maestro et les captures d'écran.
-# Lancé à la main. Sans chemin d'APK, construit lui-même un APK de développement
+# Lancé sur chaque demande de fusion (il doit être vert avant fusion) et à la main. Sans chemin d'APK, construit lui-même un APK de développement
 # (expo prebuild + Gradle, signé avec la clé de débogage : ni compte Expo/EAS, ni dépense).
 # Maestro est libre et gratuit ; aucun secret, aucun service en ligne.
 name: Émulateur Android
 
 on:
+  pull_request:
   workflow_dispatch:
     inputs:
       apk:
@@ -14,6 +15,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   apk:

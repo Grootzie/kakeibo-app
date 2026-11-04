@@ -1,0 +1,7 @@
+# Parcours de démarrage : l'écran d'accueil affiche le bouton « Noter une dépense ».
+# Échoue si le texte est absent (écran blanc, erreur, lanceur Android).
+appId: app.kakeibo
+---
+- launchApp
+- assertVisible: 'Noter une dépense'
+- takeScreenshot: captures/accueil
