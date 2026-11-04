@@ -13,3 +13,4 @@
 - Le workflow « Émulateur Android » se lance sur chaque demande de fusion : il prouve le critère d’affichage de l’accueil et doit être vert avant fusion (#13).
 - Les 23 scénarios de la spec écrits en tests « à faire » dans `src/domain`, un fichier par groupe de règles, avec un garde-fou qui vérifie que chaque numéro figure une fois (#14).
 - Calendrier du domaine : jours, semaines ISO 8601, jours décomptés, mois d'une semaine (celui de son jeudi) et emplacements des mois de 4 ou 5 semaines ; scénario 20 activé, partie calendrier du scénario 7 testée (#15).
+- Budget et enveloppe du domaine : budget du mois, versions du budget (jamais écrasées), dépenses récurrentes et leurs échéances, enveloppe d’une semaine au prorata exact arrondi une fois, dépensé de la semaine ; scénarios 8, 16 et 23 activés (#16).
