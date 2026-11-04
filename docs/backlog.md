@@ -25,6 +25,7 @@ Validé quand : les 24 scénarios passent, sans dépendance à l'interface. Tout
 - **J1.6 · Fêlure et réparation.** Objet qui se fêle, file de réparation, réparation à l'or. Scénarios 2, 4, 10, 11, 12, 13 et 22.
 - **J1.7 · Bilan du mois.** Les quatre questions. Scénario 17.
 - **J1.8 · Ordre de traitement.** `process` : enchaînement des règles, retour après une longue absence. Scénarios 14 et 15.
+- **J1.9 · Reconduction du budget (suite de J1.2).** Test du scénario 24 (révision 833) et garde-fou à 24 scénarios. Le mois sans version reprend la version en vigueur la plus récente. Sections : Scénarios de test, Budget et enveloppe.
 
 ## Ensuite
 
