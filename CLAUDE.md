@@ -35,6 +35,7 @@ Ce fichier dit comment travailler. `docs/spec.md` dit quoi construire. Lis les d
 - Textes dans `src/i18n/fr.ts`, libellés d'accessibilité présents.
 - Toute nouvelle mécanique a son explication de première fois et sa fiche dans Comprendre.
 - Entrée ajoutée à `CHANGELOG.md`.
+- Chaque critère d’un ticket est prouvé par un test automatique ou vérifié par l’agent lui-même, capture regardée et décrite dans la demande de fusion. Un critère invérifiable bloque la fusion : on ne fusionne pas avec une réserve. (Règle décidée par le propriétaire. Il ne valide que les visuels, les versions et les dépenses.)
 
 ## S'arrêter et demander
 

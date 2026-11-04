@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { fr } from '@/i18n/fr';
 import { HorlogeDev } from '@/ui/HorlogeDev';
 import { theme } from '@/ui/theme';
@@ -22,6 +22,13 @@ export default function Home() {
       >
         {fr.app.name}
       </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={fr.accueil.noterDepenseLibelle}
+        style={{ marginTop: 24, padding: 16 }}
+      >
+        <Text style={{ color: theme.couleurs.texte }}>{fr.accueil.noterDepense}</Text>
+      </Pressable>
       {horlogeVisible && <HorlogeDev />}
     </View>
   );
