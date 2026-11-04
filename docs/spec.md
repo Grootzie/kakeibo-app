@@ -1,6 +1,6 @@
 # Spécifications · appli kakeibo (V1)
 
-> Copie du [document de spécifications](https://claude.ai/artifact/71tMXdJNxRnPD14BioaLJb), révision 829, exportée le 2 novembre 2026. Si les deux diffèrent, le document en ligne fait foi : le propriétaire fait ré-exporter cette copie quand il le change.
+> Copie du [document de spécifications](https://claude.ai/artifact/71tMXdJNxRnPD14BioaLJb), révision 833, exportée le 4 novembre 2026. Si les deux diffèrent, le document en ligne fait foi : le propriétaire fait ré-exporter cette copie quand il le change.
 
 ## Résumé
 
@@ -154,6 +154,7 @@ Toutes les règles sont des fonctions pures du domaine (voir Architecture). Les 
 - **Budget du mois** = revenus − charges fixes − épargne visée, en centimes, strictement positif.
 - **Enveloppe d'une semaine** = somme, pour chacun de ses jours décomptés, du budget du mois de ce jour divisé par le nombre de jours de ce mois. Calcul exact, arrondi au centime le plus proche à la fin.
 - **Budget pris en compte :** la version du budget en vigueur le lundi 00:00 de la semaine. Un changement de budget s'applique à l'enveloppe à partir de la semaine suivante.
+- **Mois sans version de budget :** si le mois d'un jour décompté n'a aucune version de budget, l'enveloppe de ce jour utilise la version en vigueur la plus récente, tous mois confondus (reconduction).
 - **Dépensé de la semaine :** somme des dépenses datées des jours de la semaine.
 - **Dans le budget :** dépensé ≤ enveloppe. Le reste affiché vaut enveloppe − dépensé et peut être négatif.
 - **Dépenses récurrentes :** loyer, abonnements et autres charges qui reviennent chaque semaine ou chaque mois (montant, fréquence, jour). Ce sont des charges fixes : la somme de leurs échéances du mois donne les charges fixes du budget, et elles n'entrent ni dans l'enveloppe ni dans le dépensé. Le montant saisi en E1 devient une première charge mensuelle, « Charges fixes », à détailler ensuite ; chaque changement crée une nouvelle version du budget.
@@ -232,7 +233,7 @@ Après une semaine incomplète, la maison garde au moins le niveau 1 jusqu'à la
 
 ## Scénarios de test
 
-Ces 23 scénarios deviennent des tests automatisés du domaine avant toute implémentation ; un ticket qui en casse un n'est pas terminé. Contexte commun :
+Ces 24 scénarios deviennent des tests automatisés du domaine avant toute implémentation ; un ticket qui en casse un n'est pas terminé. Contexte commun :
 
 - Installation le lundi 2 novembre 2026.
 - Budget de novembre et de décembre 2026 : revenus 2 000 €, charges fixes 1 100 €, épargne visée 300 €, donc 600 € par mois.
@@ -264,6 +265,7 @@ Ces 23 scénarios deviennent des tests automatisés du domaine avant toute impl�
 | 21 | Semaine 53 complète ; le dimanche 3 janvier est rattrapé le lundi 4 janvier 2027 à 10:00 | La maison 2027 a démarré le lundi 4 à 00:00 : pièce de janvier, ses 3 objets de base, file de réparation vide. L'objet de la semaine 53 entre dans la pièce de décembre de la maison 2026, dans l'album |
 | 22 | Semaines 45 à 47 complètes et dans le budget (objets A, B et C) ; semaine 48 : 7 tampons, hors budget | L'objet D sort de sa capsule et C se fêle : l'objet gagné au même bilan ne se fêle jamais |
 | 23 | Le mardi 3 novembre, ajout d'un abonnement de 12 € le 15 de chaque mois | Nouvelle version du budget : charges fixes de 1 112 €, budget de novembre de 588 €. Semaine 45 inchangée (140 €), semaine 46 à 137,20 €. L'échéance du 15 n'entre pas dans le dépensé |
+| 24 | Semaine du lundi 30 novembre au dimanche 6 décembre, aucune version de budget pour décembre | Décembre reprend la version de novembre (600 €) : enveloppe de 136,13 €, comme au 8 |
 
 ## Modèle de données
 
@@ -557,7 +559,7 @@ Cinq agents se partagent le travail ; tu interviens à trois moments seulement, 
 ### Définition de « terminé »
 
 - [ ] Vérification des types, lint et tests au vert
-- [ ] Les 23 scénarios des règles passent
+- [ ] Les 24 scénarios des règles passent
 - [ ] Captures des écrans modifiés jointes : émulateur Android dans l'intégration continue, iPhone pendant la bêta
 - [ ] Textes dans src/i18n/fr.ts, libellés d'accessibilité présents
 - [ ] Toute nouvelle mécanique a son explication de première fois et sa fiche dans Comprendre
@@ -578,7 +580,7 @@ Dix jalons mènent à la sortie ; la maison et les bilans avancent en parallèle
 | Jalon | Contenu | Validé quand | Après |
 | --- | --- | --- | --- |
 | J0 · Socle | Projet Expo, TypeScript strict, intégration continue, SQLite et migrations, fichier de textes, thème neutre, horloge de test | L'appli démarre sur iPhone et Android, intégration continue verte | — |
-| J1 · Règles | Tout src/domain | Les 23 scénarios passent, sans dépendance à l'interface | J0 |
+| J1 · Règles | Tout src/domain | Les 24 scénarios passent, sans dépendance à l'interface | J0 |
 | J2 · Saisie et clôture | E2 sans maison, E3, E4, E5, rappel du soir | Parcours « journée type » et « rattrapage » au vert | J1 |
 | J3 · Bilans | E6, E7, scellement, file de réparation | Parcours « semaine parfaite » et « semaine hors budget » au vert avec l'horloge de test | J2 |
 | J4 · Maison | Rendu de la scène, catalogue, états, poussière, capsule, album, E8, visuels provisoires | Captures des 3 états d'objet et des 3 niveaux de poussière | J1 |
