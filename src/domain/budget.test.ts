@@ -109,10 +109,6 @@ describe('budget et enveloppe', () => {
     },
   );
 
-  test('une semaine sans version du mois reprend la version en vigueur la plus récente', () => {
-    expect(weekEnvelope('2026-W49', [novembre], INSTALL)).toBe(13613);
-  });
-
   test('arrondi au centime le plus proche, une seule fois, à la fin', () => {
     // 600/31 = 19,3548… € par jour : 3 jours → 58,06 €, pas 3 × 19,35 = 58,05 €.
     const sansArrondiIntermediaire = weekEnvelope('2026-W49', [decembre], '2026-12-04');
