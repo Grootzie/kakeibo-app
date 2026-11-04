@@ -2,6 +2,7 @@
 
 ## Non publié
 
+- Spec, révision 833 : un mois sans version de budget reprend la version en vigueur la plus récente (scénario 24).
 - Mise en place du dépôt : spécifications, règles des agents, découpage des jalons J0 et J1.
 - Projet Expo (TypeScript strict, expo-router, ESLint, Prettier, Jest) avec les dossiers de la structure du code et les scripts `typecheck`, `lint` et `test` (#1).
 - Intégration continue GitHub Actions : types, lint et tests sur chaque demande de fusion et sur `main` ; workflow d'émulateur Android avec Maestro, lancé à la main (#2).
@@ -15,3 +16,4 @@
 - Calendrier du domaine : jours, semaines ISO 8601, jours décomptés, mois d'une semaine (celui de son jeudi) et emplacements des mois de 4 ou 5 semaines ; scénario 20 activé, partie calendrier du scénario 7 testée (#15).
 - Budget et enveloppe du domaine : budget du mois, versions du budget (jamais écrasées), dépenses récurrentes et leurs échéances, enveloppe d’une semaine au prorata exact arrondi une fois, dépensé de la semaine ; scénarios 8, 16 et 23 activés (#16).
 - Objets et pièces du domaine : catalogue JSON des 12 pièces, 36 objets de base et 59 objets à gagner (noms du tableau de la spec), objet suivant sans hasard selon les emplacements du mois, objet de la semaine, objet en attente d’une pièce non débloquée, déblocage par le bilan du mois (mois sautés compris), nouvelle année et album ; scénarios 18 et 21 activés, scénarios 17 (déblocage) et 20 (emplacements) couverts (#18).
+- Clôture et scellement du domaine : clôtures acceptées ou refusées (avant l’installation, jour futur, déjà clôturé, semaine scellée), délai de grâce du lundi 12:00, moment de scellement, semaines à sceller dans l’ordre, résultat d’une semaine (capsule, fêlure, drapeau « complète » lu par la poussière), résultat figé après modification d’une dépense ; scénarios 1, 3, 5, 6, 7, 15 et 19 activés (#17).
