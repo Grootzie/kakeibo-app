@@ -1,0 +1,731 @@
+{
+  "rooms": [
+    {
+      "id": "room-01",
+      "month": 1,
+      "name": "Genkan, l’entrée"
+    },
+    {
+      "id": "room-02",
+      "month": 2,
+      "name": "Chanoma, la salle commune"
+    },
+    {
+      "id": "room-03",
+      "month": 3,
+      "name": "Washitsu, la salle de tatamis"
+    },
+    {
+      "id": "room-04",
+      "month": 4,
+      "name": "Niwa, le jardin"
+    },
+    {
+      "id": "room-05",
+      "month": 5,
+      "name": "Furoba, la salle de bain"
+    },
+    {
+      "id": "room-06",
+      "month": 6,
+      "name": "Daidokoro, la cuisine"
+    },
+    {
+      "id": "room-07",
+      "month": 7,
+      "name": "Shosai, le bureau"
+    },
+    {
+      "id": "room-08",
+      "month": 8,
+      "name": "Engawa, la véranda"
+    },
+    {
+      "id": "room-09",
+      "month": 9,
+      "name": "Chashitsu, le pavillon de thé"
+    },
+    {
+      "id": "room-10",
+      "month": 10,
+      "name": "Irori-no-ma, la salle du foyer"
+    },
+    {
+      "id": "room-11",
+      "month": 11,
+      "name": "Kura, la réserve"
+    },
+    {
+      "id": "room-12",
+      "month": 12,
+      "name": "Doma, la salle en terre battue"
+    }
+  ],
+  "items": [
+    {
+      "id": "porte-coulissante",
+      "room": "room-01",
+      "rank": 1,
+      "source": "base",
+      "name": "porte coulissante"
+    },
+    {
+      "id": "meuble-a-chaussures",
+      "room": "room-01",
+      "rank": 2,
+      "source": "base",
+      "name": "meuble à chaussures"
+    },
+    {
+      "id": "porte-parapluies",
+      "room": "room-01",
+      "rank": 3,
+      "source": "base",
+      "name": "porte-parapluies"
+    },
+    {
+      "id": "kadomatsu",
+      "room": "room-01",
+      "rank": 1,
+      "source": "weekly",
+      "name": "kadomatsu"
+    },
+    {
+      "id": "shimekazari",
+      "room": "room-01",
+      "rank": 2,
+      "source": "weekly",
+      "name": "shimekazari"
+    },
+    {
+      "id": "kagami-mochi",
+      "room": "room-01",
+      "rank": 3,
+      "source": "weekly",
+      "name": "kagami-mochi"
+    },
+    {
+      "id": "daruma",
+      "room": "room-01",
+      "rank": 4,
+      "source": "weekly",
+      "name": "daruma"
+    },
+    {
+      "id": "raquette-hagoita",
+      "room": "room-01",
+      "rank": 5,
+      "source": "weekly",
+      "name": "raquette hagoita"
+    },
+    {
+      "id": "kotatsu",
+      "room": "room-02",
+      "rank": 1,
+      "source": "base",
+      "name": "kotatsu"
+    },
+    {
+      "id": "coussins-zabuton",
+      "room": "room-02",
+      "rank": 2,
+      "source": "base",
+      "name": "coussins zabuton"
+    },
+    {
+      "id": "commode-tansu",
+      "room": "room-02",
+      "rank": 3,
+      "source": "base",
+      "name": "commode tansu"
+    },
+    {
+      "id": "haricots-grilles-dans-leur-boite",
+      "room": "room-02",
+      "rank": 1,
+      "source": "weekly",
+      "name": "haricots grillés dans leur boîte"
+    },
+    {
+      "id": "masque-d-oni",
+      "room": "room-02",
+      "rank": 2,
+      "source": "weekly",
+      "name": "masque d’oni"
+    },
+    {
+      "id": "masque-d-otafuku",
+      "room": "room-02",
+      "rank": 3,
+      "source": "weekly",
+      "name": "masque d’Otafuku"
+    },
+    {
+      "id": "branche-de-prunier-en-fleur",
+      "room": "room-02",
+      "rank": 4,
+      "source": "weekly",
+      "name": "branche de prunier en fleur"
+    },
+    {
+      "id": "tatamis",
+      "room": "room-03",
+      "rank": 1,
+      "source": "base",
+      "name": "tatamis"
+    },
+    {
+      "id": "shoji",
+      "room": "room-03",
+      "rank": 2,
+      "source": "base",
+      "name": "shōji"
+    },
+    {
+      "id": "table-basse",
+      "room": "room-03",
+      "rank": 3,
+      "source": "base",
+      "name": "table basse"
+    },
+    {
+      "id": "poupees-de-l-empereur-et-de-l-imperatrice",
+      "room": "room-03",
+      "rank": 1,
+      "source": "weekly",
+      "name": "poupées de l’empereur et de l’impératrice"
+    },
+    {
+      "id": "lampes-bonbori",
+      "room": "room-03",
+      "rank": 2,
+      "source": "weekly",
+      "name": "lampes bonbori"
+    },
+    {
+      "id": "gateaux-hishi-mochi",
+      "room": "room-03",
+      "rank": 3,
+      "source": "weekly",
+      "name": "gâteaux hishi-mochi"
+    },
+    {
+      "id": "branche-de-pecher-en-fleur",
+      "room": "room-03",
+      "rank": 4,
+      "source": "weekly",
+      "name": "branche de pêcher en fleur"
+    },
+    {
+      "id": "paravent-dore",
+      "room": "room-03",
+      "rank": 5,
+      "source": "weekly",
+      "name": "paravent doré"
+    },
+    {
+      "id": "gravier-ratisse",
+      "room": "room-04",
+      "rank": 1,
+      "source": "base",
+      "name": "gravier ratissé"
+    },
+    {
+      "id": "palissade-de-bambou",
+      "room": "room-04",
+      "rank": 2,
+      "source": "base",
+      "name": "palissade de bambou"
+    },
+    {
+      "id": "pas-japonais",
+      "room": "room-04",
+      "rank": 3,
+      "source": "base",
+      "name": "pas japonais"
+    },
+    {
+      "id": "cerisier",
+      "room": "room-04",
+      "rank": 1,
+      "source": "weekly",
+      "name": "cerisier"
+    },
+    {
+      "id": "lanterne-de-pierre",
+      "room": "room-04",
+      "rank": 2,
+      "source": "weekly",
+      "name": "lanterne de pierre"
+    },
+    {
+      "id": "brochettes-de-dango-tricolores",
+      "room": "room-04",
+      "rank": 3,
+      "source": "weekly",
+      "name": "brochettes de dango tricolores"
+    },
+    {
+      "id": "coupelles-de-sake",
+      "room": "room-04",
+      "rank": 4,
+      "source": "weekly",
+      "name": "coupelles de saké"
+    },
+    {
+      "id": "lanternes-de-papier",
+      "room": "room-04",
+      "rank": 5,
+      "source": "weekly",
+      "name": "lanternes de papier"
+    },
+    {
+      "id": "baignoire-en-hinoki",
+      "room": "room-05",
+      "rank": 1,
+      "source": "base",
+      "name": "baignoire en hinoki"
+    },
+    {
+      "id": "seau-et-tabouret-en-bois",
+      "room": "room-05",
+      "rank": 2,
+      "source": "base",
+      "name": "seau et tabouret en bois"
+    },
+    {
+      "id": "panier-a-vetements",
+      "room": "room-05",
+      "rank": 3,
+      "source": "base",
+      "name": "panier à vêtements"
+    },
+    {
+      "id": "feuilles-d-iris-du-bain-shobu-yu",
+      "room": "room-05",
+      "rank": 1,
+      "source": "weekly",
+      "name": "feuilles d’iris du bain shōbu-yu"
+    },
+    {
+      "id": "casque-de-samourai-en-papier-plie",
+      "room": "room-05",
+      "rank": 2,
+      "source": "weekly",
+      "name": "casque de samouraï en papier plié"
+    },
+    {
+      "id": "petites-carpes-koinobori",
+      "room": "room-05",
+      "rank": 3,
+      "source": "weekly",
+      "name": "petites carpes koinobori"
+    },
+    {
+      "id": "serviette-tenugui",
+      "room": "room-05",
+      "rank": 4,
+      "source": "weekly",
+      "name": "serviette tenugui"
+    },
+    {
+      "id": "pistolet-a-eau-en-bambou",
+      "room": "room-05",
+      "rank": 5,
+      "source": "weekly",
+      "name": "pistolet à eau en bambou"
+    },
+    {
+      "id": "fourneau-kamado",
+      "room": "room-06",
+      "rank": 1,
+      "source": "base",
+      "name": "fourneau kamado"
+    },
+    {
+      "id": "plan-de-travail",
+      "room": "room-06",
+      "rank": 2,
+      "source": "base",
+      "name": "plan de travail"
+    },
+    {
+      "id": "etagere-a-bols",
+      "room": "room-06",
+      "rank": 3,
+      "source": "base",
+      "name": "étagère à bols"
+    },
+    {
+      "id": "bocal-d-umeshu",
+      "room": "room-06",
+      "rank": 1,
+      "source": "weekly",
+      "name": "bocal d’umeshu"
+    },
+    {
+      "id": "teru-teru-bozu",
+      "room": "room-06",
+      "rank": 2,
+      "source": "weekly",
+      "name": "teru teru bōzu"
+    },
+    {
+      "id": "hortensias",
+      "room": "room-06",
+      "rank": 3,
+      "source": "weekly",
+      "name": "hortensias"
+    },
+    {
+      "id": "grenouille-porte-bonheur",
+      "room": "room-06",
+      "rank": 4,
+      "source": "weekly",
+      "name": "grenouille porte-bonheur"
+    },
+    {
+      "id": "ombrelle-en-papier-huile",
+      "room": "room-06",
+      "rank": 5,
+      "source": "weekly",
+      "name": "ombrelle en papier huilé"
+    },
+    {
+      "id": "bureau-bas",
+      "room": "room-07",
+      "rank": 1,
+      "source": "base",
+      "name": "bureau bas"
+    },
+    {
+      "id": "bibliotheque",
+      "room": "room-07",
+      "rank": 2,
+      "source": "base",
+      "name": "bibliothèque"
+    },
+    {
+      "id": "lampe-andon",
+      "room": "room-07",
+      "rank": 3,
+      "source": "base",
+      "name": "lampe andon"
+    },
+    {
+      "id": "bambou-aux-v-ux-tanzaku",
+      "room": "room-07",
+      "rank": 1,
+      "source": "weekly",
+      "name": "bambou aux vœux tanzaku"
+    },
+    {
+      "id": "carillon-a-vent-furin",
+      "room": "room-07",
+      "rank": 2,
+      "source": "weekly",
+      "name": "carillon à vent fūrin"
+    },
+    {
+      "id": "necessaire-de-calligraphie",
+      "room": "room-07",
+      "rank": 3,
+      "source": "weekly",
+      "name": "nécessaire de calligraphie"
+    },
+    {
+      "id": "volubilis-en-pot",
+      "room": "room-07",
+      "rank": 4,
+      "source": "weekly",
+      "name": "volubilis en pot"
+    },
+    {
+      "id": "eventail-uchiwa",
+      "room": "room-07",
+      "rank": 5,
+      "source": "weekly",
+      "name": "éventail uchiwa"
+    },
+    {
+      "id": "plancher-de-la-veranda",
+      "room": "room-08",
+      "rank": 1,
+      "source": "base",
+      "name": "plancher de la véranda"
+    },
+    {
+      "id": "store-en-bambou",
+      "room": "room-08",
+      "rank": 2,
+      "source": "base",
+      "name": "store en bambou"
+    },
+    {
+      "id": "pierre-de-seuil",
+      "room": "room-08",
+      "rank": 3,
+      "source": "base",
+      "name": "pierre de seuil"
+    },
+    {
+      "id": "porte-encens-kayari-buta",
+      "room": "room-08",
+      "rank": 1,
+      "source": "weekly",
+      "name": "porte-encens kayari-buta"
+    },
+    {
+      "id": "pasteque",
+      "room": "room-08",
+      "rank": 2,
+      "source": "weekly",
+      "name": "pastèque"
+    },
+    {
+      "id": "cheval-et-vache-d-obon",
+      "room": "room-08",
+      "rank": 3,
+      "source": "weekly",
+      "name": "cheval et vache d’Obon"
+    },
+    {
+      "id": "lanterne-d-obon",
+      "room": "room-08",
+      "rank": 4,
+      "source": "weekly",
+      "name": "lanterne d’Obon"
+    },
+    {
+      "id": "cierges-magiques-senko-hanabi",
+      "room": "room-08",
+      "rank": 5,
+      "source": "weekly",
+      "name": "cierges magiques senkō-hanabi"
+    },
+    {
+      "id": "alcove-tokonoma",
+      "room": "room-09",
+      "rank": 1,
+      "source": "base",
+      "name": "alcôve tokonoma"
+    },
+    {
+      "id": "brasero-et-bouilloire",
+      "room": "room-09",
+      "rank": 2,
+      "source": "base",
+      "name": "brasero et bouilloire"
+    },
+    {
+      "id": "petite-porte-nijiriguchi",
+      "room": "room-09",
+      "rank": 3,
+      "source": "base",
+      "name": "petite porte nijiriguchi"
+    },
+    {
+      "id": "dango-de-tsukimi",
+      "room": "room-09",
+      "rank": 1,
+      "source": "weekly",
+      "name": "dango de Tsukimi"
+    },
+    {
+      "id": "eulalie-en-vase",
+      "room": "room-09",
+      "rank": 2,
+      "source": "weekly",
+      "name": "eulalie en vase"
+    },
+    {
+      "id": "lapin-de-la-lune",
+      "room": "room-09",
+      "rank": 3,
+      "source": "weekly",
+      "name": "lapin de la lune"
+    },
+    {
+      "id": "bol-a-the",
+      "room": "room-09",
+      "rank": 4,
+      "source": "weekly",
+      "name": "bol à thé"
+    },
+    {
+      "id": "rouleau-a-la-lune",
+      "room": "room-09",
+      "rank": 5,
+      "source": "weekly",
+      "name": "rouleau à la lune"
+    },
+    {
+      "id": "foyer-irori",
+      "room": "room-10",
+      "rank": 1,
+      "source": "base",
+      "name": "foyer irori"
+    },
+    {
+      "id": "cremaillere-jizai-kagi",
+      "room": "room-10",
+      "rank": 2,
+      "source": "base",
+      "name": "crémaillère jizai-kagi"
+    },
+    {
+      "id": "nattes-de-paille",
+      "room": "room-10",
+      "rank": 3,
+      "source": "base",
+      "name": "nattes de paille"
+    },
+    {
+      "id": "kakis-seches",
+      "room": "room-10",
+      "rank": 1,
+      "source": "weekly",
+      "name": "kakis séchés"
+    },
+    {
+      "id": "panier-de-chataignes",
+      "room": "room-10",
+      "rank": 2,
+      "source": "weekly",
+      "name": "panier de châtaignes"
+    },
+    {
+      "id": "bouilloire-en-fonte",
+      "room": "room-10",
+      "rank": 3,
+      "source": "weekly",
+      "name": "bouilloire en fonte"
+    },
+    {
+      "id": "branche-d-erable-rouge",
+      "room": "room-10",
+      "rank": 4,
+      "source": "weekly",
+      "name": "branche d’érable rouge"
+    },
+    {
+      "id": "sac-de-riz-nouveau",
+      "room": "room-10",
+      "rank": 5,
+      "source": "weekly",
+      "name": "sac de riz nouveau"
+    },
+    {
+      "id": "etageres",
+      "room": "room-11",
+      "rank": 1,
+      "source": "base",
+      "name": "étagères"
+    },
+    {
+      "id": "coffre-nagamochi",
+      "room": "room-11",
+      "rank": 2,
+      "source": "base",
+      "name": "coffre nagamochi"
+    },
+    {
+      "id": "echelle",
+      "room": "room-11",
+      "rank": 3,
+      "source": "base",
+      "name": "échelle"
+    },
+    {
+      "id": "rateau-porte-bonheur-kumade",
+      "room": "room-11",
+      "rank": 1,
+      "source": "weekly",
+      "name": "râteau porte-bonheur kumade"
+    },
+    {
+      "id": "chat-porte-bonheur",
+      "room": "room-11",
+      "rank": 2,
+      "source": "weekly",
+      "name": "chat porte-bonheur"
+    },
+    {
+      "id": "boulier-soroban",
+      "room": "room-11",
+      "rank": 3,
+      "source": "weekly",
+      "name": "boulier soroban"
+    },
+    {
+      "id": "sucres-d-orge-chitose-ame",
+      "room": "room-11",
+      "rank": 4,
+      "source": "weekly",
+      "name": "sucres d’orge chitose-ame"
+    },
+    {
+      "id": "maillet-de-la-fortune",
+      "room": "room-11",
+      "rank": 5,
+      "source": "weekly",
+      "name": "maillet de la fortune"
+    },
+    {
+      "id": "jarre-a-eau",
+      "room": "room-12",
+      "rank": 1,
+      "source": "base",
+      "name": "jarre à eau"
+    },
+    {
+      "id": "banc-de-bois",
+      "room": "room-12",
+      "rank": 2,
+      "source": "base",
+      "name": "banc de bois"
+    },
+    {
+      "id": "sandales-de-paille",
+      "room": "room-12",
+      "rank": 3,
+      "source": "base",
+      "name": "sandales de paille"
+    },
+    {
+      "id": "mortier-et-maillet-a-mochi",
+      "room": "room-12",
+      "rank": 1,
+      "source": "weekly",
+      "name": "mortier et maillet à mochi"
+    },
+    {
+      "id": "balai-du-grand-menage",
+      "room": "room-12",
+      "rank": 2,
+      "source": "weekly",
+      "name": "balai du grand ménage"
+    },
+    {
+      "id": "soba-du-reveillon",
+      "room": "room-12",
+      "rank": 3,
+      "source": "weekly",
+      "name": "soba du réveillon"
+    },
+    {
+      "id": "panier-de-yuzu",
+      "room": "room-12",
+      "rank": 4,
+      "source": "weekly",
+      "name": "panier de yuzu"
+    },
+    {
+      "id": "boites-a-osechi",
+      "room": "room-12",
+      "rank": 5,
+      "source": "weekly",
+      "name": "boîtes à osechi"
+    }
+  ]
+}
