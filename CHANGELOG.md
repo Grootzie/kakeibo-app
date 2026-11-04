@@ -2,6 +2,7 @@
 
 ## Non publié
 
+- Spec, révision 833 : un mois sans version de budget reprend la version en vigueur la plus récente (scénario 24).
 - Mise en place du dépôt : spécifications, règles des agents, découpage des jalons J0 et J1.
 - Projet Expo (TypeScript strict, expo-router, ESLint, Prettier, Jest) avec les dossiers de la structure du code et les scripts `typecheck`, `lint` et `test` (#1).
 - Intégration continue GitHub Actions : types, lint et tests sur chaque demande de fusion et sur `main` ; workflow d'émulateur Android avec Maestro, lancé à la main (#2).
