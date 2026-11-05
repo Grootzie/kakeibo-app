@@ -84,7 +84,8 @@ export function reviseBudget(
 
 /**
  * Version en vigueur pour un mois au jour donné : la plus récente des versions de ce mois
- * déjà effective. Sans version du mois, le jour n'est pas décompté (règle en attente, issue #16).
+ * déjà effective. Sans version du mois, reconduction : la plus récente version déjà effective,
+ * tous mois confondus. Null seulement si aucune version n'est effective.
  */
 function versionInForce(
   month: MonthKey,
@@ -95,7 +96,8 @@ function versionInForce(
     a.effectiveFrom < b.effectiveFrom ? -1 : a.effectiveFrom > b.effectiveFrom ? 1 : 0;
   const effectives = versions.filter((v) => v.effectiveFrom <= asOf).sort(parDate);
   const duMois = effectives.filter((v) => v.month === month);
-  return duMois.length > 0 ? duMois[duMois.length - 1] : null;
+  const retenues = duMois.length > 0 ? duMois : effectives;
+  return retenues.length > 0 ? retenues[retenues.length - 1] : null;
 }
 
 // Plus petit commun multiple de 28, 29, 30 et 31 : permet un calcul exact en entiers.
