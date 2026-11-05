@@ -17,6 +17,7 @@ Ce fichier dit comment travailler. `docs/spec.md` dit quoi construire. Lis les d
 - Une branche par ticket, préfixée `claude/`, et une demande de fusion par ticket, remplie avec le gabarit.
 - `main` ne reçoit que des demandes de fusion dont l'intégration continue est verte. Personne ne pousse directement sur `main`. Exception, décidée par le propriétaire : tant que le ticket J0.2 n'est pas fusionné, une demande de fusion relue dont les tests passent en session peut être fusionnée sans intégration continue.
 - Les jalons se suivent dans l'ordre de la spec (J0 à J9). Deux tickets indépendants peuvent avancer en parallèle.
+- L’intégration continue pose l’étiquette intégration verte quand tout est vert ; c’est elle qui déclenche le Relecteur. Ne supprime pas cette étape.
 
 ## Règles techniques
 

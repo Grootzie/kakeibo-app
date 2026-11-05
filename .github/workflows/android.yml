@@ -94,3 +94,27 @@ jobs:
         with:
           name: captures-android
           path: captures
+
+  # Étiquette « intégration verte » (#36), voir ci.yml.
+  etiquette-pose:
+    name: Étiquette intégration verte · pose
+    needs: [apk, parcours]
+    if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --experimental-strip-types tools/integration-verte.ts poser
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPOT: ${{ github.repository }}
+          DEMANDE: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
