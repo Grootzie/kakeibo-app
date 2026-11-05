@@ -18,7 +18,7 @@ export const ETIQUETTE = 'Étiquette intégration verte';
 export const LIBELLE = 'intégration verte';
 
 export type Tache = { nom: string; statut: string; conclusion: string | null };
-export type Execution = { id: number; workflow: number; evenement: string };
+export type Execution = { id: number; workflow: number; evenement: string; statut: string };
 export type Decision = 'poser' | 'retirer' | 'rien';
 
 const CONCLUSIONS_VERTES = ['success', 'skipped', 'neutral'];
@@ -45,6 +45,17 @@ export function dernieresExecutions(executions: readonly Execution[]): Execution
     if (connue === undefined || e.id > connue.id) parWorkflow.set(e.workflow, e);
   }
   return [...parWorkflow.values()];
+}
+
+/**
+ * Tâches d'une exécution, plus une tâche « en attente » si l'exécution tourne encore
+ * sans que sa tâche d'étiquette soit lancée : l'API ne liste une tâche qu'une fois
+ * ses dépendances finies (les parcours après l'APK, par exemple).
+ */
+export function tachesDeLExecution(statut: string, taches: readonly Tache[]): Tache[] {
+  const etiquetteLancee = taches.some((t) => !compte(t) && t.statut !== 'queued');
+  if (statut === 'completed' || etiquetteLancee) return [...taches];
+  return [...taches, { nom: 'Tâches pas encore listées', statut, conclusion: null }];
 }
 
 export function decider(etat: {
@@ -112,18 +123,18 @@ async function tachesDuCommit(sha: string): Promise<Tache[]> {
       id: Number(r.id),
       workflow: Number(r.workflow_id),
       evenement: String(r.event),
+      statut: String(r.status),
     })),
   );
   const taches: Tache[] = [];
   for (const e of executions) {
     const jobs = await api(`/actions/runs/${e.id}/jobs?per_page=100`);
-    for (const j of liste(jobs.jobs)) {
-      taches.push({
-        nom: String(j.name),
-        statut: String(j.status),
-        conclusion: j.conclusion === null ? null : String(j.conclusion),
-      });
-    }
+    const deLExecution = liste(jobs.jobs).map((j) => ({
+      nom: String(j.name),
+      statut: String(j.status),
+      conclusion: j.conclusion === null ? null : String(j.conclusion),
+    }));
+    taches.push(...tachesDeLExecution(e.statut, deLExecution));
   }
   return taches;
 }

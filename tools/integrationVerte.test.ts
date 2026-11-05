@@ -8,6 +8,7 @@ import {
   decider,
   dernieresExecutions,
   estVerte,
+  tachesDeLExecution,
 } from './integration-verte';
 
 const tache = (nom: string, statut: string, conclusion: string | null): Tache => ({
@@ -58,6 +59,7 @@ describe('étiquette « intégration verte »', () => {
       id,
       workflow,
       evenement,
+      statut: 'completed',
     });
 
     it('garde la dernière exécution de chaque workflow lancée par la demande de fusion', () => {
@@ -70,6 +72,27 @@ describe('étiquette « intégration verte »', () => {
           execution(14, 3, 'push'),
         ]).map((e) => e.id),
       ).toEqual([12, 11]);
+    });
+  });
+
+  describe('tachesDeLExecution', () => {
+    it("ajoute une tâche en attente quand l'exécution tourne encore sans que son étiquette soit lancée", () => {
+      // Entre la fin de l'APK et le départ des parcours, l'API ne liste pas encore les parcours.
+      const taches = tachesDeLExecution('in_progress', [ok('APK de développement')]);
+      expect(estVerte(taches)).toBe(false);
+    });
+
+    it("n'ajoute rien quand la tâche d'étiquette de l'exécution est lancée", () => {
+      const taches = tachesDeLExecution('in_progress', [
+        ok('APK de développement'),
+        ok('Parcours Maestro et captures'),
+        tache(`${ETIQUETTE} · pose`, 'in_progress', null),
+      ]);
+      expect(estVerte(taches)).toBe(true);
+    });
+
+    it("n'ajoute rien pour une exécution terminée", () => {
+      expect(tachesDeLExecution('completed', [ok('Types')])).toEqual([ok('Types')]);
     });
   });
 
