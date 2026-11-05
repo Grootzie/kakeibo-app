@@ -14,16 +14,16 @@ Validé quand : l'appli démarre sur l'émulateur Android et en version web, int
 
 ## J1 · Règles du jeu
 
-Validé quand : les 24 scénarios passent, sans dépendance à l'interface. Tout se passe dans `src/domain`.
+Validé quand : les 25 scénarios passent, sans dépendance à l'interface. Tout se passe dans `src/domain`.
 
-- **J1.0 · Les 24 scénarios en tests (Testeur).** Écrits avant le code, marqués « à faire » tant que la règle n'existe pas. Sections : Scénarios de test.
+- **J1.0 · Les 25 scénarios en tests (Testeur).** Écrits avant le code, marqués « à faire » tant que la règle n'existe pas. Sections : Scénarios de test.
 - **J1.1 · Calendrier.** Semaines ISO, mois d'une semaine (celui de son jeudi), jours décomptés. Scénarios 7 et 20.
 - **J1.2 · Budget et enveloppe.** Versions du budget, dépenses récurrentes, enveloppe au prorata, reconduction d’un mois sans budget. Scénarios 8, 16, 23 et 24.
 - **J1.3 · Clôture et scellement.** Clôtures acceptées ou refusées, délai de grâce, résultat d'une semaine. Scénarios 1, 3, 5, 6, 7, 15 et 19.
 - **J1.4 · Objets et pièces.** Catalogue, objet suivant, déblocage, objet en attente, nouvelle année. Scénarios 17, 18, 20 et 21.
 - **J1.5 · Poussière.** Niveaux et plancher après une semaine incomplète. Scénarios 3, 9 et 14.
 - **J1.6 · Fêlure et réparation.** Objet qui se fêle, file de réparation, réparation à l'or. Scénarios 2, 4, 10, 11, 12, 13 et 22.
-- **J1.7 · Bilan du mois.** Les quatre questions. Scénario 17.
+- **J1.7 · Bilan du mois.** Les quatre questions, reconduction d’un mois sans budget. Scénarios 17 et 25.
 - **J1.8 · Ordre de traitement.** `process` : enchaînement des règles, retour après une longue absence. Scénarios 14 et 15.
 
 ## Ensuite
