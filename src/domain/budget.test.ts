@@ -60,6 +60,36 @@ describe('budget et enveloppe', () => {
   );
 
   test(
+    'scénario 24 : semaine du lundi 30 novembre au dimanche 6 décembre, aucune version de budget pour décembre ; ' +
+      'décembre reprend la version de novembre (600 €), enveloppe de 136,13 €, comme au 8',
+    () => {
+      expect(weekEnvelope('2026-W49', [novembre], INSTALL)).toBe(13613);
+    },
+  );
+
+  test('reconduction : sans version pour le mois, la plus récente déjà effective, tous mois confondus', () => {
+    const octobre: BudgetVersion = {
+      ...novembre,
+      id: 'b-oct',
+      month: '2026-10',
+      income: euros(3000),
+      effectiveFrom: '2026-10-01',
+    };
+    // Novembre (600 €) est plus récent qu'octobre (1 600 €) : décembre reprend novembre.
+    expect(weekEnvelope('2026-W49', [octobre, novembre], INSTALL)).toBe(13613);
+    // Une version qui n'est pas encore effective le lundi de la semaine n'est pas reprise.
+    const futur: BudgetVersion = {
+      ...novembre,
+      id: 'b-futur',
+      income: euros(2300),
+      effectiveFrom: '2026-12-02',
+    };
+    expect(weekEnvelope('2026-W49', [novembre, futur], INSTALL)).toBe(13613);
+    // Aucune version effective : rien n'est décompté.
+    expect(weekEnvelope('2026-W49', [], INSTALL)).toBe(0);
+  });
+
+  test(
     'scénario 16 : le mercredi 4, le budget de novembre passe à 900 € ; ' +
       'enveloppe de la semaine 45 inchangée (140 €), semaine 46 à 210 €',
     () => {
