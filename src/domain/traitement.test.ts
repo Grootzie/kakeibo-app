@@ -399,6 +399,30 @@ describe('ordre de traitement', () => {
     expect(s).toEqual(copie);
   });
 
+  test('supprimer une dépense la retire du dépensé tant que la semaine est ouverte', () => {
+    let s = depenser(depart(), '2026-11-03', 150);
+    s = ok(s, { type: 'delete_expense', id: 'e-2026-11-03' }, at('2026-11-04', '09:00'));
+    expect(s.expenses).toEqual([]);
+    s = fermerDu(s, '2026-11-02', '2026-11-08');
+    expect(resultat(s, '2026-W45')).toMatchObject({ spent: 0, inBudget: true, crackedItem: null });
+  });
+
+  test('supprimer une dépense d’une semaine scellée laisse son résultat figé', () => {
+    let s = depenser(depart(), '2026-11-03', 150);
+    s = fermerDu(s, '2026-11-02', '2026-11-08');
+    const avant = resultat(s, '2026-W45');
+    s = ok(s, { type: 'delete_expense', id: 'e-2026-11-03' }, at('2026-11-10', '09:00'));
+    expect(s.expenses).toEqual([]);
+    expect(resultat(s, '2026-W45')).toEqual(avant);
+  });
+
+  test('supprimer une dépense inconnue est refusé, sans rien changer', () => {
+    const s = depenser(depart(), '2026-11-03', 15);
+    const r = process(s, { type: 'delete_expense', id: 'inconnue' }, at('2026-11-03'), catalog);
+    expect(r.refusal).toBe('unknown_expense');
+    expect(r.state.expenses).toEqual(s.expenses);
+  });
+
   test('à l’installation, la pièce du mois s’ouvre et rien n’est à afficher', () => {
     const s = depart();
     expect(s.house.unlocked).toEqual([

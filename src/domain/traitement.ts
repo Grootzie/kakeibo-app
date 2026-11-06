@@ -66,10 +66,13 @@ export type AppEvent =
   | { type: 'close_day'; day: DayKey }
   /** Ajout, ou modification si l'identifiant existe déjà. */
   | { type: 'save_expense'; expense: Expense }
+  /** Suppression depuis le carnet, même dans une semaine scellée : le résultat reste figé. */
+  | { type: 'delete_expense'; id: string }
   | { type: 'week_reviews_seen' }
   | { type: 'validate_month'; month: MonthKey; resolution: string };
 
-export type Refusal = RefusalReason | 'month_not_proposed' | 'resolution_too_long';
+export type Refusal =
+  RefusalReason | 'month_not_proposed' | 'resolution_too_long' | 'unknown_expense';
 
 export interface ProcessResult {
   state: AppState;
@@ -195,6 +198,13 @@ function record(
         ancienne === undefined
           ? [...state.expenses, { ...e }]
           : state.expenses.map((x) => (x.id === e.id ? { ...e } : x));
+      return { state: { ...state, expenses }, refusal: null };
+    }
+    case 'delete_expense': {
+      if (!state.expenses.some((x) => x.id === event.id)) {
+        return { state, refusal: 'unknown_expense' };
+      }
+      const expenses = state.expenses.filter((x) => x.id !== event.id);
       return { state: { ...state, expenses }, refusal: null };
     }
     case 'week_reviews_seen':
