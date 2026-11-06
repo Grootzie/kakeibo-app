@@ -43,6 +43,10 @@ describe('parcours Maestro « Noter une dépense » (#44)', () => {
     expect(fr.depense.notee(1250, 'Envies')).toMatch(/^12,50.€ noté en Envies\.$/);
   });
 
+  it('ne ferme pas le clavier : « hideKeyboard » envoie « Retour », qui ferme la feuille', () => {
+    expect(parcours).not.toMatch(/^- hideKeyboard/m);
+  });
+
   it('prend une capture de la feuille et du message « Annuler »', () => {
     expect(parcours).toContain('- takeScreenshot: captures/noter-depense');
     expect(parcours).toContain('- takeScreenshot: captures/depense-notee');

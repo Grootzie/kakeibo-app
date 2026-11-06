@@ -12,7 +12,7 @@ appId: app.kakeibo
 - assertVisible: 'Enregistrer en Envies'
 - inputText: '12.50'
 - takeScreenshot: captures/noter-depense
-- hideKeyboard
+# Pas de « hideKeyboard » : sur Android, Maestro envoie « Retour », qui ferme la feuille (Modal).
 - tapOn: 'Enregistrer en Envies'
 - assertVisible: '12,50.€ noté en Envies\.'
 - assertVisible: 'Annuler'
