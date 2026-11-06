@@ -115,6 +115,21 @@ CREATE TABLE recurring_charge (
 );
 `,
   },
+  {
+    // Une version du budget ne s'écrase jamais (on en ajoute une) ; une clôture ne se supprime
+    // jamais (J2.1). La base le garantit, même pour une écriture qui ne passe pas par les dépôts.
+    version: 2,
+    sql: `
+CREATE TRIGGER budget_version_sans_modification BEFORE UPDATE ON budget_version
+BEGIN SELECT RAISE(ABORT, 'budget_version : on ajoute une version, on n''en modifie jamais'); END;
+CREATE TRIGGER budget_version_sans_suppression BEFORE DELETE ON budget_version
+BEGIN SELECT RAISE(ABORT, 'budget_version : une version ne se supprime jamais'); END;
+CREATE TRIGGER day_closure_sans_modification BEFORE UPDATE ON day_closure
+BEGIN SELECT RAISE(ABORT, 'day_closure : une clôture est définitive'); END;
+CREATE TRIGGER day_closure_sans_suppression BEFORE DELETE ON day_closure
+BEGIN SELECT RAISE(ABORT, 'day_closure : une clôture ne se supprime jamais'); END;
+`,
+  },
 ];
 
 export async function schemaVersion(db: Db): Promise<number> {

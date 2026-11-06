@@ -50,6 +50,10 @@ export const fr = {
     plusUnMois: '+1 mois',
     reinitialiser: 'Réinitialiser',
     libelleOuvrir: 'Ouvrir l’horloge de test',
+    budgetDemo: 'Poser un budget de démonstration',
+    budgetDemoLibelle: `Poser un budget de démonstration${NBSP}: ${formatEuros(120000)} de revenus, ${formatEuros(60000)} de charges fixes, ${formatEuros(0)} d’épargne`,
+    budgetDemoPose: 'Budget de démonstration posé',
+    budgetDemoDejaLa: 'Un budget existe déjà',
   },
 
   vocabulaire: {

@@ -2,6 +2,7 @@
 
 ## Non publié
 
+- Dépôts et état : dépôts `expense`, `day_closure`, `budget_version`, `settings` (et résultats, objets, pièces, bilans) en lecture et écriture, chaque écriture dans une transaction ; migration 2 : la base refuse de modifier ou supprimer une version du budget ou une clôture ; store Zustand (`src/state`) qui charge l’état, appelle `process` à l’ouverture, à chaque dépense ajoutée, modifiée ou supprimée et à chaque clôture, puis enregistre le résultat ; événement `delete_expense` du domaine ; heure de l’horloge de test ; sélecteurs de l’accueil (enveloppe, 7 cases, jour à rattraper) ; réglage caché « Poser un budget de démonstration » (builds de développement) ; requêtes sous 50 ms avec 3 000 dépenses ; Metro charge le module WebAssembly d’expo-sqlite pour l’export web (#42).
 - Spec, révision 837 : un bilan du mois sans version de budget reprend la version en vigueur la plus récente (scénario 25).
 - Spec, révision 833 : un mois sans version de budget reprend la version en vigueur la plus récente (scénario 24).
 - Mise en place du dépôt : spécifications, règles des agents, découpage des jalons J0 et J1.

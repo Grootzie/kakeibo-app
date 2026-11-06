@@ -1,4 +1,4 @@
-import type { Db } from './db';
+import type { Db, SqlParam } from './db';
 
 export interface SettingsRow {
   id: number;
@@ -90,27 +90,157 @@ export interface RecurringChargeRow {
   ends_on: string | null;
 }
 
-function tableRepository<T>(db: Db, table: string) {
-  return {
-    all: (): Promise<T[]> => db.getAllAsync<T>(`SELECT * FROM ${table}`),
-  };
+let compteurPoints = 0;
+
+/**
+ * Exécute `f` dans une transaction. Les points de sauvegarde s'imbriquent : une écriture d'un
+ * dépôt reste transactionnelle seule, et plusieurs écritures groupées sont validées ou annulées
+ * ensemble.
+ */
+export async function inTransaction<T>(db: Db, f: () => Promise<T>): Promise<T> {
+  compteurPoints += 1;
+  const point = `ecriture_${compteurPoints}`;
+  await db.execAsync(`SAVEPOINT ${point}`);
+  try {
+    const resultat = await f();
+    await db.execAsync(`RELEASE ${point}`);
+    return resultat;
+  } catch (erreur) {
+    await db.execAsync(`ROLLBACK TO ${point}`);
+    await db.execAsync(`RELEASE ${point}`);
+    throw erreur;
+  }
 }
 
-/** Dépôts de départ : lecture seule pour l'instant, les écritures arrivent avec les règles qui en ont besoin. */
+type Row = Record<string, SqlParam>;
+
+/** INSERT d'une ligne, colonnes dans l'ordre de l'objet. */
+function insertSql(table: string, row: Row, suffixe = ''): [string, SqlParam[]] {
+  const colonnes = Object.keys(row);
+  const marques = colonnes.map(() => '?').join(', ');
+  return [
+    `INSERT INTO ${table} (${colonnes.join(', ')}) VALUES (${marques})${suffixe}`,
+    colonnes.map((c) => row[c]),
+  ];
+}
+
+/** INSERT qui met à jour la ligne existante de même clé. */
+function upsertSql(
+  table: string,
+  row: Row,
+  cle: string[],
+  miseAJour?: string,
+): [string, SqlParam[]] {
+  const autres = Object.keys(row).filter((c) => !cle.includes(c));
+  const set = miseAJour ?? autres.map((c) => `${c} = excluded.${c}`).join(', ');
+  return insertSql(table, row, ` ON CONFLICT (${cle.join(', ')}) DO UPDATE SET ${set}`);
+}
+
+/**
+ * Dépôts : seule porte d'accès à la base, utilisée par l'état (src/state), jamais par les écrans.
+ * Chaque écriture passe dans une transaction. Une version du budget et une clôture ne s'ajoutent
+ * que : aucune méthode ne les modifie ni ne les supprime, et la base le refuse (migration 2).
+ */
 export function createRepositories(db: Db) {
+  const ecrire = (sql: string, params: SqlParam[]) =>
+    inTransaction(db, () => db.runAsync(sql, params));
+  const ajouter =
+    <T extends object>(table: string) =>
+    (row: T) =>
+      ecrire(...insertSql(table, row as Row));
+
   return {
+    /** Plusieurs écritures validées ou annulées ensemble. */
+    transaction: <T>(f: () => Promise<T>): Promise<T> => inTransaction(db, f),
+
     settings: {
       get: (): Promise<SettingsRow | null> =>
         db.getFirstAsync<SettingsRow>('SELECT * FROM settings WHERE id = 1'),
+      save: (row: SettingsRow) => ecrire(...upsertSql('settings', { ...row }, ['id'])),
     },
-    budgetVersions: tableRepository<BudgetVersionRow>(db, 'budget_version'),
-    expenses: tableRepository<ExpenseRow>(db, 'expense'),
-    dayClosures: tableRepository<DayClosureRow>(db, 'day_closure'),
-    weekResults: tableRepository<WeekResultRow>(db, 'week_result'),
-    ownedItems: tableRepository<OwnedItemRow>(db, 'owned_item'),
-    unlockedRooms: tableRepository<UnlockedRoomRow>(db, 'unlocked_room'),
-    monthReviews: tableRepository<MonthReviewRow>(db, 'month_review'),
-    recurringCharges: tableRepository<RecurringChargeRow>(db, 'recurring_charge'),
+
+    budgetVersions: {
+      all: (): Promise<BudgetVersionRow[]> =>
+        db.getAllAsync<BudgetVersionRow>(
+          'SELECT * FROM budget_version ORDER BY effective_from, rowid',
+        ),
+      /** Ajoute une version ; une version existante n'est jamais écrasée. */
+      add: ajouter<BudgetVersionRow>('budget_version'),
+    },
+
+    expenses: {
+      all: (): Promise<ExpenseRow[]> =>
+        db.getAllAsync<ExpenseRow>('SELECT * FROM expense ORDER BY day, created_at, id'),
+      /** Dépenses des jours `from` à `to`, inclus. */
+      between: (from: string, to: string): Promise<ExpenseRow[]> =>
+        db.getAllAsync<ExpenseRow>(
+          'SELECT * FROM expense WHERE day BETWEEN ? AND ? ORDER BY day, created_at, id',
+          [from, to],
+        ),
+      /** Ajout, ou modification si l'identifiant existe déjà. */
+      save: (row: ExpenseRow) => ecrire(...upsertSql('expense', { ...row }, ['id'])),
+      remove: (id: string) => ecrire('DELETE FROM expense WHERE id = ?', [id]),
+    },
+
+    dayClosures: {
+      all: (): Promise<DayClosureRow[]> =>
+        db.getAllAsync<DayClosureRow>('SELECT * FROM day_closure ORDER BY day'),
+      /** Une clôture est définitive : elle ne se modifie ni ne se supprime. */
+      add: ajouter<DayClosureRow>('day_closure'),
+    },
+
+    weekResults: {
+      all: (): Promise<WeekResultRow[]> =>
+        db.getAllAsync<WeekResultRow>('SELECT * FROM week_result ORDER BY week'),
+      /** Écrit une fois, au scellement. */
+      add: ajouter<WeekResultRow>('week_result'),
+      markCeremonySeen: (weeks: string[]) =>
+        inTransaction(db, async () => {
+          for (const week of weeks) {
+            await db.runAsync('UPDATE week_result SET ceremony_seen = 1 WHERE week = ?', [week]);
+          }
+        }),
+    },
+
+    ownedItems: {
+      all: (): Promise<OwnedItemRow[]> =>
+        db.getAllAsync<OwnedItemRow>(
+          'SELECT * FROM owned_item ORDER BY year, acquired_at, item_id',
+        ),
+      /** Ajout ou changement d'état ; un jour de réparation déjà connu n'est jamais effacé. */
+      save: (row: OwnedItemRow) =>
+        ecrire(
+          ...upsertSql(
+            'owned_item',
+            { ...row },
+            ['year', 'item_id'],
+            [
+              'placed_at = excluded.placed_at',
+              'state = excluded.state',
+              'cracked_at = COALESCE(excluded.cracked_at, owned_item.cracked_at)',
+              'cracked_week = COALESCE(excluded.cracked_week, owned_item.cracked_week)',
+              'repaired_at = COALESCE(excluded.repaired_at, owned_item.repaired_at)',
+            ].join(', '),
+          ),
+        ),
+    },
+
+    unlockedRooms: {
+      all: (): Promise<UnlockedRoomRow[]> =>
+        db.getAllAsync<UnlockedRoomRow>('SELECT * FROM unlocked_room ORDER BY year, unlocked_at'),
+      add: ajouter<UnlockedRoomRow>('unlocked_room'),
+    },
+
+    monthReviews: {
+      all: (): Promise<MonthReviewRow[]> =>
+        db.getAllAsync<MonthReviewRow>('SELECT * FROM month_review ORDER BY month'),
+      add: ajouter<MonthReviewRow>('month_review'),
+    },
+
+    recurringCharges: {
+      all: (): Promise<RecurringChargeRow[]> =>
+        db.getAllAsync<RecurringChargeRow>('SELECT * FROM recurring_charge ORDER BY starts_on'),
+    },
   };
 }
 
