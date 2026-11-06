@@ -30,7 +30,8 @@ describe('intégration continue', () => {
     const android = lire('android.yml');
     expect(android).toMatch(/expo prebuild --platform android/);
     expect(android).toMatch(/assembleRelease/);
-    expect(android).toMatch(/adb install/);
+    expect(android).toMatch(/script: bash tools\/parcours-android\.sh/);
+    expect(readFileSync(join(__dirname, 'parcours-android.sh'), 'utf8')).toMatch(/adb install/);
     expect(android).toMatch(/needs: apk/);
   });
 
