@@ -4,7 +4,13 @@ import type { BudgetVersion } from '../domain/budget';
 import type { Catalog } from '../domain/objets';
 import type { DayKey, LocalDateTime } from '../domain/scellement';
 import { type AppEvent, type AppState, createAppState, process } from '../domain/traitement';
-import { casesSemaine, enveloppeSemaine, jourARattraper, vueAccueil } from './selecteurs';
+import {
+  casesSemaine,
+  enveloppeSemaine,
+  joursDepense,
+  jourARattraper,
+  vueAccueil,
+} from './selecteurs';
 
 const catalog = catalogueJson as Catalog;
 const at = (day: DayKey, time = '21:00'): LocalDateTime => ({ day, time });
@@ -135,5 +141,23 @@ describe('vue de l’accueil (E2, #43)', () => {
   it('n’a aucun bandeau sans jour à rattraper', () => {
     const s = etat('2026-11-02', [fermer('2026-11-02')]);
     expect(vueAccueil(s, at('2026-11-03', '09:00')).bandeau).toBeNull();
+  });
+});
+
+describe('jours proposés pour noter une dépense (E3)', () => {
+  it('les jours des semaines ouvertes jusqu’à aujourd’hui, clôturés compris, du plus récent au plus ancien', () => {
+    const s = etat('2026-11-04', [fermer('2026-11-04'), fermer('2026-11-05')]);
+    expect(joursDepense(s, at('2026-11-06', '10:00'))).toEqual([
+      '2026-11-06',
+      '2026-11-05',
+      '2026-11-04',
+    ]);
+  });
+
+  it('sans la semaine précédente une fois le lundi 12:00 passé', () => {
+    const s = etat('2026-11-04', []);
+    expect(joursDepense(s, at('2026-11-09', '11:00'))[0]).toBe('2026-11-09');
+    expect(joursDepense(s, at('2026-11-09', '11:00'))).toHaveLength(6);
+    expect(joursDepense(s, at('2026-11-09', '12:00'))).toEqual(['2026-11-09']);
   });
 });

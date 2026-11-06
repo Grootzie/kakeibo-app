@@ -1,6 +1,7 @@
 // Sélecteurs de l'accueil (E2). Purs : l'état et l'heure leur sont passés.
 import { type Cents, weekEnvelope, weekSpent } from '../domain/budget';
 import { addDays, weekDays, weekOf } from '../domain/calendrier';
+import { expenseDays } from '../domain/depense';
 import { type DayKey, type LocalDateTime, type WeekId, canCloseDay } from '../domain/scellement';
 import type { AppState } from '../domain/traitement';
 
@@ -64,6 +65,16 @@ export function jourARattraper(etat: AppState, now: LocalDateTime): DayKey | nul
     if (canCloseDay(jour, now, ctx).ok) return jour;
   }
   return null;
+}
+
+/** Jours proposés pour dater une nouvelle dépense (E3), du plus récent au plus ancien. */
+export function joursDepense(etat: AppState, now: LocalDateTime): DayKey[] {
+  const ctx = {
+    installDay: etat.installDay,
+    closedDays: etat.closedDays,
+    sealedWeeks: etat.results.map((r) => r.week),
+  };
+  return expenseDays(now, ctx).reverse();
 }
 
 /** Bandeau unique de l'accueil. En J2, seulement le jour à rattraper (J3 et J5 ajouteront les autres). */
