@@ -1,6 +1,6 @@
 # Spécifications · appli kakeibo (V1)
 
-> Copie du [document de spécifications](https://claude.ai/artifact/71tMXdJNxRnPD14BioaLJb), révision 833, exportée le 4 novembre 2026. Si les deux diffèrent, le document en ligne fait foi : le propriétaire fait ré-exporter cette copie quand il le change.
+> Copie du [document de spécifications](https://claude.ai/artifact/71tMXdJNxRnPD14BioaLJb), révision 837, exportée le 5 novembre 2026. Si les deux diffèrent, le document en ligne fait foi : le propriétaire fait ré-exporter cette copie quand il le change.
 
 ## Résumé
 
@@ -219,7 +219,7 @@ Après une semaine incomplète, la maison garde au moins le niveau 1 jusqu'à la
 - Épargne réelle = Q1 − Q3. Objectif atteint si l'épargne réelle est supérieure ou égale à Q2.
 - Q4 : texte libre, de 0 à 140 caractères.
 - Valider le bilan débloque la pièce du mois suivant, quel que soit le résultat (en décembre, voir Nouvelle année) : on récompense le fait de faire le bilan.
-- Le bilan utilise la dernière version du budget du mois. Après plusieurs mois d'absence, seul le dernier mois terminé est proposé.
+- Le bilan utilise la dernière version du budget du mois ou, si le mois n'en a aucune, la version en vigueur la plus récente (reconduction, comme pour l'enveloppe). Après plusieurs mois d'absence, seul le dernier mois terminé est proposé.
 
 ### Ordre de traitement
 
@@ -233,7 +233,7 @@ Après une semaine incomplète, la maison garde au moins le niveau 1 jusqu'à la
 
 ## Scénarios de test
 
-Ces 24 scénarios deviennent des tests automatisés du domaine avant toute implémentation ; un ticket qui en casse un n'est pas terminé. Contexte commun :
+Ces 25 scénarios deviennent des tests automatisés du domaine avant toute implémentation ; un ticket qui en casse un n'est pas terminé. Contexte commun :
 
 - Installation le lundi 2 novembre 2026.
 - Budget de novembre et de décembre 2026 : revenus 2 000 €, charges fixes 1 100 €, épargne visée 300 €, donc 600 € par mois.
@@ -266,6 +266,7 @@ Ces 24 scénarios deviennent des tests automatisés du domaine avant toute impl�
 | 22 | Semaines 45 à 47 complètes et dans le budget (objets A, B et C) ; semaine 48 : 7 tampons, hors budget | L'objet D sort de sa capsule et C se fêle : l'objet gagné au même bilan ne se fêle jamais |
 | 23 | Le mardi 3 novembre, ajout d'un abonnement de 12 € le 15 de chaque mois | Nouvelle version du budget : charges fixes de 1 112 €, budget de novembre de 588 €. Semaine 45 inchangée (140 €), semaine 46 à 137,20 €. L'échéance du 15 n'entre pas dans le dépensé |
 | 24 | Semaine du lundi 30 novembre au dimanche 6 décembre, aucune version de budget pour décembre | Décembre reprend la version de novembre (600 €) : enveloppe de 136,13 €, comme au 8 |
+| 25 | Bilan de décembre, aucune version de budget pour décembre, 450 € dépensés dans le mois | Le bilan reprend la version de novembre : Q1 900 €, Q2 300 €, Q3 450 €, épargne réelle 450 €, objectif atteint |
 
 ## Modèle de données
 
@@ -559,7 +560,7 @@ Cinq agents se partagent le travail ; tu interviens à trois moments seulement, 
 ### Définition de « terminé »
 
 - [ ] Vérification des types, lint et tests au vert
-- [ ] Les 24 scénarios des règles passent
+- [ ] Les 25 scénarios des règles passent
 - [ ] Captures des écrans modifiés jointes : émulateur Android dans l'intégration continue, iPhone pendant la bêta
 - [ ] Textes dans src/i18n/fr.ts, libellés d'accessibilité présents
 - [ ] Toute nouvelle mécanique a son explication de première fois et sa fiche dans Comprendre
@@ -580,7 +581,7 @@ Dix jalons mènent à la sortie ; la maison et les bilans avancent en parallèle
 | Jalon | Contenu | Validé quand | Après |
 | --- | --- | --- | --- |
 | J0 · Socle | Projet Expo, TypeScript strict, intégration continue, SQLite et migrations, fichier de textes, thème neutre, horloge de test | L'appli démarre sur iPhone et Android, intégration continue verte | — |
-| J1 · Règles | Tout src/domain | Les 24 scénarios passent, sans dépendance à l'interface | J0 |
+| J1 · Règles | Tout src/domain | Les 25 scénarios passent, sans dépendance à l'interface | J0 |
 | J2 · Saisie et clôture | E2 sans maison, E3, E4, E5, rappel du soir | Parcours « journée type » et « rattrapage » au vert | J1 |
 | J3 · Bilans | E6, E7, scellement, file de réparation | Parcours « semaine parfaite » et « semaine hors budget » au vert avec l'horloge de test | J2 |
 | J4 · Maison | Rendu de la scène, catalogue, états, poussière, capsule, album, E8, visuels provisoires | Captures des 3 états d'objet et des 3 niveaux de poussière | J1 |

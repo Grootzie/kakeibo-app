@@ -24,14 +24,14 @@ Ce fichier dit comment travailler. `docs/spec.md` dit quoi construire. Lis les d
 - Expo et React Native, TypeScript strict, sans `any`. Les choix techniques de la spec s'appliquent ; un autre choix demande l'accord du propriétaire.
 - Montants en centimes (entiers), jours `AAAA-MM-JJ`, semaines ISO 8601 (`AAAA-Www`).
 - `src/domain` est pur : ni horloge, ni hasard, ni base, ni React, ni Expo. L'heure courante lui est passée en paramètre.
-- Le domaine se développe tests d'abord. Les 24 scénarios de la spec sont des tests ; on ne modifie jamais un résultat attendu pour faire passer un test.
+- Le domaine se développe tests d'abord. Les 25 scénarios de la spec sont des tests ; on ne modifie jamais un résultat attendu pour faire passer un test.
 - Tous les textes visibles passent par `src/i18n/fr.ts`, au tutoiement, selon « Textes et ton ».
 - Aucune dépendance payante, aucun service en ligne, aucun SDK qui collecte des données.
 
 ## Terminé, c'est
 
 - Vérification des types, lint et tests au vert.
-- Les 24 scénarios passent.
+- Les 25 scénarios passent.
 - Captures des écrans modifiés jointes : émulateur Android dans l'intégration continue, iPhone pendant la bêta.
 - Textes dans `src/i18n/fr.ts`, libellés d'accessibilité présents.
 - Toute nouvelle mécanique a son explication de première fois et sa fiche dans Comprendre.
