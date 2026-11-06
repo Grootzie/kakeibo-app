@@ -42,6 +42,10 @@ describe('bilan du mois', () => {
     });
   });
 
+  test.todo(
+    'scénario 25 : bilan de décembre, aucune version de budget pour décembre, 450 € dépensés dans le mois ; le bilan reprend la version de novembre : Q1 900 €, Q2 300 €, Q3 450 €, épargne réelle 450 €, objectif atteint',
+  );
+
   test('Q3 compte toutes les semaines du mois, y compris celles à cheval sur deux mois, et rien d’autre', () => {
     const depenses = [
       depense('oct', '2026-10-31', euros(40)), // semaine 44, mois précédent
