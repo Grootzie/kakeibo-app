@@ -21,5 +21,6 @@ export default function RootLayout() {
     });
     return () => abonnement.remove();
   }, []);
-  return <Stack />;
+  // L'accueil a son propre en-tête (E2) : pas de barre de titre du routeur.
+  return <Stack screenOptions={{ headerShown: false }} />;
 }

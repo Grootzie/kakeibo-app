@@ -14,6 +14,13 @@ export const theme = {
     fond: '#FFFFFF',
     texte: '#1F1B16',
     texteDiscret: '#5C5348',
+    /** Bouton principal et jauge : encre, jamais de rouge d'alerte. */
+    principal: '#1F1B16',
+    surPrincipal: '#FFFFFF',
+    jauge: '#1F1B16',
+    jaugeFond: '#E7E1D8',
+    /** Fond du bandeau et des cases hors décompte. */
+    discret: '#F3EFE9',
   },
   categories: {
     essentiel: { couleur: '#2F4B7C', icone: 'maison' },

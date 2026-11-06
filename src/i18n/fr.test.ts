@@ -69,3 +69,33 @@ describe('fr.ts', () => {
     expect(fr.messages.repare(lanterne)).toBe('La lanterne est réparée à l’or.');
   });
 });
+
+describe('accueil (E2, #43)', () => {
+  it('écrit la date du jour en français', () => {
+    expect(fr.accueil.date('2026-11-06')).toBe('vendredi 6\u00a0novembre');
+    expect(fr.accueil.date('2026-03-01')).toBe('dimanche 1er\u00a0mars');
+  });
+
+  it('annonce le reste ou le dépassement au format français', () => {
+    expect(fr.accueil.reste(6300, 'dimanche')).toBe('Il te reste 63\u00a0€ jusqu’à dimanche');
+    expect(fr.accueil.depassement(1200)).toBe('Tu as dépassé de 12\u00a0€ cette semaine');
+  });
+
+  it('annonce chaque case au lecteur d’écran', () => {
+    expect(fr.accueil.caseLibelle('2026-11-04', 'cloturee')).toBe('mercredi, clôturé');
+    expect(fr.accueil.caseLibelle('2026-11-04', 'rattrapable')).toBe('mercredi, à rattraper');
+    expect(fr.accueil.caseLibelle('2026-11-06', 'a_cloturer')).toBe(
+      'vendredi, à clôturer aujourd’hui',
+    );
+    expect(fr.accueil.caseLibelle('2026-11-02', 'hors_decompte')).toBe('lundi, hors décompte');
+    expect(fr.accueil.caseLibelle('2026-11-08', 'a_venir')).toBe('dimanche, à venir');
+  });
+
+  it('nomme les deux boutons et le bandeau', () => {
+    expect(fr.accueil.cloturerJournee).toBe('Clôturer ma journée');
+    expect(fr.accueil.journeeCloturee).toBe('Journée clôturée');
+    expect(fr.accueil.bandeauRattraper('2026-11-04')).toBe(
+      'Tu peux encore rattraper mercredi 4\u00a0novembre.',
+    );
+  });
+});

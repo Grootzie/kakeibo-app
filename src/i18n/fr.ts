@@ -23,6 +23,43 @@ export function formatEuros(centimes: number): string {
   return `${signe}${entiers}${decimales}${NBSP}€`;
 }
 
+const JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'] as const;
+const MOIS = [
+  'janvier',
+  'février',
+  'mars',
+  'avril',
+  'mai',
+  'juin',
+  'juillet',
+  'août',
+  'septembre',
+  'octobre',
+  'novembre',
+  'décembre',
+] as const;
+
+/** Jour 'AAAA-MM-JJ' -> « lundi ». */
+export function nomDuJour(jour: string): string {
+  const [a, m, j] = jour.split('-').map(Number);
+  return JOURS[new Date(Date.UTC(a, m - 1, j)).getUTCDay()];
+}
+
+/** Jour 'AAAA-MM-JJ' -> « vendredi 6 novembre », « dimanche 1er mars » (insécable avant le mois). */
+export function jourEtDate(jour: string): string {
+  const [, m, j] = jour.split('-').map(Number);
+  return `${nomDuJour(jour)} ${j === 1 ? '1er' : j}${NBSP}${MOIS[m - 1]}`;
+}
+
+/** Les cinq états d'une case de la carte de tampons, tels que le lecteur d'écran les annonce. */
+const ETATS_CASE = {
+  cloturee: 'clôturé',
+  a_cloturer: 'à clôturer aujourd’hui',
+  rattrapable: 'à rattraper',
+  hors_decompte: 'hors décompte',
+  a_venir: 'à venir',
+} as const;
+
 function debut(objet: NomObjet): string {
   const texte = avecArticle(objet);
   return `${texte[0].toUpperCase()}${texte.slice(1)}`;
@@ -77,6 +114,22 @@ export const fr = {
   accueil: {
     noterDepense: 'Noter une dépense',
     noterDepenseLibelle: 'Noter une dépense',
+    date: jourEtDate,
+    carnet: 'Carnet',
+    carnetLibelle: 'Carnet',
+    reglages: 'Réglages',
+    reglagesLibelle: 'Réglages',
+    budgetSemaine: (centimes: number) => `Budget de la semaine${NBSP}: ${formatEuros(centimes)}`,
+    jaugeLibelle: (depense: number, enveloppe: number) =>
+      `Dépensé${NBSP}: ${formatEuros(depense)} sur ${formatEuros(enveloppe)}`,
+    carteTampons: 'Tampons de la semaine',
+    /** Initiale du jour sur sa case, du lundi au dimanche. */
+    initiale: (jour: string) => nomDuJour(jour)[0].toUpperCase(),
+    caseLibelle: (jour: string, etat: keyof typeof ETATS_CASE) =>
+      `${nomDuJour(jour)}, ${ETATS_CASE[etat]}`,
+    cloturerJournee: 'Clôturer ma journée',
+    journeeCloturee: 'Journée clôturée',
+    bandeauRattraper: (jour: string) => `Tu peux encore rattraper ${jourEtDate(jour)}.`,
     reste: (centimes: number, jusqua: string) =>
       `Il te reste ${formatEuros(centimes)} jusqu’à ${jusqua}`,
     depassement: (centimes: number) => `Tu as dépassé de ${formatEuros(centimes)} cette semaine`,

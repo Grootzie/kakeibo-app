@@ -33,6 +33,14 @@ fi
 adb exec-out screencap -p > captures/ecran.png || true
 adb exec-out uiautomator dump /dev/tty > captures/hierarchie.xml 2>/dev/null || true
 adb logcat -d > captures/logcat.txt 2>&1 || true
+# Accueil avec le texte agrandi à 200 % (#43) : capture et hiérarchie, puis retour à 100 %.
+adb shell settings put system font_scale 2.0 || true
+adb shell am force-stop app.kakeibo || true
+adb shell monkey -p app.kakeibo -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 || true
+sleep 20
+adb exec-out screencap -p > captures/ecran-texte-200.png || true
+adb exec-out uiautomator dump /dev/tty > captures/hierarchie-texte-200.xml 2>/dev/null || true
+adb shell settings put system font_scale 1.0 || true
 if [ -d "$HOME/.maestro/tests" ]; then cp -r "$HOME/.maestro/tests" captures/maestro-debug || true; fi
 
 exit "$statut"
