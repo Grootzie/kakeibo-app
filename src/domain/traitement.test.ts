@@ -354,6 +354,43 @@ describe('ordre de traitement', () => {
     expect(s.monthToReview).toBeNull();
   });
 
+  test('par process, scénario 25 : le bilan de décembre, sans version de budget pour décembre, reprend la version de novembre', () => {
+    let s = depart();
+    s = depenser(s, '2026-12-02', 200, 'd1');
+    s = depenser(s, '2026-12-31', 250, 'd2');
+    s = ok(s, { type: 'open' }, at('2027-01-02', '09:00'));
+    expect(s.monthToReview).toBe('2026-12');
+    expect(s.monthReview).toEqual({
+      month: '2026-12',
+      q1: euros(900),
+      q2: euros(300),
+      q3: euros(450),
+      realSavings: euros(450),
+      goalReached: true,
+    });
+  });
+
+  test('par process, le bilan proposé utilise la dernière version du mois quand elle existe', () => {
+    const decembre: BudgetVersion = {
+      ...novembre,
+      id: 'b-dec',
+      month: '2026-12',
+      income: euros(2200),
+      effectiveFrom: '2026-12-01',
+    };
+    let s = createAppState(
+      { installDay: INSTALL, at: at(INSTALL, '08:00'), budgets: [novembre, decembre] },
+      catalog,
+    );
+    s = ok(s, { type: 'open' }, at('2027-01-02', '09:00'));
+    expect(s.monthReview).toMatchObject({ month: '2026-12', q1: euros(1100), q3: 0 });
+  });
+
+  test('aucun bilan proposé : aucun chiffre de bilan', () => {
+    expect(depart().monthReview).toBeNull();
+    expect(ok(depart(), { type: 'open' }, at('2026-11-30')).monthReview).toBeNull();
+  });
+
   test('process ne modifie jamais l’état reçu', () => {
     const s = fermerDu(depart(), '2026-11-02', '2026-11-07');
     const copie = structuredClone(s);

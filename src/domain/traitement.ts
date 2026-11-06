@@ -1,6 +1,6 @@
 // Ordre de traitement : enchaînement des règles à chaque ouverture et à chaque clôture (J1.8).
 // Pur : l'heure courante et le catalogue sont passés en paramètre ; l'état reçu n'est jamais modifié.
-import { isValidResolution, monthToReview } from './bilanMois';
+import { type MonthReview, isValidResolution, monthReviewOf, monthToReview } from './bilanMois';
 import { type BudgetVersion, type Expense } from './budget';
 import { type MonthKey, type WeekId, weekDays } from './calendrier';
 import {
@@ -57,6 +57,8 @@ export interface AppState {
   repairs: RepairEvent[];
   dust: DustLevel;
   monthToReview: MonthKey | null;
+  /** Chiffres du bilan proposé (Q1 à Q3), avec la version du budget reconduite au besoin. */
+  monthReview: MonthReview | null;
 }
 
 export type AppEvent =
@@ -151,12 +153,14 @@ function applyRepairStep(state: AppState, now: LocalDateTime): AppState {
 
 /** Ce qui se lit après chaque traitement : file de réparation, poussière et bilan du mois proposé. */
 function derive(state: AppState, now: LocalDateTime): AppState {
+  const mois = monthToReview(now.day, state.installDay, lastValidated(state.reviews));
   return {
     ...state,
     // Relu après le scellement : la fêlure d'aujourd'hui entre dans la file affichée.
     repairs: repairs(cracksOfYear(state.results, houseYear(now.day)), state.closedDays),
     dust: dustLevel(now.day, state.closedDays, state.results, state.installDay),
-    monthToReview: monthToReview(now.day, state.installDay, lastValidated(state.reviews)),
+    monthToReview: mois,
+    monthReview: mois === null ? null : monthReviewOf(mois, state.budgets, state.expenses),
   };
 }
 
@@ -261,6 +265,7 @@ export function createAppState(
     repairs: [],
     dust: 0,
     monthToReview: null,
+    monthReview: null,
   };
   return derive(state, input.at);
 }

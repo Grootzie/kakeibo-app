@@ -42,9 +42,24 @@ describe('bilan du mois', () => {
     });
   });
 
-  test.todo(
-    'scénario 25 : bilan de décembre, aucune version de budget pour décembre, 450 € dépensés dans le mois ; le bilan reprend la version de novembre : Q1 900 €, Q2 300 €, Q3 450 €, épargne réelle 450 €, objectif atteint',
-  );
+  test('scénario 25 : bilan de décembre, aucune version de budget pour décembre, 450 € dépensés dans le mois ; le bilan reprend la version de novembre : Q1 900 €, Q2 300 €, Q3 450 €, épargne réelle 450 €, objectif atteint', () => {
+    const version = latestBudgetOfMonth('2026-12', [novembre]);
+    expect(version?.id).toBe('b-nov');
+    if (version === null) throw new Error('aucune version reconduite');
+    const depenses = [
+      depense('a', '2026-12-02', euros(200)),
+      depense('b', '2026-12-31', euros(250)),
+      depense('nov', '2026-11-30', euros(80)), // novembre : hors du bilan de décembre
+    ];
+    expect(monthReview('2026-12', version, depenses)).toEqual({
+      month: '2026-12',
+      q1: euros(900),
+      q2: euros(300),
+      q3: euros(450),
+      realSavings: euros(450),
+      goalReached: true,
+    });
+  });
 
   test('Q3 compte toutes les semaines du mois, y compris celles à cheval sur deux mois, et rien d’autre', () => {
     const depenses = [
@@ -84,8 +99,11 @@ describe('bilan du mois', () => {
     expect(bilan.q1).toBe(euros(888));
   });
 
-  test('refuse une version de budget d’un autre mois', () => {
-    expect(() => monthReview('2026-12', novembre, [])).toThrow();
+  test('accepte une version reconduite d’un autre mois : seules les dépenses du mois comptent', () => {
+    const bilan = monthReview('2026-12', novembre, [depense('a', '2026-11-05', euros(100))]);
+    expect(bilan.month).toBe('2026-12');
+    expect(bilan.q1).toBe(euros(900));
+    expect(bilan.q3).toBe(0);
   });
 });
 
@@ -123,8 +141,34 @@ describe('version du budget utilisée par le bilan', () => {
     expect(latestBudgetOfMonth('2026-11', versions)?.id).toBe('c');
   });
 
-  test('aucune version pour le mois : rien', () => {
-    expect(latestBudgetOfMonth('2026-12', [v('a', '2026-11', '2026-11-02')])).toBeNull();
+  test('aucune version pour le mois : reconduction de la version en vigueur la plus récente, tous mois confondus', () => {
+    const versions = [
+      v('a', '2026-10', '2026-10-01'),
+      v('b', '2026-11', '2026-11-02'),
+      v('c', '2026-11', '2026-11-20', euros(2500)),
+    ];
+    expect(latestBudgetOfMonth('2026-12', versions)?.id).toBe('c');
+  });
+
+  test('reconduction : une version entrée en vigueur après la fin du mois ne compte pas', () => {
+    const versions = [
+      v('b', '2026-11', '2026-11-02'),
+      v('j', '2027-01', '2027-01-01', euros(2500)),
+    ];
+    expect(latestBudgetOfMonth('2026-12', versions)?.id).toBe('b');
+  });
+
+  test('reconduction : une version d’un mois suivant, déjà en vigueur pendant le mois, compte', () => {
+    const versions = [
+      v('b', '2026-11', '2026-11-02'),
+      v('j', '2027-01', '2026-12-28', euros(2500)),
+    ];
+    expect(latestBudgetOfMonth('2026-12', versions)?.id).toBe('j');
+  });
+
+  test('aucune version en vigueur avant la fin du mois : rien', () => {
+    expect(latestBudgetOfMonth('2026-10', [v('b', '2026-11', '2026-11-02')])).toBeNull();
+    expect(latestBudgetOfMonth('2026-12', [])).toBeNull();
   });
 });
 
