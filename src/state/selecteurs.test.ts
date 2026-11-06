@@ -4,7 +4,7 @@ import type { BudgetVersion } from '../domain/budget';
 import type { Catalog } from '../domain/objets';
 import type { DayKey, LocalDateTime } from '../domain/scellement';
 import { type AppEvent, type AppState, createAppState, process } from '../domain/traitement';
-import { casesSemaine, enveloppeSemaine, jourARattraper } from './selecteurs';
+import { casesSemaine, enveloppeSemaine, jourARattraper, vueAccueil } from './selecteurs';
 
 const catalog = catalogueJson as Catalog;
 const at = (day: DayKey, time = '21:00'): LocalDateTime => ({ day, time });
@@ -113,5 +113,27 @@ describe('jour à rattraper', () => {
   it('n’existe pas quand tout est clôturé', () => {
     const s = etat('2026-11-02', [fermer('2026-11-02'), fermer('2026-11-03')]);
     expect(jourARattraper(s, at('2026-11-04', '08:00'))).toBeNull();
+  });
+});
+
+describe('vue de l’accueil (E2, #43)', () => {
+  it('rassemble le jour, l’enveloppe, les 7 cases et le bandeau', () => {
+    const s = etat('2026-11-02', [fermer('2026-11-02'), depenser('2026-11-03', 5000)]);
+    const vue = vueAccueil(s, at('2026-11-04', '18:00'));
+    expect(vue.jour).toBe('2026-11-04');
+    expect(vue.enveloppe).toEqual(enveloppeSemaine(s, at('2026-11-04', '18:00')));
+    expect(vue.cases).toHaveLength(7);
+    expect(vue.aujourdhuiCloture).toBe(false);
+    expect(vue.bandeau).toEqual({ type: 'jour_a_rattraper', jour: '2026-11-03' });
+  });
+
+  it('marque la journée clôturée une fois aujourd’hui clôturé', () => {
+    const s = etat('2026-11-02', [fermer('2026-11-02')]);
+    expect(vueAccueil(s, at('2026-11-02', '22:00')).aujourdhuiCloture).toBe(true);
+  });
+
+  it('n’a aucun bandeau sans jour à rattraper', () => {
+    const s = etat('2026-11-02', [fermer('2026-11-02')]);
+    expect(vueAccueil(s, at('2026-11-03', '09:00')).bandeau).toBeNull();
   });
 });

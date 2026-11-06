@@ -31,3 +31,23 @@ describe('thème', () => {
     expect(theme.zoneTactileMin).toBeGreaterThanOrEqual(44);
   });
 });
+
+describe('thème de l’accueil (#43)', () => {
+  const c = theme.couleurs;
+  it('lit le bouton principal au contraste AA', () => {
+    expect(contrastRatio(c.surPrincipal, c.principal)).toBeGreaterThanOrEqual(4.5);
+  });
+  it('distingue la jauge de son fond (3 pour un élément graphique)', () => {
+    expect(contrastRatio(c.jauge, c.jaugeFond)).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(c.jauge, c.fond)).toBeGreaterThanOrEqual(3);
+  });
+  it('lit les textes sur le fond discret au contraste AA', () => {
+    expect(contrastRatio(c.texte, c.discret)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(c.texteDiscret, c.discret)).toBeGreaterThanOrEqual(4.5);
+  });
+  it('n’utilise aucun rouge d’alerte pour la jauge', () => {
+    expect(c.jauge).not.toBe(theme.categories.envies.couleur);
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(c.jauge.slice(i, i + 2), 16));
+    expect(r - Math.max(g, b)).toBeLessThan(40);
+  });
+});

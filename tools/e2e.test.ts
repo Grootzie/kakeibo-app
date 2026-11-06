@@ -18,6 +18,12 @@ describe('parcours Maestro de démarrage', () => {
     );
   });
 
+  it('vérifie l’enveloppe et le bouton de clôture de l’accueil (#43)', () => {
+    expect(parcours).toContain(`- assertVisible: '${fr.accueil.cloturerJournee}'`);
+    expect(parcours).toContain("- assertVisible: 'Il te reste .* jusqu’à dimanche'");
+    expect(fr.accueil.reste(0, 'dimanche')).toMatch(/^Il te reste .* jusqu’à dimanche$/);
+  });
+
   it('lance l’appli et prend une capture', () => {
     expect(parcours).toMatch(/appId: app\.kakeibo/);
     expect(parcours).toMatch(/- launchApp/);
@@ -49,6 +55,7 @@ describe('script de l’émulateur (#52)', () => {
         'case "$*" in',
         '  "shell dumpsys window") echo "mCurrentFocus=Window{1 u0 com.android.launcher3/.Launcher}" ;;',
         '  "exec-out screencap -p") printf "PNG" ;;',
+        '  "shell settings put system font_scale 2.0") echo 2 > "$HOME/echelle" ;;',
         'esac',
       ].join('\n'),
     );
@@ -85,5 +92,20 @@ describe('script de l’émulateur (#52)', () => {
     expect(readFileSync(join(dossier, 'captures', 'ecran.png'), 'utf8')).toBe('PNG');
     expect(existsSync(join(dossier, 'captures', 'hierarchie.xml'))).toBe(true);
     expect(existsSync(join(dossier, 'captures', 'logcat.txt'))).toBe(true);
+  });
+
+  it('capture aussi l’accueil avec le texte agrandi à 200 %, puis revient à 100 % (#43)', () => {
+    const { code, dossier, journal } = jouer(true);
+    expect(code).toBe(0);
+    const lignes = journal.split('\n');
+    const agrandi = lignes.indexOf('adb shell settings put system font_scale 2.0');
+    const relance = lignes.indexOf(
+      'adb shell monkey -p app.kakeibo -c android.intent.category.LAUNCHER 1',
+    );
+    const retour = lignes.indexOf('adb shell settings put system font_scale 1.0');
+    expect(agrandi).toBeGreaterThan(lignes.findIndex((l) => l.startsWith('maestro test e2e')));
+    expect(relance).toBeGreaterThan(agrandi);
+    expect(retour).toBeGreaterThan(relance);
+    expect(readFileSync(join(dossier, 'captures', 'ecran-texte-200.png'), 'utf8')).toBe('PNG');
   });
 });

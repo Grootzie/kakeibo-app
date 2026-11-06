@@ -65,3 +65,26 @@ export function jourARattraper(etat: AppState, now: LocalDateTime): DayKey | nul
   }
   return null;
 }
+
+/** Bandeau unique de l'accueil. En J2, seulement le jour à rattraper (J3 et J5 ajouteront les autres). */
+export type BandeauAccueil = { type: 'jour_a_rattraper'; jour: DayKey };
+
+/** Tout ce que l'accueil (E2) affiche, hors maison. */
+export interface VueAccueil {
+  jour: DayKey;
+  enveloppe: EnveloppeSemaine;
+  cases: CaseTampon[];
+  aujourdhuiCloture: boolean;
+  bandeau: BandeauAccueil | null;
+}
+
+export function vueAccueil(etat: AppState, now: LocalDateTime): VueAccueil {
+  const rattraper = jourARattraper(etat, now);
+  return {
+    jour: now.day,
+    enveloppe: enveloppeSemaine(etat, now),
+    cases: casesSemaine(etat, now),
+    aujourdhuiCloture: etat.closedDays.includes(now.day),
+    bandeau: rattraper === null ? null : { type: 'jour_a_rattraper', jour: rattraper },
+  };
+}

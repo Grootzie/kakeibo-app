@@ -1,35 +1,21 @@
-import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { fr } from '@/i18n/fr';
+import { useMemo, useState } from 'react';
+
+import { useKakeibo } from '@/state/appStore';
+import { vueAccueil } from '@/state/selecteurs';
 import { HorlogeDev } from '@/ui/HorlogeDev';
-import { theme } from '@/ui/theme';
+import { Accueil } from '@/ui/accueil/Accueil';
 
 export default function Home() {
   const [horlogeVisible, setHorlogeVisible] = useState(false);
+  const etat = useKakeibo((s) => s.etat);
+  const maintenant = useKakeibo((s) => s.maintenant);
+  const vue = useMemo(
+    () => (etat && maintenant ? vueAccueil(etat, maintenant) : null),
+    [etat, maintenant],
+  );
   return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: theme.couleurs.fond,
-      }}
-    >
-      <Text
-        accessibilityRole="header"
-        onLongPress={() => setHorlogeVisible((v) => !v)}
-        style={{ color: theme.couleurs.texte }}
-      >
-        {fr.app.name}
-      </Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={fr.accueil.noterDepenseLibelle}
-        style={{ marginTop: 24, padding: 16 }}
-      >
-        <Text style={{ color: theme.couleurs.texte }}>{fr.accueil.noterDepense}</Text>
-      </Pressable>
+    <Accueil vue={vue} onAppuiLongDate={() => setHorlogeVisible((v) => !v)}>
       {horlogeVisible && <HorlogeDev />}
-    </View>
+    </Accueil>
   );
 }
