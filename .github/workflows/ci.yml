@@ -32,3 +32,49 @@ jobs:
         run: npm test -- --ci
       - name: Export web
         run: npm run export:web
+
+  # Étiquette « intégration verte » (#36) : retirée à chaque nouveau commit, posée par
+  # le dernier workflow à finir quand toutes les vérifications du commit sont vertes.
+  # Elle déclenche le Relecteur : ne supprime pas cette étape.
+  etiquette-retrait:
+    name: Étiquette intégration verte · retrait
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'synchronize' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --experimental-strip-types tools/integration-verte.ts retirer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPOT: ${{ github.repository }}
+          DEMANDE: ${{ github.event.pull_request.number }}
+
+  etiquette-pose:
+    name: Étiquette intégration verte · pose
+    needs: [verifier, etiquette-retrait]
+    if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --experimental-strip-types tools/integration-verte.ts poser
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPOT: ${{ github.repository }}
+          DEMANDE: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
