@@ -1,9 +1,9 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 
-// Garde-fou : chacun des 24 scénarios de la spec figure une seule fois dans les tests du domaine,
+// Garde-fou : chacun des 25 scénarios de la spec figure une seule fois dans les tests du domaine,
 // avec son numéro dans le titre.
-describe('les 24 scénarios de la spec', () => {
+describe('les 25 scénarios de la spec', () => {
   const titres = readdirSync(__dirname)
     .filter((f) => f.endsWith('.test.ts') && f !== 'scenarios.test.ts')
     .flatMap((f) => {
@@ -14,7 +14,7 @@ describe('les 24 scénarios de la spec', () => {
     });
 
   it('sont tous présents, chacun une fois', () => {
-    const attendus = Array.from({ length: 24 }, (_, i) => i + 1);
+    const attendus = Array.from({ length: 25 }, (_, i) => i + 1);
     expect([...titres].sort((a, b) => a - b)).toEqual(attendus);
   });
 });

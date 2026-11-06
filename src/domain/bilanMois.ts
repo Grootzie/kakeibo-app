@@ -20,15 +20,13 @@ export interface MonthReview {
 /**
  * Les trois premières questions d'un mois. `expenses` ne contient que des dépenses saisies :
  * les échéances récurrentes sont déjà dans les charges fixes, donc dans Q1.
+ * `budget` peut venir d'un autre mois quand il est reconduit (voir `latestBudgetOfMonth`).
  */
 export function monthReview(
   month: MonthKey,
   budget: BudgetVersion,
   expenses: Expense[],
 ): MonthReview {
-  if (budget.month !== month) {
-    throw new Error(`Version de budget de ${budget.month} fournie pour le bilan de ${month}`);
-  }
   const q1 = budget.income - budget.fixedCosts;
   const q2 = budget.savingsGoal;
   const q3 = expenses
@@ -46,18 +44,41 @@ export function isValidResolution(text: string): boolean {
   return Array.from(text).length <= RESOLUTION_MAX_LENGTH;
 }
 
-/** Le bilan utilise la dernière version du budget du mois ; null si le mois n'en a aucune. */
+function lastDayOfMonth(month: MonthKey): DayKey {
+  const [annee, mois] = month.split('-').map(Number);
+  const nbJours = new Date(Date.UTC(annee, mois, 0)).getUTCDate();
+  return `${month}-${String(nbJours).padStart(2, '0')}`;
+}
+
+/**
+ * Version du budget utilisée par le bilan : la dernière version du mois ou, si le mois n'en a
+ * aucune, reconduction de la version en vigueur la plus récente, tous mois confondus, parmi
+ * celles entrées en vigueur au plus tard le dernier jour du mois. Null si aucune ne l'est.
+ */
 export function latestBudgetOfMonth(
   month: MonthKey,
   versions: BudgetVersion[],
 ): BudgetVersion | null {
-  let derniere: BudgetVersion | null = null;
-  for (const v of versions) {
-    if (v.month === month && (derniere === null || v.effectiveFrom >= derniere.effectiveFrom)) {
-      derniere = v;
-    }
-  }
-  return derniere;
+  const plusRecente = (candidates: BudgetVersion[]): BudgetVersion | null =>
+    candidates.reduce<BudgetVersion | null>(
+      (derniere, v) =>
+        derniere === null || v.effectiveFrom >= derniere.effectiveFrom ? v : derniere,
+      null,
+    );
+  const duMois = plusRecente(versions.filter((v) => v.month === month));
+  if (duMois !== null) return duMois;
+  const fin = lastDayOfMonth(month);
+  return plusRecente(versions.filter((v) => v.effectiveFrom <= fin));
+}
+
+/** Chiffres du bilan d'un mois avec la version reconduite au besoin ; null sans aucune version. */
+export function monthReviewOf(
+  month: MonthKey,
+  versions: BudgetVersion[],
+  expenses: Expense[],
+): MonthReview | null {
+  const version = latestBudgetOfMonth(month, versions);
+  return version === null ? null : monthReview(month, version, expenses);
 }
 
 function previousMonth(month: MonthKey): MonthKey {
