@@ -39,6 +39,16 @@ describe('ouverture', () => {
     expect(screen.getByRole('header', { name: fr.depense.titre })).toBeOnTheScreen();
   });
 
+  it('laisse la place de la barre de navigation sous la feuille', async () => {
+    await monter();
+    expect(screen.getByTestId('feuille-depense-contenu').props.edges).toEqual({
+      bottom: 'additive',
+      left: 'off',
+      right: 'off',
+      top: 'off',
+    });
+  });
+
   it('propose quatre catégories, chacune avec sa couleur, son icône et son nom', async () => {
     await monter();
     const ids = ['essentiel', 'envies', 'culture', 'imprevus'] as const;

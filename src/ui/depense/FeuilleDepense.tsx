@@ -11,6 +11,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { addDays } from '../../domain/calendrier';
 import { NOTE_MAX_LENGTH, isValidAmount } from '../../domain/depense';
@@ -79,7 +80,10 @@ export function FeuilleDepense({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: c.voile }}
       >
-        <View
+        {/* Bord à bord sur Android : la feuille ne passe pas sous la barre de navigation. */}
+        <SafeAreaView
+          testID="feuille-depense-contenu"
+          edges={['bottom']}
           accessibilityViewIsModal
           style={{
             backgroundColor: c.fond,
@@ -232,7 +236,7 @@ export function FeuilleDepense({
               {fr.depense.noteCompteur(Array.from(note).length)}
             </Text>
           </ScrollView>
-        </View>
+        </SafeAreaView>
       </KeyboardAvoidingView>
     </Modal>
   );
