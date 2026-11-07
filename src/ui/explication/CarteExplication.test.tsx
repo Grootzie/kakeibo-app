@@ -59,6 +59,22 @@ async function noter(texte: string, categorie: string) {
   );
 }
 
+// À froid (cache Jest vide), le premier rendu charge et transforme les modules de l'accueil, de la
+// feuille de dépense et de E4 : plusieurs secondes, qui étaient comptées dans le premier test et
+// le faisaient dépasser ses 5 s. On les charge ici une fois, avec un délai à part, avant les tests.
+beforeAll(async () => {
+  jest.useFakeTimers();
+  const { demarrer } = await preparer();
+  const store = await demarrer(new Date(2026, 10, 2, 21, 0));
+  const accueil = await render(<EcranAccueil store={store} />);
+  await noter('1', 'Essentiel');
+  await accueil.unmount();
+  const e4 = await render(<EcranCloture store={store} onTerminer={() => undefined} />);
+  await fireEvent.press(screen.getByRole('button', { name: fr.cloture.ajouterOubliee }));
+  await e4.unmount();
+  jest.useRealTimers();
+}, 60000);
+
 beforeEach(() => {
   jest.useFakeTimers();
   jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => undefined);
