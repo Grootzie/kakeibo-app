@@ -65,14 +65,21 @@ export function casesSemaine(etat: AppState, now: LocalDateTime): CaseTampon[] {
 }
 
 /**
+ * Jour rattrapable (E5) : jour passé, décompté, non clôturé, d'une semaine encore ouverte (la
+ * semaine en cours, ou la précédente jusqu'au lundi 12:00 qui la suit).
+ */
+export function estRattrapable(etat: AppState, jour: DayKey, now: LocalDateTime): boolean {
+  return jour < now.day && canCloseDay(jour, now, contexte(etat)).ok;
+}
+
+/**
  * Jour à rattraper le plus ancien : jour passé, décompté, non clôturé, d'une semaine encore
  * ouverte (la semaine en cours, ou la précédente jusqu'au lundi 12:00). Null s'il n'y en a pas.
  */
 export function jourARattraper(etat: AppState, now: LocalDateTime): DayKey | null {
-  const ctx = contexte(etat);
   const lundiPrecedent = addDays(weekDays(weekOf(now.day))[0], -7);
   for (let jour = lundiPrecedent; jour < now.day; jour = addDays(jour, 1)) {
-    if (canCloseDay(jour, now, ctx).ok) return jour;
+    if (estRattrapable(etat, jour, now)) return jour;
   }
   return null;
 }
@@ -111,6 +118,8 @@ const CATEGORIES: Categorie[] = ['essentiel', 'envies', 'culture', 'imprevus'];
 /** Ce que l'écran « Clôturer ma journée » (E4) affiche pour un jour. */
 export interface VueCloture {
   jour: DayKey;
+  /** Jour passé : l'écran devient « Rattraper mercredi 4 novembre » (E5). */
+  rattrapage: boolean;
   /** Dépenses du jour, dans l'ordre où elles ont été notées. */
   depenses: ExpenseRow[];
   /** Total des catégories qui ont au moins une dépense, dans l'ordre des catégories. */
@@ -138,6 +147,7 @@ export function vueCloture(
   const ctx = contexte(etat);
   return {
     jour,
+    rattrapage: jour < now.day,
     depenses,
     totaux,
     total: totaux.reduce((t, x) => t + x.total, 0),

@@ -355,6 +355,45 @@ describe('store de l’état', () => {
     });
   });
 
+  describe('ouvrir un jour à rattraper (E5, #46)', () => {
+    /** Installation le lundi 2 ; le mercredi 4 reste sans tampon. */
+    async function sansMercredi() {
+      const m = await monter({ budget: true });
+      for (const j of ['2026-11-02', '2026-11-03']) {
+        const [a, mo, d] = j.split('-').map(Number);
+        m.tel.regler(a, mo, d, 21, 0);
+        await m.store.getState().cloturerJour(j);
+      }
+      return m;
+    }
+
+    test('dimanche soir et lundi 11:59, le mercredi s’ouvre en rattrapage', async () => {
+      const { store, tel } = await sansMercredi();
+      tel.regler(2026, 11, 8, 23, 50);
+      expect(await store.getState().ouvrirJour('2026-11-04')).toBe('rattrapage');
+      tel.regler(2026, 11, 9, 11, 59);
+      expect(await store.getState().ouvrirJour('2026-11-04')).toBe('rattrapage');
+      expect(store.getState().maintenant).toEqual({ day: '2026-11-09', time: '11:59' });
+    });
+
+    test('lundi 12:00, il ne s’ouvre plus : l’ouverture scelle d’abord la semaine', async () => {
+      const { store, repos, tel } = await sansMercredi();
+      tel.regler(2026, 11, 9, 12, 0);
+      expect(await store.getState().ouvrirJour('2026-11-04')).toBeNull();
+      expect(await repos.weekResults.all()).toEqual([
+        expect.objectContaining({ week: '2026-W45', stamps: 2 }),
+      ]);
+    });
+
+    test('aujourd’hui s’ouvre en clôture du jour ; un jour clôturé ou futur ne s’ouvre pas', async () => {
+      const { store, tel } = await sansMercredi();
+      tel.regler(2026, 11, 6, 21, 0);
+      expect(await store.getState().ouvrirJour('2026-11-06')).toBe('aujourdhui');
+      expect(await store.getState().ouvrirJour('2026-11-03')).toBeNull();
+      expect(await store.getState().ouvrirJour('2026-11-07')).toBeNull();
+    });
+  });
+
   test('l’heure vient uniquement de l’horloge de src/state/clock.ts', () => {
     for (const f of ['store.ts', 'selecteurs.ts', 'persistance.ts']) {
       const source = readFileSync(join(__dirname, f), 'utf8');

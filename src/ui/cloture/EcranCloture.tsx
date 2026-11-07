@@ -1,5 +1,7 @@
 // Clôturer ma journée (E4) : dépenses du jour et total par catégorie, « Ajouter une dépense
 // oubliée » (E3 sur ce jour), un seul bouton de validation, puis le tampon et retour à l'accueil.
+// Pour un jour passé, c'est « Rattraper un jour » (E5) : le même écran, avec un titre explicite,
+// qui ne s'ouvre que tant que le jour est rattrapable (jusqu'au lundi 12:00 qui suit sa semaine).
 // Ne parle qu'au store, qui seul appelle le domaine et les dépôts.
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AccessibilityInfo, Pressable, ScrollView, Text, View, type ViewStyle } from 'react-native';
@@ -24,7 +26,7 @@ const ESPACE = 16;
 
 export interface PropsEcranCloture {
   store: KakeiboStore;
-  /** Jour à clôturer ; aujourd'hui par défaut. */
+  /** Jour à clôturer ; aujourd'hui par défaut. Un jour passé ouvre E5, s'il est rattrapable. */
   jour?: DayKey;
   /** Retour à l'accueil, après le tampon ou par « Retour ». */
   onTerminer: () => void;
@@ -46,6 +48,11 @@ export function EcranCloture({ store, jour, onTerminer }: PropsEcranCloture) {
   const [refus, setRefus] = useState<Refusal | null>(null);
   const [envoi, setEnvoi] = useState(false);
   const [pose, setPose] = useState(false);
+  // Sans jour donné, c'est aujourd'hui : rien à vérifier. Sinon, le store dit d'abord, à l'heure
+  // actuelle, si ce jour s'ouvre encore ; sinon retour à l'accueil, sans rien montrer.
+  const [acces, setAcces] = useState<'verification' | 'ouvert' | 'ferme'>(
+    jour === undefined ? 'ouvert' : 'verification',
+  );
   const etat = useStore(store, (s) => s.etat);
   const maintenant = useStore(store, (s) => s.maintenant);
   const lignes = useStore(store, (s) => s.depenses);
@@ -60,6 +67,24 @@ export function EcranCloture({ store, jour, onTerminer }: PropsEcranCloture) {
     () => (etat && maintenant ? joursDepense(etat, maintenant) : []),
     [etat, maintenant],
   );
+
+  useEffect(() => {
+    if (jour === undefined) return;
+    let actif = true;
+    void store
+      .getState()
+      .ouvrirJour(jour)
+      .then((mode) => {
+        if (actif) setAcces(mode === null ? 'ferme' : 'ouvert');
+      });
+    return () => {
+      actif = false;
+    };
+  }, [store, jour]);
+
+  useEffect(() => {
+    if (acces === 'ferme') onTerminer();
+  }, [acces, onTerminer]);
 
   // Le tampon posé reste un instant, puis retour à l'accueil.
   useEffect(() => {
@@ -110,6 +135,16 @@ export function EcranCloture({ store, jour, onTerminer }: PropsEcranCloture) {
       : fr.cloture.rienDepense;
   const inactif = !vue || vue.cloture || envoi || pose;
 
+  if (acces !== 'ouvert') {
+    return (
+      <SafeAreaView
+        testID="ecran-cloture"
+        edges={['top', 'bottom']}
+        style={{ flex: 1, backgroundColor: c.fond }}
+      />
+    );
+  }
+
   return (
     <SafeAreaView
       testID="ecran-cloture"
@@ -134,10 +169,12 @@ export function EcranCloture({ store, jour, onTerminer }: PropsEcranCloture) {
             accessibilityRole="header"
             style={{ flex: 1, fontSize: 20, fontWeight: '600', color: c.texte }}
           >
-            {fr.cloture.titre}
+            {vue?.rattrapage ? fr.cloture.titreRattrapage(vue.jour) : fr.cloture.titre}
           </Text>
         </View>
-        {vue && <Text style={{ color: c.texteDiscret }}>{fr.cloture.date(vue.jour)}</Text>}
+        {vue && !vue.rattrapage && (
+          <Text style={{ color: c.texteDiscret }}>{fr.cloture.date(vue.jour)}</Text>
+        )}
 
         {vue && (
           <View style={{ gap: 8 }}>

@@ -20,10 +20,18 @@ export interface PropsEcranAccueil {
   onAppuiLongDate?: () => void;
   /** Ouvre « Clôturer ma journée » (E4). */
   onCloturer?: () => void;
+  /** Ouvre « Rattraper un jour » (E5) sur ce jour. */
+  onRattraper?: (jour: string) => void;
   children?: ReactNode;
 }
 
-export function EcranAccueil({ store, onAppuiLongDate, onCloturer, children }: PropsEcranAccueil) {
+export function EcranAccueil({
+  store,
+  onAppuiLongDate,
+  onCloturer,
+  onRattraper,
+  children,
+}: PropsEcranAccueil) {
   const [feuille, setFeuille] = useState(false);
   const [notee, setNotee] = useState<DepenseNotee | null>(null);
   const etat = useStore(store, (s) => s.etat);
@@ -56,6 +64,7 @@ export function EcranAccueil({ store, onAppuiLongDate, onCloturer, children }: P
       onAppuiLongDate={onAppuiLongDate}
       onNoterDepense={() => setFeuille(true)}
       onCloturer={onCloturer}
+      onRattraper={onRattraper}
       message={
         notee && (
           <MessageAnnuler

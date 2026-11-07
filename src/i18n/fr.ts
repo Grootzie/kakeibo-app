@@ -172,6 +172,8 @@ export const fr = {
 
   cloture: {
     titre: 'Clôturer ma journée',
+    /** Titre de E5 : « Rattraper mercredi 4 novembre ». */
+    titreRattrapage: (jour: string) => `Rattraper ${jourEtDate(jour)}`,
     date: jourEtDate,
     retour: 'Retour',
     retourLibelle: 'Retour à l’accueil',

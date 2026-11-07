@@ -80,16 +80,59 @@ describe('parcours Maestro « Clôturer ma journée » (#45)', () => {
   });
 });
 
+describe('parcours Maestro « Rattraper un jour » (#46)', () => {
+  const dossier = join(__dirname, '..', 'e2e', 'heure');
+  const installer = readFileSync(join(dossier, 'installer.yaml'), 'utf8');
+  const parcours = readFileSync(join(dossier, 'rattraper-jour.yaml'), 'utf8');
+
+  it('installe l’appli un mercredi, sans clôturer', () => {
+    expect(installer).toMatch(/appId: app\.kakeibo/);
+    expect(installer).toContain(
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-04', 'a_cloturer')}'`,
+    );
+    expect(installer).not.toMatch(/tapOn/);
+  });
+
+  it('le lendemain, la case est à rattraper, le bandeau ouvre E5, le tampon se pose', () => {
+    expect(parcours).toContain(
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-04', 'rattrapable')}'`,
+    );
+    expect(fr.accueil.caseLibelle('2026-11-04', 'rattrapable')).toBe('mercredi, à rattraper');
+    expect(parcours).toContain("- tapOn: 'Tu peux encore rattraper mercredi.4.novembre\\.'");
+    expect(fr.accueil.bandeauRattraper('2026-11-04')).toMatch(
+      /^Tu peux encore rattraper mercredi.4.novembre\.$/,
+    );
+    expect(parcours).toContain("- assertVisible: 'Rattraper mercredi.4.novembre'");
+    expect(fr.cloture.titreRattrapage('2026-11-04')).toMatch(/^Rattraper mercredi.4.novembre$/);
+    expect(parcours).toContain(`- tapOn: '${fr.cloture.rienDepense}'`);
+    expect(parcours).toContain(`visible: '${fr.accueil.caseLibelle('2026-11-04', 'cloturee')}'`);
+    for (const nom of ['rattraper-accueil', 'rattraper-jour', 'rattraper-cloture'])
+      expect(parcours).toContain(`- takeScreenshot: captures/${nom}`);
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+
+  it('n’est pas joué avec les autres : il a besoin d’une heure précise', () => {
+    expect(existsSync(join(__dirname, '..', 'e2e', 'rattraper-jour.yaml'))).toBe(false);
+  });
+});
+
 describe('script de l’émulateur (#52)', () => {
   const script = join(__dirname, 'parcours-android.sh');
 
   /** Joue le script avec de faux adb et maestro ; renvoie le code de sortie et le dossier. */
-  function jouer(maestroReussit: boolean): { code: number; dossier: string; journal: string } {
+  function jouer(
+    maestroReussit: boolean,
+    heure = false,
+  ): { code: number; dossier: string; journal: string } {
     const dossier = mkdtempSync(join(tmpdir(), 'parcours-'));
     const bin = join(dossier, 'bin');
     mkdirSync(bin);
     mkdirSync(join(dossier, 'e2e'));
     writeFileSync(join(dossier, 'e2e', 'accueil.yaml'), 'appId: app.kakeibo\n');
+    if (heure) {
+      mkdirSync(join(dossier, 'e2e', 'heure'));
+      writeFileSync(join(dossier, 'e2e', 'heure', 'installer.yaml'), 'appId: app.kakeibo\n');
+    }
     const journal = join(dossier, 'journal.txt');
     const faux = (nom: string, corps: string) => {
       writeFileSync(
@@ -156,5 +199,35 @@ describe('script de l’émulateur (#52)', () => {
     expect(relance).toBeGreaterThan(agrandi);
     expect(retour).toBeGreaterThan(relance);
     expect(readFileSync(join(dossier, 'captures', 'ecran-texte-200.png'), 'utf8')).toBe('PNG');
+  });
+
+  it('règle l’heure du téléphone pour le parcours de rattrapage, puis la rend (#46)', () => {
+    const { code, journal } = jouer(true, true);
+    expect(code).toBe(0);
+    const lignes = journal.split('\n');
+    const position = (debut: string) => lignes.findIndex((l) => l.startsWith(debut));
+    const racine = position('adb root');
+    const efface = position('adb shell pm clear app.kakeibo');
+    const mercredi = position('adb shell date 110409002026.00');
+    const installer = position('maestro test e2e/heure/installer.yaml');
+    const jeudi = position('adb shell date 110520002026.00');
+    const rattraper = position('maestro test e2e/heure/rattraper-jour.yaml');
+    const automatique = position('adb shell settings put global auto_time 1');
+    expect(position('maestro test e2e ')).toBeLessThan(racine);
+    expect([racine, efface, mercredi, installer, jeudi, rattraper, automatique]).toEqual(
+      [racine, efface, mercredi, installer, jeudi, rattraper, automatique].sort((a, b) => a - b),
+    );
+    expect(racine).toBeGreaterThanOrEqual(0);
+    expect(lignes[rattraper + 1]).toMatch(/^adb shell date \d{8}\d{4}\.\d{2}$/);
+  });
+
+  it('sans parcours à heure précise, ne touche pas à l’heure du téléphone', () => {
+    const { journal } = jouer(true);
+    expect(journal).not.toMatch(/adb shell date|adb root/);
+  });
+
+  it('échoue si le parcours de rattrapage échoue', () => {
+    const { code } = jouer(false, true);
+    expect(code).toBe(1);
   });
 });

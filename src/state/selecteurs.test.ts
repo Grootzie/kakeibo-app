@@ -8,6 +8,7 @@ import { type AppEvent, type AppState, createAppState, process } from '../domain
 import {
   casesSemaine,
   enveloppeSemaine,
+  estRattrapable,
   joursDepense,
   jourARattraper,
   vueAccueil,
@@ -186,6 +187,7 @@ describe('vue de la clôture (E4, #45)', () => {
     const lignes = [ligne('a', '2026-11-05', 900, 'envies')];
     expect(vueCloture(s, lignes, '2026-11-06', at('2026-11-06'))).toEqual({
       jour: '2026-11-06',
+      rattrapage: false,
       depenses: [],
       totaux: [],
       total: 0,
@@ -234,5 +236,33 @@ describe('vue de la clôture (E4, #45)', () => {
       peutCloturer: false,
       peutAjouter: false,
     });
+  });
+});
+
+describe('jour rattrapable (E5, #46)', () => {
+  // Installation le lundi 2 ; mercredi 4 jamais clôturé.
+  const s = () => etat('2026-11-02', [fermer('2026-11-02'), fermer('2026-11-03')]);
+
+  it('l’est encore dimanche soir et le lundi suivant à 11:59', () => {
+    expect(estRattrapable(s(), '2026-11-04', at('2026-11-08', '23:50'))).toBe(true);
+    expect(estRattrapable(s(), '2026-11-04', at('2026-11-09', '11:59'))).toBe(true);
+  });
+
+  it('ne l’est plus le lundi suivant à 12:00, même avant le scellement enregistré', () => {
+    expect(estRattrapable(s(), '2026-11-04', at('2026-11-09', '12:00'))).toBe(false);
+    const scelle = process(s(), { type: 'open' }, at('2026-11-09', '12:00'), catalog).state;
+    expect(estRattrapable(scelle, '2026-11-04', at('2026-11-09', '12:00'))).toBe(false);
+  });
+
+  it('ne concerne ni aujourd’hui, ni un jour clôturé, ni un jour futur ou avant l’installation', () => {
+    expect(estRattrapable(s(), '2026-11-06', at('2026-11-06'))).toBe(false);
+    expect(estRattrapable(s(), '2026-11-03', at('2026-11-06'))).toBe(false);
+    expect(estRattrapable(s(), '2026-11-07', at('2026-11-06'))).toBe(false);
+    expect(estRattrapable(s(), '2026-11-01', at('2026-11-06'))).toBe(false);
+  });
+
+  it('dit à l’écran de clôture qu’il s’agit d’un rattrapage', () => {
+    expect(vueCloture(s(), [], '2026-11-04', at('2026-11-06')).rattrapage).toBe(true);
+    expect(vueCloture(s(), [], '2026-11-06', at('2026-11-06')).rattrapage).toBe(false);
   });
 });

@@ -23,6 +23,8 @@ export interface PropsAccueil {
   onNoterDepense?: () => void;
   /** Ouvre « Clôturer ma journée » (E4). */
   onCloturer?: () => void;
+  /** Ouvre « Rattraper un jour » (E5) : case « à rattraper » ou bandeau. */
+  onRattraper?: (jour: string) => void;
   /** Message « Annuler » après une dépense notée, sous l'enveloppe. */
   message?: ReactNode;
   children?: ReactNode;
@@ -33,6 +35,7 @@ export function Accueil({
   onAppuiLongDate,
   onNoterDepense,
   onCloturer,
+  onRattraper,
   message,
   children,
 }: PropsAccueil) {
@@ -44,10 +47,10 @@ export function Accueil({
       contentContainerStyle={{ padding: ESPACE, gap: ESPACE }}
     >
       {vue && <EnTete jour={vue.jour} onAppuiLong={onAppuiLongDate} />}
-      {vue?.bandeau && <Bandeau bandeau={vue.bandeau} />}
+      {vue?.bandeau && <Bandeau bandeau={vue.bandeau} onRattraper={onRattraper} />}
       {vue && <Enveloppe enveloppe={vue.enveloppe} />}
       {message}
-      {vue && <CarteTampons cases={vue.cases} />}
+      {vue && <CarteTampons cases={vue.cases} onRattraper={onRattraper} />}
       <Boutons
         aujourdhuiCloture={vue?.aujourdhuiCloture ?? false}
         onNoterDepense={onNoterDepense}
@@ -104,15 +107,32 @@ function EnTete({ jour, onAppuiLong }: { jour: string; onAppuiLong?: () => void 
   );
 }
 
-function Bandeau({ bandeau }: { bandeau: BandeauAccueil }) {
+/** Le bandeau « jour à rattraper » ouvre E5 sur le plus ancien jour à rattraper. */
+function Bandeau({
+  bandeau,
+  onRattraper,
+}: {
+  bandeau: BandeauAccueil;
+  onRattraper?: (jour: string) => void;
+}) {
+  const texte = fr.accueil.bandeauRattraper(bandeau.jour);
   return (
-    <View
+    <Pressable
       testID="bandeau"
+      accessibilityRole="button"
+      accessibilityLabel={texte}
       accessibilityLiveRegion="polite"
-      style={{ backgroundColor: c.discret, borderRadius: 8, padding: 12 }}
+      onPress={() => onRattraper?.(bandeau.jour)}
+      style={{
+        minHeight: theme.zoneTactileMin,
+        justifyContent: 'center',
+        backgroundColor: c.discret,
+        borderRadius: 8,
+        padding: 12,
+      }}
     >
-      <Text style={{ color: c.texte }}>{fr.accueil.bandeauRattraper(bandeau.jour)}</Text>
-    </View>
+      <Text style={{ color: c.texte }}>{texte}</Text>
+    </Pressable>
   );
 }
 
@@ -185,36 +205,55 @@ const FORMES: Record<StatutCase, { cadre: ViewStyle; lettre: string; barree: boo
   },
 };
 
-function CarteTampons({ cases }: { cases: CaseTampon[] }) {
+/** Seules les cases « à rattraper » se touchent : elles ouvrent E5 sur leur jour. */
+function CarteTampons({
+  cases,
+  onRattraper,
+}: {
+  cases: CaseTampon[];
+  onRattraper?: (jour: string) => void;
+}) {
   return (
     <View accessibilityLabel={fr.accueil.carteTampons} style={{ flexDirection: 'row', gap: 4 }}>
       {cases.map(({ jour, statut }) => {
         const forme = FORMES[statut];
-        return (
-          <View
-            key={jour}
-            testID={`case-${jour}`}
-            accessible
-            accessibilityLabel={fr.accueil.caseLibelle(jour, statut)}
+        const commun = {
+          testID: `case-${jour}`,
+          accessible: true,
+          accessibilityLabel: fr.accueil.caseLibelle(jour, statut),
+          style: {
+            flex: 1,
+            minHeight: theme.zoneTactileMin,
+            borderRadius: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
+            ...forme.cadre,
+          } satisfies ViewStyle,
+        } as const;
+        const lettre = (
+          <Text
+            testID={`case-lettre-${jour}`}
             style={{
-              flex: 1,
-              minHeight: theme.zoneTactileMin,
-              borderRadius: 8,
-              alignItems: 'center',
-              justifyContent: 'center',
-              ...forme.cadre,
+              color: forme.lettre,
+              fontWeight: '600',
+              textDecorationLine: forme.barree ? 'line-through' : 'none',
             }}
           >
-            <Text
-              testID={`case-lettre-${jour}`}
-              style={{
-                color: forme.lettre,
-                fontWeight: '600',
-                textDecorationLine: forme.barree ? 'line-through' : 'none',
-              }}
-            >
-              {fr.accueil.initiale(jour)}
-            </Text>
+            {fr.accueil.initiale(jour)}
+          </Text>
+        );
+        return statut === 'rattrapable' ? (
+          <Pressable
+            key={jour}
+            {...commun}
+            accessibilityRole="button"
+            onPress={() => onRattraper?.(jour)}
+          >
+            {lettre}
+          </Pressable>
+        ) : (
+          <View key={jour} {...commun}>
+            {lettre}
           </View>
         );
       })}

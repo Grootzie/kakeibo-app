@@ -1,0 +1,10 @@
+# Rattraper un jour (E5, #46), étape 1 : installation le mercredi 4 novembre 2026.
+# Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
+# du téléphone (l'APK de l'intégration continue n'a pas l'horloge de test).
+appId: app.kakeibo
+---
+- launchApp
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 60000
+- assertVisible: 'mercredi, à clôturer aujourd’hui'

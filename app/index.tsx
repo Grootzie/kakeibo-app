@@ -13,6 +13,7 @@ export default function Home() {
       store={kakeibo}
       onAppuiLongDate={() => setHorlogeVisible((v) => !v)}
       onCloturer={() => router.push('/cloturer')}
+      onRattraper={(jour) => router.push({ pathname: '/cloturer', params: { jour } })}
     >
       {horlogeVisible && <HorlogeDev />}
     </EcranAccueil>

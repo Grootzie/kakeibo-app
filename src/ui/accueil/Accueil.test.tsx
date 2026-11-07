@@ -1,5 +1,5 @@
 // Accueil sans maison (E2, #43) : en-tête, enveloppe, carte de tampons, boutons et bandeau.
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { StyleSheet } from 'react-native';
@@ -207,5 +207,43 @@ describe('texte agrandi', () => {
     expect(source).not.toMatch(
       /numberOfLines|allowFontScaling|maxFontSizeMultiplier|adjustsFontSizeToFit/,
     );
+  });
+});
+
+describe('rattraper un jour (E5, #46)', () => {
+  it('une case « à rattraper » est un bouton qui ouvre E5 pour son jour', async () => {
+    const onRattraper = jest.fn();
+    await render(<Accueil vue={vue()} onRattraper={onRattraper} />);
+    const mercredi = screen.getByRole('button', { name: 'mercredi, à rattraper' });
+    expect(StyleSheet.flatten(mercredi.props.style).minHeight).toBeGreaterThanOrEqual(44);
+    await fireEvent.press(mercredi);
+    expect(onRattraper).toHaveBeenCalledWith('2026-11-04');
+  });
+
+  it('les autres cases ne s’ouvrent pas', async () => {
+    await render(<Accueil vue={vue()} onRattraper={jest.fn()} />);
+    for (const nom of [
+      'lundi, hors décompte',
+      'mardi, clôturé',
+      'vendredi, à clôturer aujourd’hui',
+      'samedi, à venir',
+    ])
+      expect(screen.queryByRole('button', { name: nom })).toBeNull();
+  });
+
+  it('le bandeau « jour à rattraper » est un bouton qui ouvre E5 pour son jour', async () => {
+    const onRattraper = jest.fn();
+    await render(
+      <Accueil
+        vue={vue({ bandeau: { type: 'jour_a_rattraper', jour: '2026-11-04' } })}
+        onRattraper={onRattraper}
+      />,
+    );
+    const bandeau = screen.getByRole('button', {
+      name: 'Tu peux encore rattraper mercredi 4\u00a0novembre.',
+    });
+    expect(StyleSheet.flatten(bandeau.props.style).minHeight).toBeGreaterThanOrEqual(44);
+    await fireEvent.press(bandeau);
+    expect(onRattraper).toHaveBeenCalledWith('2026-11-04');
   });
 });
