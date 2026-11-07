@@ -27,6 +27,8 @@ export interface PropsAccueil {
   onRattraper?: (jour: string) => void;
   /** Message « Annuler » après une dépense notée, sous l'enveloppe. */
   message?: ReactNode;
+  /** Carte de première fois, sous le bandeau. */
+  explication?: ReactNode;
   children?: ReactNode;
 }
 
@@ -37,6 +39,7 @@ export function Accueil({
   onCloturer,
   onRattraper,
   message,
+  explication,
   children,
 }: PropsAccueil) {
   return (
@@ -48,6 +51,7 @@ export function Accueil({
     >
       {vue && <EnTete jour={vue.jour} onAppuiLong={onAppuiLongDate} />}
       {vue?.bandeau && <Bandeau bandeau={vue.bandeau} onRattraper={onRattraper} />}
+      {explication}
       {vue && <Enveloppe enveloppe={vue.enveloppe} />}
       {message}
       {vue && <CarteTampons cases={vue.cases} onRattraper={onRattraper} />}

@@ -249,6 +249,17 @@ export const fr = {
       'Ton mois d’essai se termine. Choisis ta formule : l’abonnement, ou l’appli gratuite avec de la publicité. Tes données restent là dans les deux cas.',
   },
 
+  /** Carte de première fois (E12) : titre (le moment, tel que la spec le nomme), texte et fermeture. */
+  carteExplication: {
+    titres: {
+      first_expense: 'Première dépense',
+      first_stamp: 'Premier tampon',
+      first_catch_up: 'Premier jour à rattraper',
+    },
+    fermer: 'Fermer',
+    fermerLibelle: (titre: string) => `Fermer l’explication «${NBSP}${titre}${NBSP}»`,
+  },
+
   explications: {
     bienvenueMethode:
       'Le kakeibo, le “livre de comptes du foyer”, est né au Japon en 1904 : Motoko Hani, première femme journaliste du pays, l’a imaginé pour tenir ses comptes à la main. On n’y cherche pas à tout contrôler, mais à prendre conscience de ce qu’on dépense.',

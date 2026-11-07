@@ -1,0 +1,45 @@
+# Cartes de première fois (#48) : sur une appli neuve, la première dépense notée fait apparaître
+# « Première dépense », la première clôture « Premier tampon » au retour à l'accueil. Chaque carte
+# se ferme d'une touche et ne revient pas. Le parcours part d'une appli effacée et finit en
+# l'effaçant, pour ne rien changer aux autres parcours.
+appId: app.kakeibo
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 60000
+- assertNotVisible: 'Première dépense'
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Essentiel'
+- inputText: '4.20'
+# Pas de « hideKeyboard » : sur Android, Maestro envoie « Retour », qui ferme la feuille (Modal).
+- tapOn: 'Enregistrer en Essentiel'
+- extendedWaitUntil:
+    visible: 'Première dépense'
+    timeout: 10000
+- assertVisible: 'Noter soi-même chaque dépense, c’est le cœur du kakeibo.*'
+- takeScreenshot: captures/carte-premiere-depense
+- tapOn: 'Fermer l’explication .*Première dépense.*'
+- assertNotVisible: 'Première dépense'
+- tapOn: 'Clôturer ma journée'
+- assertVisible: 'J’ai tout noté'
+- tapOn: 'J’ai tout noté'
+- extendedWaitUntil:
+    visible: 'Premier tampon'
+    timeout: 10000
+- assertVisible: 'Journée clôturée'
+- assertVisible: 'Chaque soir, tu clôtures ta journée.*'
+- takeScreenshot: captures/carte-premier-tampon
+- tapOn: 'Fermer l’explication .*Premier tampon.*'
+- assertNotVisible: 'Premier tampon'
+# Après redémarrage, aucune des deux ne revient.
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 60000
+- assertNotVisible: 'Première dépense'
+- assertNotVisible: 'Premier tampon'
+- launchApp:
+    clearState: true

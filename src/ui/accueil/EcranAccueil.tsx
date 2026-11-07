@@ -7,6 +7,8 @@ import { joursDepense, vueAccueil } from '../../state/selecteurs';
 import type { KakeiboStore } from '../../state/store';
 import { type DepenseSaisie, FeuilleDepense } from '../depense/FeuilleDepense';
 import { MessageAnnuler } from '../depense/MessageAnnuler';
+import { CarteExplication } from '../explication/CarteExplication';
+import { useCarteExplication } from '../explication/useCarteExplication';
 import { Accueil } from './Accueil';
 
 interface DepenseNotee {
@@ -22,6 +24,8 @@ export interface PropsEcranAccueil {
   onCloturer?: () => void;
   /** Ouvre « Rattraper un jour » (E5) sur ce jour. */
   onRattraper?: (jour: string) => void;
+  /** Faux quand un autre écran est par-dessus : les cartes de première fois attendent. */
+  visible?: boolean;
   children?: ReactNode;
 }
 
@@ -30,12 +34,15 @@ export function EcranAccueil({
   onAppuiLongDate,
   onCloturer,
   onRattraper,
+  visible = true,
   children,
 }: PropsEcranAccueil) {
   const [feuille, setFeuille] = useState(false);
   const [notee, setNotee] = useState<DepenseNotee | null>(null);
   const etat = useStore(store, (s) => s.etat);
   const maintenant = useStore(store, (s) => s.maintenant);
+  // Pas de carte pendant que la feuille « Noter une dépense » est ouverte.
+  const { carte, fermer } = useCarteExplication(store, undefined, visible && !feuille);
 
   const vue = useMemo(
     () => (etat && maintenant ? vueAccueil(etat, maintenant) : null),
@@ -65,6 +72,7 @@ export function EcranAccueil({
       onNoterDepense={() => setFeuille(true)}
       onCloturer={onCloturer}
       onRattraper={onRattraper}
+      explication={carte && <CarteExplication key={carte} id={carte} onFermer={fermer} />}
       message={
         notee && (
           <MessageAnnuler
