@@ -101,6 +101,15 @@ export const fr = {
     budgetDemoLibelle: `Poser un budget de démonstration${NBSP}: ${formatEuros(120000)} de revenus, ${formatEuros(60000)} de charges fixes, ${formatEuros(0)} d’épargne`,
     budgetDemoPose: 'Budget de démonstration posé',
     budgetDemoDejaLa: 'Un budget existe déjà',
+    autoriserRappel: 'Autoriser le rappel du soir',
+    autoriserRappelLibelle: `Autoriser le rappel du soir${NBSP}: demande l’autorisation des notifications`,
+    rappelAutorise: 'Rappel du soir autorisé',
+    rappelRefuse: `Notifications refusées${NBSP}: aucun rappel`,
+  },
+
+  notifications: {
+    /** Nom du canal de notifications, visible dans les réglages d'Android. */
+    canalRappel: 'Rappel du soir',
   },
 
   vocabulaire: {

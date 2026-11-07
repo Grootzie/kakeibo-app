@@ -45,6 +45,26 @@ if [ -f e2e/heure/installer.yaml ]; then
   maestro test e2e/heure/installer.yaml --format junit --output captures/maestro-heure-1.xml || statut=1
   adb shell date 110520002026.00 || true
   maestro test e2e/heure/rattraper-jour.yaml --format junit --output captures/maestro-heure-2.xml || statut=1
+  # Rappel du soir (#47) : installation le jeudi 5 novembre 2026 à 20:58, notifications accordées
+  # (en attendant E1), appli en arrière-plan ; le rappel de 21:00 arrive, le toucher ouvre E4.
+  if [ -f e2e/heure/rappel-toucher.yaml ]; then
+    adb shell pm clear app.kakeibo >/dev/null 2>&1 || true
+    adb shell pm grant app.kakeibo android.permission.POST_NOTIFICATIONS || true
+    adb shell date 110520582026.00 || true
+    maestro test e2e/heure/rappel-installer.yaml --format junit --output captures/maestro-heure-3.xml || statut=1
+    # Le rappel est une alarme du téléphone, à peu près exacte : 5 minutes au plus.
+    for _ in $(seq 1 100); do
+      if adb shell dumpsys notification --noredact 2>/dev/null | grep -q 'pkg=app.kakeibo'; then
+        echo "Rappel affiché."
+        break
+      fi
+      sleep 3
+    done
+    adb shell dumpsys notification --noredact > captures/notifications.txt 2>&1 || true
+    adb shell cmd statusbar expand-notifications || true
+    sleep 2
+    maestro test e2e/heure/rappel-toucher.yaml --format junit --output captures/maestro-heure-4.xml || statut=1
+  fi
   adb shell date "$(date -u +%m%d%H%M%Y.%S)" || true
   adb shell settings put global auto_time 1 || true
 fi

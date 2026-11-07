@@ -13,3 +13,10 @@ export function heureLocale(d: Date): LocalDateTime {
 export function instantLocal(d: Date): string {
   return format(d, "yyyy-MM-dd'T'HH:mm:ssXXX");
 }
+
+/** Instant du jour AAAA-MM-JJ à l'heure HH:MM, dans le fuseau du téléphone. */
+export function dateLocale(day: string, time: string): Date {
+  const [a, m, j] = day.split('-').map(Number);
+  const [h, min] = time.split(':').map(Number);
+  return new Date(a, m - 1, j, h, min);
+}
