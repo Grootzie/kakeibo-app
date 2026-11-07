@@ -1,0 +1,34 @@
+# Parcours « Clôturer ma journée » (E4, #45) : depuis l'accueil, « Rien dépensé aujourd'hui »
+# sans dépense, une dépense oubliée notée sur ce jour fait passer le bouton à « J'ai tout noté »,
+# le tampon se pose, puis retour à l'accueil, où la case est clôturée et le bouton
+# « Journée clôturée ». Une clôture ne s'annule pas : le parcours finit en effaçant les données
+# de l'appli, pour que les autres parcours retrouvent une journée à clôturer.
+appId: app.kakeibo
+---
+- launchApp
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 60000
+- tapOn: 'Clôturer ma journée'
+- assertVisible: 'Aucune dépense notée ce jour\.'
+- assertVisible: 'Rien dépensé aujourd’hui'
+- takeScreenshot: captures/cloturer-rien-depense
+- tapOn: 'Ajouter une dépense oubliée'
+- assertVisible: 'Enregistrer en Culture'
+- inputText: '8.40'
+# Pas de « hideKeyboard » : sur Android, Maestro envoie « Retour », qui ferme la feuille (Modal).
+- tapOn: 'Enregistrer en Culture'
+- assertVisible: '8,40.€ en Culture'
+- assertVisible: 'Culture.: 8,40.€'
+- assertVisible: 'J’ai tout noté'
+- takeScreenshot: captures/cloturer-tout-note
+- tapOn: 'J’ai tout noté'
+- takeScreenshot: captures/tampon
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+- assertVisible: '.*, clôturé'
+- assertNotVisible: 'Clôturer ma journée'
+- takeScreenshot: captures/journee-cloturee
+- launchApp:
+    clearState: true

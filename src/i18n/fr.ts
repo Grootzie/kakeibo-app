@@ -171,8 +171,33 @@ export const fr = {
   },
 
   cloture: {
+    titre: 'Clôturer ma journée',
+    date: jourEtDate,
+    retour: 'Retour',
+    retourLibelle: 'Retour à l’accueil',
+    depensesDuJour: 'Dépenses du jour',
+    aucuneDepense: 'Aucune dépense notée ce jour.',
+    depense: (centimes: number, categorie: string, note: string) =>
+      `${formatEuros(centimes)} en ${categorie}${note === '' ? '' : `, ${note}`}`,
+    totauxTitre: 'Total par catégorie',
+    totalCategorie: (categorie: string, centimes: number) =>
+      `${categorie}${NBSP}: ${formatEuros(centimes)}`,
+    total: (centimes: number) => `Total du jour${NBSP}: ${formatEuros(centimes)}`,
+    ajouterOubliee: 'Ajouter une dépense oubliée',
     toutNote: 'J’ai tout noté',
     rienDepense: 'Rien dépensé aujourd’hui',
+    journeeCloturee: 'Journée clôturée',
+    /** Inscription du tampon, en attendant les visuels. */
+    tampon: 'Clôturé',
+    tamponPose: (jour: string) => `Tampon posé sur ${jourEtDate(jour)}.`,
+    /** Refus du domaine, expliqués sans reproche. */
+    refus: {
+      already_closed: `Ce jour est déjà clôturé${NBSP}: son tampon est posé.`,
+      week_sealed: `Sa semaine est déjà scellée, alors ce jour ne se clôture plus. Rien n’est perdu${NBSP}: la semaine en cours t’attend.`,
+      future_day: `Ce jour n’est pas encore arrivé${NBSP}: tu pourras le clôturer le soir venu.`,
+      before_install: `Ce jour précède l’installation de l’appli${NBSP}: il n’a pas besoin de tampon.`,
+      autre: 'Ta journée n’a pas pu être clôturée. Réessaie dans un instant.',
+    },
   },
 
   rappels: [

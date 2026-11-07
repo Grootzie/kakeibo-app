@@ -13,7 +13,7 @@ import { createKakeiboStore } from '../../state/store';
 import { EcranAccueil } from './EcranAccueil';
 
 /** Installation le lundi 2 novembre 2026, budget de 600 € en novembre ; on est le vendredi 6. */
-async function monter() {
+async function monter(onCloturer?: () => void) {
   const db = createTestDb();
   await migrate(db);
   const repos = createRepositories(db);
@@ -37,7 +37,7 @@ async function monter() {
   reel = new Date(2026, 10, 6, 12, 0);
   const store = createKakeiboStore(deps);
   await store.getState().ouvrir();
-  await render(<EcranAccueil store={store} />);
+  await render(<EcranAccueil store={store} onCloturer={onCloturer} />);
   return { repos, store };
 }
 
@@ -90,5 +90,23 @@ describe('noter une dépense depuis l’accueil', () => {
     expect(screen.queryByTestId('message-annuler')).toBeNull();
     expect(await repos.expenses.all()).toEqual([]);
     expect(store.getState().etat?.expenses).toEqual([]);
+  });
+});
+
+describe('clôturer ma journée depuis l’accueil (E4, #45)', () => {
+  test('« Clôturer ma journée » ouvre E4', async () => {
+    const onCloturer = jest.fn();
+    await monter(onCloturer);
+    await fireEvent.press(screen.getByRole('button', { name: fr.accueil.cloturerJournee }));
+    expect(onCloturer).toHaveBeenCalledTimes(1);
+  });
+
+  test('au retour, la case du jour est clôturée et le bouton devient « Journée clôturée »', async () => {
+    const { store } = await monter(jest.fn());
+    expect(screen.getByLabelText('vendredi, à clôturer aujourd’hui')).toBeOnTheScreen();
+    await act(() => store.getState().cloturerJour('2026-11-06'));
+    expect(screen.getByLabelText('vendredi, clôturé')).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: fr.accueil.journeeCloturee })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: fr.accueil.cloturerJournee })).toBeNull();
   });
 });

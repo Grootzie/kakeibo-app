@@ -36,6 +36,8 @@ export interface PropsFeuilleDepense {
   /** Jours proposés, du plus récent au plus ancien ; le premier est choisi par défaut. */
   jours: DayKey[];
   aujourdhui: DayKey;
+  /** Jour choisi à l'ouverture (« Ajouter une dépense oubliée », E4) ; sinon le premier proposé. */
+  jourInitial?: DayKey;
   /** Rend false si la dépense est refusée : la feuille reste ouverte. */
   onEnregistrer(depense: DepenseSaisie): Promise<boolean>;
   onFermer: () => void;
@@ -47,12 +49,17 @@ const couper = (texte: string): string => Array.from(texte).slice(0, NOTE_MAX_LE
 export function FeuilleDepense({
   jours,
   aujourdhui,
+  jourInitial,
   onEnregistrer,
   onFermer,
 }: PropsFeuilleDepense) {
   const [texte, setTexte] = useState('');
   const [note, setNote] = useState('');
-  const [jour, setJour] = useState<DayKey>(jours[0] ?? aujourdhui);
+  const [jour, setJour] = useState<DayKey>(
+    jourInitial !== undefined && jours.includes(jourInitial)
+      ? jourInitial
+      : (jours[0] ?? aujourdhui),
+  );
   const [refuse, setRefuse] = useState(false);
   const [envoi, setEnvoi] = useState(false);
 
