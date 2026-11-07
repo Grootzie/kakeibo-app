@@ -44,5 +44,16 @@ export function createClock({ actif, reel = () => new Date() }: OptionsHorloge):
   };
 }
 
+/**
+ * L'horloge de test est active dans les builds de développement : `__DEV__`, ou l'APK de
+ * développement de l'intégration continue, construit avec EXPO_PUBLIC_HORLOGE_TEST=1 pour les
+ * parcours Maestro (#49). Un build publié n'a ni l'un ni l'autre.
+ */
+export function horlogeActive(dev: boolean, drapeau: string | undefined): boolean {
+  return dev || drapeau === '1';
+}
+
 /** Horloge de l'appli : active seulement dans les builds de développement. */
-export const horloge: Horloge = createClock({ actif: __DEV__ });
+export const horloge: Horloge = createClock({
+  actif: horlogeActive(__DEV__, process.env.EXPO_PUBLIC_HORLOGE_TEST),
+});

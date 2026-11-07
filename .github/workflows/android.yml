@@ -41,6 +41,10 @@ jobs:
         run: npx expo prebuild --platform android --no-install
       - name: Construire l'APK
         run: ./gradlew assembleRelease --no-daemon
+        env:
+          # Horloge de test et budget de démonstration (réglage caché) dans cet APK de
+          # développement, pour les parcours Maestro (#49). Jamais dans un build publié.
+          EXPO_PUBLIC_HORLOGE_TEST: '1'
         working-directory: android
       - uses: actions/upload-artifact@v4
         with:

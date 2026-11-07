@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
 const lire = (fichier: string): string =>
@@ -41,6 +41,19 @@ describe('intégration continue', () => {
     expect(android).toMatch(/pull_request:/);
     expect(android).toMatch(/android-emulator-runner/);
     expect(android).toMatch(/maestro/i);
+  });
+
+  it("active l'horloge de test dans l'APK de développement, et seulement là (#49)", () => {
+    const android = lire('android.yml');
+    const apk = android.slice(android.indexOf('Construire l'), android.indexOf('upload-artifact'));
+    expect(apk).toMatch(/EXPO_PUBLIC_HORLOGE_TEST: '1'/);
+    expect(android.match(/EXPO_PUBLIC_HORLOGE_TEST/g)).toHaveLength(1);
+    expect(lire('ci.yml')).not.toMatch(/EXPO_PUBLIC_HORLOGE_TEST/);
+    for (const fichier of ['app.json', 'package.json', 'eas.json'])
+      if (existsSync(join(__dirname, '..', fichier)))
+        expect(readFileSync(join(__dirname, '..', fichier), 'utf8')).not.toMatch(
+          /EXPO_PUBLIC_HORLOGE_TEST/,
+        );
   });
 
   it('ne dépend ni de secret ni de service payant', () => {

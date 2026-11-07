@@ -1,0 +1,95 @@
+# Parcours « rattrapage » (J2, #49) : un jour oublié se rattrape depuis le bandeau, puis un autre
+# jour oublié n'est plus rattrapable après le lundi 12:00 qui suit sa semaine.
+# Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
+# du téléphone au mercredi 4 novembre 2026 à 9:00. L'horloge de test (réglage caché, appui long
+# sur la date) pose le budget de démonstration et avance les jours, toujours à 9:00.
+appId: app.kakeibo
+---
+- launchApp
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 60000
+- assertVisible: 'mercredi, à clôturer aujourd’hui'
+- longPressOn: 'mercredi.4.novembre'
+- scrollUntilVisible:
+    element:
+      text: 'Poser un budget de démonstration.*'
+    direction: DOWN
+- tapOn: 'Poser un budget de démonstration.*'
+- assertVisible: 'Budget de démonstration posé'
+# 1. Jeudi 5 novembre, sans avoir clôturé mercredi.
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 1 jour'
+- scrollUntilVisible:
+    element:
+      text: 'jeudi.5.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'jeudi.5.novembre'
+    timeout: 10000
+- assertVisible: 'mercredi, à rattraper'
+- assertVisible: 'Tu peux encore rattraper mercredi.4.novembre\.'
+- assertVisible: 'Premier jour à rattraper'
+- tapOn: 'Fermer l’explication .*Premier jour à rattraper.*'
+- takeScreenshot: captures/rattrapage-oubli
+# 2. Le bandeau ouvre E5 ; « Rien dépensé » pose le tampon.
+- tapOn: 'Tu peux encore rattraper mercredi.4.novembre\.'
+- assertVisible: 'Rattraper mercredi.4.novembre'
+- takeScreenshot: captures/rattrapage-ecran
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Premier tampon'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Premier tampon.*'
+- assertVisible: 'mercredi, clôturé'
+- assertNotVisible: 'Tu peux encore rattraper.*'
+- takeScreenshot: captures/rattrapage-cloture
+# 3. Jeudi oublié : lundi 9 novembre à 9:00, il est encore rattrapable (délai du lundi 12:00).
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 2 jours'
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 3 jours'
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 4 jours'
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 5 jours'
+- scrollUntilVisible:
+    element:
+      text: 'lundi.9.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'lundi.9.novembre'
+    timeout: 10000
+- assertVisible: 'Tu peux encore rattraper jeudi.5.novembre\.'
+- takeScreenshot: captures/rattrapage-lundi-matin
+# Lundi se clôture, pour que seul jeudi reste en jeu.
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+- assertVisible: 'Tu peux encore rattraper jeudi.5.novembre\.'
+# Mardi 10 novembre à 9:00 : le lundi 12:00 est passé, la semaine de jeudi est scellée.
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 6 jours'
+- scrollUntilVisible:
+    element:
+      text: 'mardi.10.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'mardi.10.novembre'
+    timeout: 10000
+- assertNotVisible: 'Tu peux encore rattraper.*'
+- assertVisible: 'lundi, clôturé'
+- assertVisible: 'mardi, à clôturer aujourd’hui'
+- takeScreenshot: captures/rattrapage-trop-tard
+- launchApp:
+    clearState: true

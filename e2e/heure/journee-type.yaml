@@ -1,0 +1,88 @@
+# Parcours « journée type » (J2, #49) : budget de démonstration, deux dépenses qui font baisser
+# l'enveloppe, clôture « J'ai tout noté », puis le lendemain clôture « Rien dépensé aujourd'hui ».
+# Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
+# du téléphone au mercredi 4 novembre 2026 à 9:00. L'horloge de test (réglage caché, appui long
+# sur la date) pose le budget et avance d'un jour : elle est active dans l'APK de développement.
+# Budget de démonstration : 600 € par mois de 30 jours, 20 € par jour décompté ; installation
+# un mercredi, 5 jours décomptés : 100 € jusqu'à dimanche.
+appId: app.kakeibo
+---
+- launchApp
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 60000
+- assertVisible: 'mercredi, à clôturer aujourd’hui'
+# 1. Budget de démonstration.
+- longPressOn: 'mercredi.4.novembre'
+- scrollUntilVisible:
+    element:
+      text: 'Poser un budget de démonstration.*'
+    direction: DOWN
+- tapOn: 'Poser un budget de démonstration.*'
+- assertVisible: 'Budget de démonstration posé'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.4.novembre'
+    direction: UP
+- assertVisible: 'Il te reste 100.€ jusqu’à dimanche'
+- takeScreenshot: captures/journee-budget
+# 2. Deux dépenses dans deux catégories.
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Essentiel'
+- inputText: '12.50'
+# Pas de « hideKeyboard » : sur Android, Maestro envoie « Retour », qui ferme la feuille (Modal).
+- tapOn: 'Enregistrer en Essentiel'
+- extendedWaitUntil:
+    visible: 'Première dépense'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Première dépense.*'
+- assertVisible: 'Il te reste 87,50.€ jusqu’à dimanche'
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Culture'
+- inputText: '8.40'
+- tapOn: 'Enregistrer en Culture'
+- extendedWaitUntil:
+    visible: 'Il te reste 79,10.€ jusqu’à dimanche'
+    timeout: 10000
+- assertVisible: 'Il te reste 79,10.€ jusqu’à dimanche'
+- takeScreenshot: captures/journee-depenses
+# 3. Clôture « J'ai tout noté ».
+- tapOn: 'Clôturer ma journée'
+- assertVisible: 'Culture.: 8,40.€'
+- assertVisible: 'Essentiel.: 12,50.€'
+- tapOn: 'J’ai tout noté'
+- extendedWaitUntil:
+    visible: 'Premier tampon'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Premier tampon.*'
+- assertVisible: 'Journée clôturée'
+- assertVisible: 'mercredi, clôturé'
+- assertNotVisible: 'Clôturer ma journée'
+- takeScreenshot: captures/journee-cloturee-mercredi
+# 4. Le lendemain : « Rien dépensé aujourd'hui ».
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 1 jour'
+- scrollUntilVisible:
+    element:
+      text: 'jeudi.5.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'jeudi.5.novembre'
+    timeout: 10000
+- assertVisible: 'jeudi, à clôturer aujourd’hui'
+- assertVisible: 'Il te reste 79,10.€ jusqu’à dimanche'
+- tapOn: 'Clôturer ma journée'
+- assertVisible: 'Aucune dépense notée ce jour\.'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+- assertVisible: 'jeudi, clôturé'
+- assertVisible: 'mercredi, clôturé'
+- takeScreenshot: captures/journee-cloturee-jeudi
+- launchApp:
+    clearState: true

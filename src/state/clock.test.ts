@@ -1,4 +1,4 @@
-import { createClock } from './clock';
+import { createClock, horlogeActive } from './clock';
 
 const REEL = new Date('2026-11-02T10:00:00.000Z');
 
@@ -45,5 +45,22 @@ describe('horloge de test', () => {
     h.avancerMois(1);
     expect(h.actif).toBe(false);
     expect(h.now().toISOString()).toBe(REEL.toISOString());
+  });
+});
+
+describe('activation de l’horloge de test (#49)', () => {
+  it('est active dans un build de développement', () => {
+    expect(horlogeActive(true, undefined)).toBe(true);
+  });
+
+  it('est active dans l’APK de développement de l’intégration continue, qui pose le drapeau', () => {
+    expect(horlogeActive(false, '1')).toBe(true);
+  });
+
+  it('est inactive dans un build publié, sans drapeau ou avec une autre valeur', () => {
+    expect(horlogeActive(false, undefined)).toBe(false);
+    expect(horlogeActive(false, '')).toBe(false);
+    expect(horlogeActive(false, '0')).toBe(false);
+    expect(horlogeActive(false, 'true')).toBe(false);
   });
 });

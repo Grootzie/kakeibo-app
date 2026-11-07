@@ -5,6 +5,16 @@ import { join } from 'path';
 import { fr } from '../src/i18n/fr';
 import { texteDuRappel } from '../src/state/rappel';
 
+/** Vérifie que chaque ligne figure dans le parcours, dans cet ordre (garde-fou #49). */
+function dansLOrdre(parcours: string, lignes: string[]): void {
+  let position = -1;
+  for (const ligne of lignes) {
+    const trouvee = parcours.indexOf(ligne, position + 1);
+    if (trouvee < 0) throw new Error(`Étape absente ou déplacée : ${ligne}`);
+    position = trouvee;
+  }
+}
+
 describe('parcours Maestro de démarrage', () => {
   const parcours = readFileSync(join(__dirname, '..', 'e2e', 'accueil.yaml'), 'utf8');
 
@@ -183,14 +193,184 @@ describe('parcours Maestro « Cartes de première fois » (#48)', () => {
   });
 });
 
+describe('parcours Maestro « journée type » (J2, #49)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'heure', 'journee-type.yaml'), 'utf8');
+  const t = fr.carteExplication.titres;
+  // Budget de démonstration : 600 € par mois de 30 jours, 20 € par jour décompté.
+  // Installation le mercredi 4 novembre 2026 : 5 jours décomptés, 100 € pour la semaine.
+  const reste = (centimes: number) => fr.accueil.reste(centimes, 'dimanche');
+
+  it('le garde-fou refuse un parcours dont une étape manque ou a changé de place', () => {
+    expect(() => dansLOrdre('- a\n- b\n', ['- a', '- b'])).not.toThrow();
+    expect(() => dansLOrdre('- a\n', ['- a', '- b'])).toThrow('- b');
+    expect(() => dansLOrdre('- b\n- a\n', ['- a', '- b'])).toThrow('- b');
+  });
+
+  it('calcule les montants attendus avec les textes de l’appli', () => {
+    expect(reste(10000)).toMatch(/^Il te reste 100.€ jusqu’à dimanche$/);
+    expect(reste(10000 - 1250)).toMatch(/^Il te reste 87,50.€ jusqu’à dimanche$/);
+    expect(reste(10000 - 1250 - 840)).toMatch(/^Il te reste 79,10.€ jusqu’à dimanche$/);
+    expect(fr.accueil.date('2026-11-04')).toMatch(/^mercredi.4.novembre$/);
+    expect(fr.accueil.date('2026-11-05')).toMatch(/^jeudi.5.novembre$/);
+    expect(fr.dev.budgetDemoLibelle).toMatch(/^Poser un budget de démonstration.*$/);
+    expect(fr.dev.plusUnJour).toBe('+1 jour');
+  });
+
+  it('1. pose le budget de démonstration avec l’horloge de test : 100 € jusqu’à dimanche', () => {
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    dansLOrdre(parcours, [
+      '- launchApp',
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-04', 'a_cloturer')}'`,
+      "- longPressOn: 'mercredi.4.novembre'",
+      `- tapOn: 'Poser un budget de démonstration.*'`,
+      `- assertVisible: '${fr.dev.budgetDemoPose}'`,
+      "- assertVisible: 'Il te reste 100.€ jusqu’à dimanche'",
+      '- takeScreenshot: captures/journee-budget',
+    ]);
+  });
+
+  it('2. note deux dépenses dans deux catégories : le reste baisse de 12,50 € puis de 8,40 €', () => {
+    dansLOrdre(parcours, [
+      "- assertVisible: 'Il te reste 100.€ jusqu’à dimanche'",
+      `- tapOn: '${fr.accueil.noterDepense}'`,
+      "- inputText: '12.50'",
+      `- tapOn: '${fr.depense.categorieLibelle('Essentiel')}'`,
+      `visible: '${t.first_expense}'`,
+      `- tapOn: 'Fermer l’explication .*${t.first_expense}.*'`,
+      "- assertVisible: 'Il te reste 87,50.€ jusqu’à dimanche'",
+      `- tapOn: '${fr.accueil.noterDepense}'`,
+      "- inputText: '8.40'",
+      `- tapOn: '${fr.depense.categorieLibelle('Culture')}'`,
+      "- assertVisible: 'Il te reste 79,10.€ jusqu’à dimanche'",
+      '- takeScreenshot: captures/journee-depenses',
+    ]);
+    expect(parcours).not.toMatch(/^- hideKeyboard/m);
+  });
+
+  it('3. clôture avec « J’ai tout noté » : case clôturée, bouton « Journée clôturée »', () => {
+    dansLOrdre(parcours, [
+      "- assertVisible: 'Il te reste 79,10.€ jusqu’à dimanche'",
+      `- tapOn: '${fr.accueil.cloturerJournee}'`,
+      `- tapOn: '${fr.cloture.toutNote}'`,
+      `visible: '${t.first_stamp}'`,
+      `- tapOn: 'Fermer l’explication .*${t.first_stamp}.*'`,
+      `- assertVisible: '${fr.accueil.journeeCloturee}'`,
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-04', 'cloturee')}'`,
+      `- assertNotVisible: '${fr.accueil.cloturerJournee}'`,
+      '- takeScreenshot: captures/journee-cloturee-mercredi',
+    ]);
+  });
+
+  it('4. avance d’un jour et clôture avec « Rien dépensé aujourd’hui »', () => {
+    dansLOrdre(parcours, [
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-04', 'cloturee')}'`,
+      "- tapOn: '\\+1 jour'",
+      "visible: 'jeudi.5.novembre'",
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-05', 'a_cloturer')}'`,
+      "- assertVisible: 'Il te reste 79,10.€ jusqu’à dimanche'",
+      `- tapOn: '${fr.accueil.cloturerJournee}'`,
+      "- assertVisible: 'Aucune dépense notée ce jour\\.'",
+      `- tapOn: '${fr.cloture.rienDepense}'`,
+      `visible: '${fr.accueil.journeeCloturee}'`,
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-05', 'cloturee')}'`,
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-04', 'cloturee')}'`,
+      '- takeScreenshot: captures/journee-cloturee-jeudi',
+    ]);
+    expect(fr.accueil.caseLibelle('2026-11-05', 'a_cloturer')).toBe(
+      'jeudi, à clôturer aujourd’hui',
+    );
+  });
+
+  it('efface les données à la fin', () => {
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+});
+
+describe('parcours Maestro « rattrapage » (J2, #49)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'heure', 'rattrapage.yaml'), 'utf8');
+  const t = fr.carteExplication.titres;
+
+  it('calcule les textes attendus avec ceux de l’appli', () => {
+    expect(fr.accueil.bandeauRattraper('2026-11-04')).toMatch(
+      /^Tu peux encore rattraper mercredi.4.novembre\.$/,
+    );
+    expect(fr.accueil.bandeauRattraper('2026-11-05')).toMatch(
+      /^Tu peux encore rattraper jeudi.5.novembre\.$/,
+    );
+    expect(fr.cloture.titreRattrapage('2026-11-04')).toMatch(/^Rattraper mercredi.4.novembre$/);
+    expect(fr.accueil.date('2026-11-09')).toMatch(/^lundi.9.novembre$/);
+    expect(fr.accueil.date('2026-11-10')).toMatch(/^mardi.10.novembre$/);
+  });
+
+  it('1. avance d’un jour sans clôturer : bandeau et case oubliée apparaissent', () => {
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    dansLOrdre(parcours, [
+      '- launchApp',
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-04', 'a_cloturer')}'`,
+      "- longPressOn: 'mercredi.4.novembre'",
+      `- tapOn: 'Poser un budget de démonstration.*'`,
+      "- tapOn: '\\+1 jour'",
+      "visible: 'jeudi.5.novembre'",
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-04', 'rattrapable')}'`,
+      "- assertVisible: 'Tu peux encore rattraper mercredi.4.novembre\\.'",
+      `- assertVisible: '${t.first_catch_up}'`,
+      `- tapOn: 'Fermer l’explication .*${t.first_catch_up}.*'`,
+      '- takeScreenshot: captures/rattrapage-oubli',
+    ]);
+  });
+
+  it('2. ouvre le rattrapage, vérifie le titre, clôture : la case passe à clôturée', () => {
+    dansLOrdre(parcours, [
+      '- takeScreenshot: captures/rattrapage-oubli',
+      "- tapOn: 'Tu peux encore rattraper mercredi.4.novembre\\.'",
+      "- assertVisible: 'Rattraper mercredi.4.novembre'",
+      '- takeScreenshot: captures/rattrapage-ecran',
+      `- tapOn: '${fr.cloture.rienDepense}'`,
+      `visible: '${t.first_stamp}'`,
+      `- tapOn: 'Fermer l’explication .*${t.first_stamp}.*'`,
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-04', 'cloturee')}'`,
+      "- assertNotVisible: 'Tu peux encore rattraper.*'",
+      '- takeScreenshot: captures/rattrapage-cloture',
+    ]);
+  });
+
+  it('3. oublie jeudi, avance au lundi 9:00 (encore rattrapable), puis au mardi : plus rattrapable', () => {
+    const apres = parcours.slice(parcours.indexOf('- takeScreenshot: captures/rattrapage-cloture'));
+    // Quatre jours : du jeudi 5 au lundi 9 novembre, 9:00, avant le délai du lundi 12:00.
+    const jusquAuLundi = apres.slice(0, apres.indexOf("visible: 'lundi.9.novembre'"));
+    expect(jusquAuLundi.match(/^- tapOn: '\\\+1 jour'$/gm)).toHaveLength(4);
+    dansLOrdre(apres, [
+      "visible: 'lundi.9.novembre'",
+      "- assertVisible: 'Tu peux encore rattraper jeudi.5.novembre\\.'",
+      '- takeScreenshot: captures/rattrapage-lundi-matin',
+      `- tapOn: '${fr.accueil.cloturerJournee}'`,
+      `- tapOn: '${fr.cloture.rienDepense}'`,
+      `visible: '${fr.accueil.journeeCloturee}'`,
+      "- assertVisible: 'Tu peux encore rattraper jeudi.5.novembre\\.'",
+      "- tapOn: '\\+1 jour'",
+      "visible: 'mardi.10.novembre'",
+      "- assertNotVisible: 'Tu peux encore rattraper.*'",
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-09', 'cloturee')}'`,
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-10', 'a_cloturer')}'`,
+      '- takeScreenshot: captures/rattrapage-trop-tard',
+    ]);
+  });
+
+  it('efface les données à la fin', () => {
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+});
+
 describe('script de l’émulateur (#52)', () => {
   const script = join(__dirname, 'parcours-android.sh');
 
   /** Joue le script avec de faux adb et maestro ; renvoie le code de sortie et le dossier. */
   function jouer(
-    maestroReussit: boolean,
+    /** Vrai : tous les parcours réussissent ; un nom de fichier : seul ce parcours échoue. */
+    maestroReussit: boolean | string,
     heure = false,
     rappel = false,
+    parcoursJ2 = false,
   ): { code: number; dossier: string; journal: string } {
     const dossier = mkdtempSync(join(tmpdir(), 'parcours-'));
     const bin = join(dossier, 'bin');
@@ -202,6 +382,9 @@ describe('script de l’émulateur (#52)', () => {
       writeFileSync(join(dossier, 'e2e', 'heure', 'installer.yaml'), 'appId: app.kakeibo\n');
       if (rappel)
         writeFileSync(join(dossier, 'e2e', 'heure', 'rappel-toucher.yaml'), 'appId: app.kakeibo\n');
+      if (parcoursJ2)
+        for (const nom of ['journee-type.yaml', 'rattrapage.yaml'])
+          writeFileSync(join(dossier, 'e2e', 'heure', nom), 'appId: app.kakeibo\n');
     }
     const journal = join(dossier, 'journal.txt');
     const faux = (nom: string, corps: string) => {
@@ -222,7 +405,14 @@ describe('script de l’émulateur (#52)', () => {
         'esac',
       ].join('\n'),
     );
-    faux('maestro', maestroReussit ? 'exit 0' : 'exit 1');
+    faux(
+      'maestro',
+      typeof maestroReussit === 'string'
+        ? `case "$*" in *${maestroReussit}*) exit 1 ;; esac\nexit 0`
+        : maestroReussit
+          ? 'exit 0'
+          : 'exit 1',
+    );
     faux('sleep', 'exit 0');
     let code = 0;
     try {
@@ -321,6 +511,37 @@ describe('script de l’émulateur (#52)', () => {
     ];
     expect(Math.min(...ordre)).toBeGreaterThanOrEqual(0);
     expect(ordre).toEqual([...ordre].sort((a, b) => a - b));
+  });
+
+  it('journée type et rattrapage : appli effacée, mercredi 4 novembre 2026 à 9:00, puis heure rendue (#49)', () => {
+    const { code, journal } = jouer(true, true, true, true);
+    expect(code).toBe(0);
+    const lignes = journal.split('\n');
+    const position = (debut: string) => lignes.findIndex((l) => l.startsWith(debut));
+    const toucher = position('maestro test e2e/heure/rappel-toucher.yaml');
+    const journee = position('maestro test e2e/heure/journee-type.yaml');
+    const rattrapage = position('maestro test e2e/heure/rattrapage.yaml');
+    const automatique = position('adb shell settings put global auto_time 1');
+    expect(Math.min(toucher, journee, rattrapage)).toBeGreaterThanOrEqual(0);
+    expect([toucher, journee, rattrapage, automatique]).toEqual(
+      [toucher, journee, rattrapage, automatique].sort((a, b) => a - b),
+    );
+    for (const parcours of [journee, rattrapage]) {
+      expect(lignes[parcours - 2]).toBe('adb shell pm clear app.kakeibo');
+      expect(lignes[parcours - 1]).toBe('adb shell date 110409002026.00');
+    }
+  });
+
+  it('échoue si le parcours « journée type » ou « rattrapage » échoue, et joue l’autre (#49)', () => {
+    for (const [echoue, autre] of [
+      ['journee-type.yaml', 'rattrapage.yaml'],
+      ['rattrapage.yaml', 'journee-type.yaml'],
+    ]) {
+      const { code, journal } = jouer(echoue, true, true, true);
+      expect(code).toBe(1);
+      expect(journal).toContain(`maestro test e2e/heure/${autre}`);
+      expect(journal).toContain('adb shell settings put global auto_time 1');
+    }
   });
 
   it('échoue si le parcours du rappel échoue', () => {
