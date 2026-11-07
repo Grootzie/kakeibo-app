@@ -17,14 +17,17 @@ import {
 } from '../domain/traitement';
 import type { Horloge } from './clock';
 import { type Charge, charger, persister } from './persistance';
+import { type ReglagesRappel, type ServiceRappels, rappelsAPlanifier } from './rappel';
 import { estRattrapable } from './selecteurs';
-import { heureLocale, instantLocal } from './temps';
+import { dateLocale, heureLocale, instantLocal } from './temps';
 
 export interface DependancesStore {
   depots: () => Promise<Repositories>;
   catalogue: Catalog;
-  horloge: Pick<Horloge, 'now' | 'actif'>;
+  horloge: Pick<Horloge, 'now' | 'actif' | 'decalageMs'>;
   nouvelId: () => string;
+  /** Notifications locales du téléphone (rappel du soir) ; absent, aucun rappel. */
+  rappels?: ServiceRappels;
 }
 
 export interface NouvelleDepense {
@@ -47,6 +50,8 @@ export interface EtatKakeibo {
   clotures: DayClosureRow[];
   /** Heure locale du dernier traitement. */
   maintenant: LocalDateTime | null;
+  /** Rappel du soir : reminder_time et reminder_enabled des réglages. */
+  reglagesRappel: ReglagesRappel | null;
   ouvrir(): Promise<void>;
   enregistrerDepense(depense: NouvelleDepense): Promise<RefusDepense | null>;
   /** Nouvelle dépense (E3) : rend son identifiant, pour pouvoir l'annuler. */
@@ -63,6 +68,11 @@ export interface EtatKakeibo {
   /** Clôture « J'ai tout noté », ou « Rien dépensé » si le jour n'a aucune dépense. */
   cloturerJour(day: string): Promise<Refusal | null>;
   marquerBilansVus(): Promise<void>;
+  /**
+   * Demande l'autorisation des notifications (E1 en J5 ; en attendant, réglage caché des builds
+   * de développement), puis replanifie le rappel du soir. Rend vrai si elle est accordée.
+   */
+  demanderAutorisationRappel(): Promise<boolean>;
   /** Réglage caché des builds de développement, en attendant E1 (J5). */
   poserBudgetDemo(): Promise<boolean>;
 }
@@ -80,6 +90,14 @@ const parJour = (a: ExpenseRow, b: ExpenseRow): number =>
         : a.created_at > b.created_at
           ? 1
           : 0;
+
+/** Heure du rappel par défaut (Décisions ouvertes : 21:00, Validé). */
+export const HEURE_RAPPEL_DEFAUT = '21:00';
+
+const reglagesDepuis = (s: Charge['settings']): ReglagesRappel => ({
+  reminderTime: s.reminder_time ?? HEURE_RAPPEL_DEFAUT,
+  reminderEnabled: s.reminder_enabled === 1,
+});
 
 export function createKakeiboStore(deps: DependancesStore) {
   let depots: Promise<Repositories> | null = null;
@@ -101,7 +119,7 @@ export function createKakeiboStore(deps: DependancesStore) {
         id: 1,
         install_id: deps.nouvelId(),
         install_day: maintenant.day,
-        reminder_time: '21:00',
+        reminder_time: HEURE_RAPPEL_DEFAUT,
         reminder_enabled: 1,
         trial_start: null,
         plan: 'trial' as const,
@@ -124,8 +142,52 @@ export function createKakeiboStore(deps: DependancesStore) {
       const deja = get().etat;
       if (deja !== null) return deja;
       const charge = (await charger(r, deps.catalogue)) ?? (await installer(r));
-      set({ etat: charge.etat, depenses: charge.depenses, clotures: charge.clotures });
+      set({
+        etat: charge.etat,
+        depenses: charge.depenses,
+        clotures: charge.clotures,
+        reglagesRappel: reglagesDepuis(charge.settings),
+      });
       return charge.etat;
+    }
+
+    /** Dernière planification réussie, pour ne pas tout replanifier à chaque action. */
+    let dernierPlan: string | null = null;
+
+    /**
+     * Rappel du soir : après chaque traitement, planifie un rappel par jour à reminder_time, sauf
+     * aujourd'hui si la journée est clôturée ; rien sans autorisation ou si le rappel est désactivé.
+     * Un échec du téléphone n'empêche rien : la prochaine ouverture réessaie.
+     */
+    async function planifierRappels(): Promise<void> {
+      const service = deps.rappels;
+      const { etat, maintenant, reglagesRappel } = get();
+      if (service === undefined || etat === null || maintenant === null || reglagesRappel === null)
+        return;
+      try {
+        const autorise = await service.autorise();
+        const plan = autorise
+          ? rappelsAPlanifier({
+              maintenant,
+              reglages: reglagesRappel,
+              joursClotures: etat.closedDays,
+            })
+          : [];
+        // L'horloge de test décale l'heure de l'appli : le téléphone, lui, planifie en heure réelle.
+        const decalage = deps.horloge.decalageMs();
+        const planifies = plan.map((p) => ({
+          jour: p.jour,
+          texte: p.texte,
+          quand: new Date(dateLocale(p.jour, p.heure).getTime() - decalage),
+        }));
+        const signature = JSON.stringify(planifies);
+        if (signature === dernierPlan) return;
+        await service.remplacer(planifies);
+        dernierPlan = signature;
+      } catch (erreur: unknown) {
+        dernierPlan = null;
+        if (__DEV__) console.warn(erreur);
+      }
     }
 
     /**
@@ -167,6 +229,7 @@ export function createKakeiboStore(deps: DependancesStore) {
           depenses: maj.depenses ?? s.depenses,
           clotures: maj.clotures ? [...s.clotures, ...maj.clotures] : s.clotures,
         }));
+        await planifierRappels();
         return refusal;
       });
     }
@@ -177,6 +240,7 @@ export function createKakeiboStore(deps: DependancesStore) {
       depenses: [],
       clotures: [],
       maintenant: null,
+      reglagesRappel: null,
 
       ouvrir: async () => {
         await traiter({ type: 'open' });
@@ -233,6 +297,20 @@ export function createKakeiboStore(deps: DependancesStore) {
 
       marquerBilansVus: async () => {
         await traiter({ type: 'week_reviews_seen' });
+      },
+
+      demanderAutorisationRappel: async () => {
+        const service = deps.rappels;
+        let accordee = false;
+        if (service !== undefined) {
+          try {
+            accordee = await service.demanderAutorisation();
+          } catch (erreur: unknown) {
+            if (__DEV__) console.warn(erreur);
+          }
+        }
+        await traiter({ type: 'open' });
+        return accordee;
       },
 
       poserBudgetDemo: async () => {

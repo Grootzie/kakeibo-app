@@ -1,0 +1,25 @@
+# Rappel du soir (#47), étape 2 : à 21:00, la notification est là, avec le texte du jeudi
+# 5 novembre (les trois textes alternent d'un jour à l'autre). La toucher ouvre directement
+# E4 sur aujourd'hui ; « Rien dépensé aujourd'hui » pose le tampon. Le script a ouvert le volet
+# des notifications. Le parcours finit en effaçant les données de l'appli.
+appId: app.kakeibo
+---
+- extendedWaitUntil:
+    visible: 'Deux minutes pour clôturer ta journée.\?'
+    timeout: 30000
+- takeScreenshot: captures/rappel-notification
+- tapOn: 'Deux minutes pour clôturer ta journée.\?'
+- extendedWaitUntil:
+    visible: 'Rien dépensé aujourd’hui'
+    timeout: 60000
+- assertVisible: 'Clôturer ma journée'
+- assertVisible: 'Aucune dépense notée ce jour\.'
+- takeScreenshot: captures/rappel-cloture
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+- assertVisible: 'jeudi, clôturé'
+- takeScreenshot: captures/rappel-journee-cloturee
+- launchApp:
+    clearState: true

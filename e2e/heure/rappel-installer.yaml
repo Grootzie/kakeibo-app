@@ -1,0 +1,13 @@
+# Rappel du soir (#47), étape 1 : jeudi 5 novembre 2026 à 20:58, notifications autorisées
+# (le script les accorde avec adb, en attendant E1). L'appli s'installe et planifie le rappel
+# de 21:00, puis passe en arrière-plan : un rappel n'apparaît pas quand l'appli est à l'écran.
+appId: app.kakeibo
+---
+- launchApp:
+    permissions:
+      notifications: allow
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 60000
+- assertVisible: 'jeudi, à clôturer aujourd’hui'
+- pressKey: Home

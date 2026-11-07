@@ -7,6 +7,7 @@ import { migrate } from '../data/migrations';
 import { createRepositories } from '../data/repositories';
 import type { Catalog } from '../domain/objets';
 import { horloge } from './clock';
+import { serviceRappels } from './notifications';
 import { type EtatKakeibo, createKakeiboStore } from './store';
 
 /** Identifiant local unique : jamais envoyé hors du téléphone. */
@@ -24,6 +25,7 @@ export const kakeibo = createKakeiboStore({
   catalogue: catalogueJson as Catalog,
   horloge,
   nouvelId,
+  rappels: serviceRappels,
 });
 
 /** Lecture de l'état par les écrans, avec un sélecteur. */

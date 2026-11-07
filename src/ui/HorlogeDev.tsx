@@ -11,6 +11,7 @@ const JOUR_MS = 24 * 60 * 60 * 1000;
 export function HorlogeDev() {
   const [, rafraichir] = useState(0);
   const [budgetDemo, setBudgetDemo] = useState<boolean | null>(null);
+  const [rappel, setRappel] = useState<boolean | null>(null);
   if (!horloge.actif) return null;
 
   // Après chaque saut de l'horloge, l'appli traite l'heure nouvelle comme une ouverture.
@@ -20,6 +21,9 @@ export function HorlogeDev() {
     void kakeibo.getState().ouvrir();
   };
   const poserBudgetDemo = async () => setBudgetDemo(await kakeibo.getState().poserBudgetDemo());
+  // En attendant E1 (J5) : la demande d'autorisation du rappel du soir.
+  const autoriserRappel = async () =>
+    setRappel(await kakeibo.getState().demanderAutorisationRappel());
   const jour = () => horloge.avancerJours(1);
   const semaine = () => horloge.avancerSemaines(1);
   const mois = () => horloge.avancerMois(1);
@@ -62,6 +66,20 @@ export function HorlogeDev() {
       {budgetDemo !== null && (
         <Text accessibilityLiveRegion="polite" style={{ color: theme.couleurs.texteDiscret }}>
           {budgetDemo ? fr.dev.budgetDemoPose : fr.dev.budgetDemoDejaLa}
+        </Text>
+      )}
+      <Pressable
+        testID="autoriser-rappel"
+        accessibilityRole="button"
+        accessibilityLabel={fr.dev.autoriserRappelLibelle}
+        onPress={() => void autoriserRappel()}
+        style={{ minHeight: theme.zoneTactileMin, justifyContent: 'center' }}
+      >
+        <Text style={{ color: theme.couleurs.texte }}>{fr.dev.autoriserRappel}</Text>
+      </Pressable>
+      {rappel !== null && (
+        <Text accessibilityLiveRegion="polite" style={{ color: theme.couleurs.texteDiscret }}>
+          {rappel ? fr.dev.rappelAutorise : fr.dev.rappelRefuse}
         </Text>
       )}
     </View>

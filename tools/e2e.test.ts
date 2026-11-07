@@ -3,6 +3,7 @@ import { chmodSync, existsSync, mkdtempSync, readFileSync, writeFileSync, mkdirS
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { fr } from '../src/i18n/fr';
+import { texteDuRappel } from '../src/state/rappel';
 
 describe('parcours Maestro de démarrage', () => {
   const parcours = readFileSync(join(__dirname, '..', 'e2e', 'accueil.yaml'), 'utf8');
@@ -116,6 +117,36 @@ describe('parcours Maestro « Rattraper un jour » (#46)', () => {
   });
 });
 
+describe('parcours Maestro « Rappel du soir » (#47)', () => {
+  const dossier = join(__dirname, '..', 'e2e', 'heure');
+  const installer = readFileSync(join(dossier, 'rappel-installer.yaml'), 'utf8');
+  const parcours = readFileSync(join(dossier, 'rappel-toucher.yaml'), 'utf8');
+
+  it('installe l’appli le jeudi 5 novembre avant 21:00, puis la passe en arrière-plan', () => {
+    expect(installer).toMatch(/appId: app\.kakeibo/);
+    expect(installer).toContain('notifications: allow');
+    expect(installer).toContain(
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-05', 'a_cloturer')}'`,
+    );
+    expect(installer.trimEnd()).toMatch(/- pressKey: Home$/);
+  });
+
+  it('touche le rappel du jour, qui ouvre E4, puis pose le tampon', () => {
+    const texte = texteDuRappel('2026-11-05');
+    expect(texte).toMatch(/^Deux minutes pour clôturer ta journée.\?$/);
+    expect(parcours).toContain("- tapOn: 'Deux minutes pour clôturer ta journée.\\?'");
+    expect(parcours).toContain(`visible: '${fr.cloture.rienDepense}'`);
+    expect(parcours).toContain(`- assertVisible: '${fr.cloture.titre}'`);
+    expect(parcours).toContain(`- tapOn: '${fr.cloture.rienDepense}'`);
+    expect(parcours).toContain(
+      `- assertVisible: '${fr.accueil.caseLibelle('2026-11-05', 'cloturee')}'`,
+    );
+    for (const nom of ['rappel-notification', 'rappel-cloture', 'rappel-journee-cloturee'])
+      expect(parcours).toContain(`- takeScreenshot: captures/${nom}`);
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+});
+
 describe('script de l’émulateur (#52)', () => {
   const script = join(__dirname, 'parcours-android.sh');
 
@@ -123,6 +154,7 @@ describe('script de l’émulateur (#52)', () => {
   function jouer(
     maestroReussit: boolean,
     heure = false,
+    rappel = false,
   ): { code: number; dossier: string; journal: string } {
     const dossier = mkdtempSync(join(tmpdir(), 'parcours-'));
     const bin = join(dossier, 'bin');
@@ -132,6 +164,8 @@ describe('script de l’émulateur (#52)', () => {
     if (heure) {
       mkdirSync(join(dossier, 'e2e', 'heure'));
       writeFileSync(join(dossier, 'e2e', 'heure', 'installer.yaml'), 'appId: app.kakeibo\n');
+      if (rappel)
+        writeFileSync(join(dossier, 'e2e', 'heure', 'rappel-toucher.yaml'), 'appId: app.kakeibo\n');
     }
     const journal = join(dossier, 'journal.txt');
     const faux = (nom: string, corps: string) => {
@@ -147,6 +181,7 @@ describe('script de l’émulateur (#52)', () => {
         'case "$*" in',
         '  "shell dumpsys window") echo "mCurrentFocus=Window{1 u0 com.android.launcher3/.Launcher}" ;;',
         '  "exec-out screencap -p") printf "PNG" ;;',
+        '  "shell dumpsys notification --noredact") echo "NotificationRecord pkg=app.kakeibo" ;;',
         '  "shell settings put system font_scale 2.0") echo 2 > "$HOME/echelle" ;;',
         'esac',
       ].join('\n'),
@@ -219,6 +254,42 @@ describe('script de l’émulateur (#52)', () => {
     );
     expect(racine).toBeGreaterThanOrEqual(0);
     expect(lignes[rattraper + 1]).toMatch(/^adb shell date \d{8}\d{4}\.\d{2}$/);
+  });
+
+  it('rappel du soir : 20:58, notifications accordées, attend le rappel, ouvre le volet (#47)', () => {
+    const { code, journal } = jouer(true, true, true);
+    expect(code).toBe(0);
+    const lignes = journal.split('\n');
+    const position = (debut: string) => lignes.findIndex((l) => l.startsWith(debut));
+    const rattraper = position('maestro test e2e/heure/rattraper-jour.yaml');
+    const efface = lignes.indexOf('adb shell pm clear app.kakeibo', rattraper);
+    const accorde = position(
+      'adb shell pm grant app.kakeibo android.permission.POST_NOTIFICATIONS',
+    );
+    const soir = position('adb shell date 110520582026.00');
+    const installer = position('maestro test e2e/heure/rappel-installer.yaml');
+    const attente = lignes.indexOf('adb shell dumpsys notification --noredact', installer);
+    const volet = position('adb shell cmd statusbar expand-notifications');
+    const toucher = position('maestro test e2e/heure/rappel-toucher.yaml');
+    const automatique = position('adb shell settings put global auto_time 1');
+    const ordre = [
+      rattraper,
+      efface,
+      accorde,
+      soir,
+      installer,
+      attente,
+      volet,
+      toucher,
+      automatique,
+    ];
+    expect(Math.min(...ordre)).toBeGreaterThanOrEqual(0);
+    expect(ordre).toEqual([...ordre].sort((a, b) => a - b));
+  });
+
+  it('échoue si le parcours du rappel échoue', () => {
+    const { code } = jouer(false, true, true);
+    expect(code).toBe(1);
   });
 
   it('sans parcours à heure précise, ne touche pas à l’heure du téléphone', () => {
