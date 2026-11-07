@@ -1,6 +1,8 @@
 // Tous les textes visibles de l'appli (voir « Textes et ton » dans docs/spec.md).
 // Espaces insécables : U+00A0 avant ? ! : ; et à l'intérieur des guillemets « ».
 
+import { MAX_AMOUNT, MIN_AMOUNT, NOTE_MAX_LENGTH } from '../domain/depense';
+
 const NBSP = ' ';
 
 export type Genre = 'm' | 'f';
@@ -49,6 +51,14 @@ export function nomDuJour(jour: string): string {
 export function jourEtDate(jour: string): string {
   const [, m, j] = jour.split('-').map(Number);
   return `${nomDuJour(jour)} ${j === 1 ? '1er' : j}${NBSP}${MOIS[m - 1]}`;
+}
+
+const JOURS_COURTS = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'] as const;
+
+/** Jour 'AAAA-MM-JJ' -> « mer. 4 ». */
+export function jourCourt(jour: string): string {
+  const [a, m, j] = jour.split('-').map(Number);
+  return `${JOURS_COURTS[new Date(Date.UTC(a, m - 1, j)).getUTCDay()]}${NBSP}${j}`;
 }
 
 /** Les cinq états d'une case de la carte de tampons, tels que le lecteur d'écran les annonce. */
@@ -133,6 +143,31 @@ export const fr = {
     reste: (centimes: number, jusqua: string) =>
       `Il te reste ${formatEuros(centimes)} jusqu’à ${jusqua}`,
     depassement: (centimes: number) => `Tu as dépassé de ${formatEuros(centimes)} cette semaine`,
+  },
+
+  depense: {
+    titre: 'Noter une dépense',
+    fermer: 'Fermer',
+    fermerLibelle: 'Fermer sans enregistrer',
+    montantLibelle: 'Montant en euros',
+    montantExemple: `0,00${NBSP}€`,
+    bornes: `De ${formatEuros(MIN_AMOUNT)} à ${formatEuros(MAX_AMOUNT)}`,
+    categories: 'Catégorie',
+    categorieLibelle: (categorie: string) => `Enregistrer en ${categorie}`,
+    date: 'Date',
+    aujourdhui: 'Aujourd’hui',
+    hier: 'Hier',
+    jourCourt,
+    jourLibelle: jourEtDate,
+    note: 'Note',
+    noteLibelle: `Note facultative, ${NOTE_MAX_LENGTH} caractères au plus`,
+    noteExemple: 'Facultative',
+    noteCompteur: (n: number) => `${n}/${NOTE_MAX_LENGTH}`,
+    refus: 'Cette dépense n’a pas pu être notée. Vérifie la date et réessaie.',
+    notee: (centimes: number, categorie: string) =>
+      `${formatEuros(centimes)} noté en ${categorie}.`,
+    annuler: 'Annuler',
+    annulerLibelle: 'Annuler cette dépense',
   },
 
   cloture: {

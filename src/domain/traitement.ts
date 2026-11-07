@@ -22,6 +22,7 @@ import {
   openNewYear,
   validateMonthReview,
 } from './objets';
+import { isValidAmount } from './depense';
 import { type DustLevel, dustLevel } from './poussiere';
 import {
   type DayKey,
@@ -72,7 +73,11 @@ export type AppEvent =
   | { type: 'validate_month'; month: MonthKey; resolution: string };
 
 export type Refusal =
-  RefusalReason | 'month_not_proposed' | 'resolution_too_long' | 'unknown_expense';
+  | RefusalReason
+  | 'month_not_proposed'
+  | 'resolution_too_long'
+  | 'unknown_expense'
+  | 'invalid_amount';
 
 export interface ProcessResult {
   state: AppState;
@@ -188,6 +193,7 @@ function record(
     }
     case 'save_expense': {
       const e = event.expense;
+      if (!isValidAmount(e.amount)) return { state, refusal: 'invalid_amount' };
       const ancienne = state.expenses.find((x) => x.id === e.id);
       // Une dépense existante reste modifiable dans le carnet, même dans une semaine scellée.
       if (ancienne === undefined || ancienne.day !== e.day) {

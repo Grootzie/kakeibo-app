@@ -1,0 +1,22 @@
+# Parcours « Noter une dépense » (E3, #44) : la feuille monte du bas, le montant tapé active
+# les catégories, toucher une catégorie enregistre et ferme la feuille, puis « Annuler »
+# supprime la dépense. L'état de l'appli est le même avant et après le parcours.
+appId: app.kakeibo
+---
+- launchApp
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 60000
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Aujourd’hui'
+- assertVisible: 'Enregistrer en Envies'
+- inputText: '12.50'
+- takeScreenshot: captures/noter-depense
+# Pas de « hideKeyboard » : sur Android, Maestro envoie « Retour », qui ferme la feuille (Modal).
+- tapOn: 'Enregistrer en Envies'
+- assertVisible: '12,50.€ noté en Envies\.'
+- assertVisible: 'Annuler'
+- takeScreenshot: captures/depense-notee
+- tapOn: 'Annuler cette dépense'
+- assertNotVisible: 'Annuler'
+- assertVisible: 'Il te reste .* jusqu’à dimanche'

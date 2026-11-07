@@ -154,6 +154,32 @@ describe('store de l’état', () => {
     expect(await store.getState().supprimerDepense('inconnue')).toBe('unknown_expense');
   });
 
+  test('noter une dépense rend son identifiant, pour pouvoir l’annuler', async () => {
+    const { store, repos, tel } = await monter({ budget: true });
+    tel.regler(2026, 11, 3, 12, 30);
+    const r = await store
+      .getState()
+      .noterDepense({ day: '2026-11-03', amount: 1250, category: 'culture', note: 'livre' });
+    expect(r).toEqual({ id: 'id-2', refusal: null });
+    expect(await repos.expenses.all()).toMatchObject([{ id: 'id-2', category: 'culture' }]);
+    expect(await store.getState().supprimerDepense(r.id)).toBeNull();
+    expect(await repos.expenses.all()).toEqual([]);
+  });
+
+  test('une note de plus de 80 caractères ou un montant hors bornes ne s’enregistrent pas', async () => {
+    const { store, repos, tel } = await monter({ budget: true });
+    tel.regler(2026, 11, 3, 12, 30);
+    const note = await store
+      .getState()
+      .noterDepense({ day: '2026-11-03', amount: 100, category: 'envies', note: 'a'.repeat(81) });
+    const montant = await store
+      .getState()
+      .noterDepense({ day: '2026-11-03', amount: 0, category: 'envies', note: '' });
+    expect([note.refusal, montant.refusal]).toEqual(['note_too_long', 'invalid_amount']);
+    expect(await repos.expenses.all()).toEqual([]);
+    expect(store.getState().etat?.expenses).toEqual([]);
+  });
+
   test('la clôture s’enregistre, avec « rien dépensé » quand le jour n’a aucune dépense', async () => {
     const { store, repos, tel } = await monter();
     await store.getState().ouvrir();

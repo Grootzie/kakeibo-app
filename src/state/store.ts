@@ -5,6 +5,7 @@ import { createStore } from 'zustand/vanilla';
 import type { DayClosureRow, ExpenseRow, Repositories } from '../data/repositories';
 import { MIGRATIONS } from '../data/migrations';
 import { weekDays, weekOf } from '../domain/calendrier';
+import { isValidNote } from '../domain/depense';
 import type { Catalog } from '../domain/objets';
 import type { LocalDateTime } from '../domain/scellement';
 import {
@@ -34,6 +35,9 @@ export interface NouvelleDepense {
   note: string;
 }
 
+/** Refus d'une dépense : ceux du domaine, et une note trop longue. */
+export type RefusDepense = Refusal | 'note_too_long';
+
 export interface EtatKakeibo {
   pret: boolean;
   etat: AppState | null;
@@ -43,7 +47,11 @@ export interface EtatKakeibo {
   /** Heure locale du dernier traitement. */
   maintenant: LocalDateTime | null;
   ouvrir(): Promise<void>;
-  enregistrerDepense(depense: NouvelleDepense): Promise<Refusal | null>;
+  enregistrerDepense(depense: NouvelleDepense): Promise<RefusDepense | null>;
+  /** Nouvelle dépense (E3) : rend son identifiant, pour pouvoir l'annuler. */
+  noterDepense(
+    depense: Omit<NouvelleDepense, 'id'>,
+  ): Promise<{ id: string; refusal: RefusDepense | null }>;
   supprimerDepense(id: string): Promise<Refusal | null>;
   /** Clôture « J'ai tout noté », ou « Rien dépensé » si le jour n'a aucune dépense. */
   cloturerJour(day: string): Promise<Refusal | null>;
@@ -169,6 +177,7 @@ export function createKakeiboStore(deps: DependancesStore) {
 
       enregistrerDepense: (d) => {
         const id = d.id ?? deps.nouvelId();
+        if (!isValidNote(d.note)) return Promise.resolve('note_too_long');
         return traiter(
           { type: 'save_expense', expense: { id, day: d.day, amount: d.amount } },
           async (r, instant) => {
@@ -187,6 +196,12 @@ export function createKakeiboStore(deps: DependancesStore) {
             return { depenses: [...autres, ligne].sort(parJour) };
           },
         );
+      },
+
+      noterDepense: async (d) => {
+        const id = deps.nouvelId();
+        const refusal = await get().enregistrerDepense({ ...d, id });
+        return { id, refusal };
       },
 
       supprimerDepense: (id) =>

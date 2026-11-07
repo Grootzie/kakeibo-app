@@ -31,6 +31,28 @@ describe('parcours Maestro de démarrage', () => {
   });
 });
 
+describe('parcours Maestro « Noter une dépense » (#44)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'noter-depense.yaml'), 'utf8');
+
+  it('ouvre la feuille, enregistre en Envies, puis annule la dépense', () => {
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    expect(parcours).toContain(`- tapOn: '${fr.accueil.noterDepense}'`);
+    expect(parcours).toContain(`- tapOn: '${fr.depense.categorieLibelle('Envies')}'`);
+    expect(parcours).toContain(`- tapOn: '${fr.depense.annulerLibelle}'`);
+    expect(parcours).toContain(`- assertNotVisible: '${fr.depense.annuler}'`);
+    expect(fr.depense.notee(1250, 'Envies')).toMatch(/^12,50.€ noté en Envies\.$/);
+  });
+
+  it('ne ferme pas le clavier : « hideKeyboard » envoie « Retour », qui ferme la feuille', () => {
+    expect(parcours).not.toMatch(/^- hideKeyboard/m);
+  });
+
+  it('prend une capture de la feuille et du message « Annuler »', () => {
+    expect(parcours).toContain('- takeScreenshot: captures/noter-depense');
+    expect(parcours).toContain('- takeScreenshot: captures/depense-notee');
+  });
+});
+
 describe('script de l’émulateur (#52)', () => {
   const script = join(__dirname, 'parcours-android.sh');
 

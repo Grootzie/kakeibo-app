@@ -416,6 +416,27 @@ describe('ordre de traitement', () => {
     expect(resultat(s, '2026-W45')).toEqual(avant);
   });
 
+  test('une dépense hors bornes (0 € ou plus de 99 999,99 €) est refusée, même modifiée', () => {
+    const s = depenser(depart(), '2026-11-03', 15);
+    for (const amount of [0, 10_000_000, 12.5]) {
+      const r = process(
+        s,
+        { type: 'save_expense', expense: { id: 'e-2026-11-03', day: '2026-11-03', amount } },
+        at('2026-11-03'),
+        catalog,
+      );
+      expect(r.refusal).toBe('invalid_amount');
+      expect(r.state.expenses).toEqual(s.expenses);
+    }
+    const max = process(
+      s,
+      { type: 'save_expense', expense: { id: 'n', day: '2026-11-03', amount: 9_999_999 } },
+      at('2026-11-03'),
+      catalog,
+    );
+    expect(max.refusal).toBeNull();
+  });
+
   test('supprimer une dépense inconnue est refusé, sans rien changer', () => {
     const s = depenser(depart(), '2026-11-03', 15);
     const r = process(s, { type: 'delete_expense', id: 'inconnue' }, at('2026-11-03'), catalog);
