@@ -1,8 +1,16 @@
 // Sélecteurs de l'accueil (E2). Purs : l'état et l'heure leur sont passés.
+import type { ExpenseRow } from '../data/repositories';
 import { type Cents, weekEnvelope, weekSpent } from '../domain/budget';
 import { addDays, weekDays, weekOf } from '../domain/calendrier';
 import { expenseDays } from '../domain/depense';
-import { type DayKey, type LocalDateTime, type WeekId, canCloseDay } from '../domain/scellement';
+import {
+  type ClosureContext,
+  type DayKey,
+  type LocalDateTime,
+  type WeekId,
+  canAddExpense,
+  canCloseDay,
+} from '../domain/scellement';
 import type { AppState } from '../domain/traitement';
 
 export interface EnveloppeSemaine {
@@ -36,6 +44,12 @@ export interface CaseTampon {
   statut: StatutCase;
 }
 
+const contexte = (etat: AppState): ClosureContext => ({
+  installDay: etat.installDay,
+  closedDays: etat.closedDays,
+  sealedWeeks: etat.results.map((r) => r.week),
+});
+
 function statut(jour: DayKey, etat: AppState, now: LocalDateTime): StatutCase {
   if (etat.closedDays.includes(jour)) return 'cloturee';
   if (jour < etat.installDay) return 'hors_decompte';
@@ -55,11 +69,7 @@ export function casesSemaine(etat: AppState, now: LocalDateTime): CaseTampon[] {
  * ouverte (la semaine en cours, ou la précédente jusqu'au lundi 12:00). Null s'il n'y en a pas.
  */
 export function jourARattraper(etat: AppState, now: LocalDateTime): DayKey | null {
-  const ctx = {
-    installDay: etat.installDay,
-    closedDays: etat.closedDays,
-    sealedWeeks: etat.results.map((r) => r.week),
-  };
+  const ctx = contexte(etat);
   const lundiPrecedent = addDays(weekDays(weekOf(now.day))[0], -7);
   for (let jour = lundiPrecedent; jour < now.day; jour = addDays(jour, 1)) {
     if (canCloseDay(jour, now, ctx).ok) return jour;
@@ -69,12 +79,7 @@ export function jourARattraper(etat: AppState, now: LocalDateTime): DayKey | nul
 
 /** Jours proposés pour dater une nouvelle dépense (E3), du plus récent au plus ancien. */
 export function joursDepense(etat: AppState, now: LocalDateTime): DayKey[] {
-  const ctx = {
-    installDay: etat.installDay,
-    closedDays: etat.closedDays,
-    sealedWeeks: etat.results.map((r) => r.week),
-  };
-  return expenseDays(now, ctx).reverse();
+  return expenseDays(now, contexte(etat)).reverse();
 }
 
 /** Bandeau unique de l'accueil. En J2, seulement le jour à rattraper (J3 et J5 ajouteront les autres). */
@@ -97,5 +102,48 @@ export function vueAccueil(etat: AppState, now: LocalDateTime): VueAccueil {
     cases: casesSemaine(etat, now),
     aujourdhuiCloture: etat.closedDays.includes(now.day),
     bandeau: rattraper === null ? null : { type: 'jour_a_rattraper', jour: rattraper },
+  };
+}
+
+type Categorie = ExpenseRow['category'];
+const CATEGORIES: Categorie[] = ['essentiel', 'envies', 'culture', 'imprevus'];
+
+/** Ce que l'écran « Clôturer ma journée » (E4) affiche pour un jour. */
+export interface VueCloture {
+  jour: DayKey;
+  /** Dépenses du jour, dans l'ordre où elles ont été notées. */
+  depenses: ExpenseRow[];
+  /** Total des catégories qui ont au moins une dépense, dans l'ordre des catégories. */
+  totaux: { categorie: Categorie; total: Cents }[];
+  total: Cents;
+  /** Libellé du bouton : « J'ai tout noté » ou « Rien dépensé aujourd'hui ». */
+  validation: 'tout_note' | 'rien_depense';
+  cloture: boolean;
+  peutCloturer: boolean;
+  /** « Ajouter une dépense oubliée » : tant que la semaine du jour est ouverte. */
+  peutAjouter: boolean;
+}
+
+export function vueCloture(
+  etat: AppState,
+  lignes: ExpenseRow[],
+  jour: DayKey,
+  now: LocalDateTime,
+): VueCloture {
+  const depenses = lignes.filter((d) => d.day === jour);
+  const totaux = CATEGORIES.map((categorie) => ({
+    categorie,
+    total: depenses.filter((d) => d.category === categorie).reduce((t, d) => t + d.amount, 0),
+  })).filter((t) => t.total > 0);
+  const ctx = contexte(etat);
+  return {
+    jour,
+    depenses,
+    totaux,
+    total: totaux.reduce((t, x) => t + x.total, 0),
+    validation: depenses.length > 0 ? 'tout_note' : 'rien_depense',
+    cloture: etat.closedDays.includes(jour),
+    peutCloturer: canCloseDay(jour, now, ctx).ok,
+    peutAjouter: canAddExpense(jour, now, ctx).ok,
   };
 }

@@ -18,10 +18,12 @@ interface DepenseNotee {
 export interface PropsEcranAccueil {
   store: KakeiboStore;
   onAppuiLongDate?: () => void;
+  /** Ouvre « Clôturer ma journée » (E4). */
+  onCloturer?: () => void;
   children?: ReactNode;
 }
 
-export function EcranAccueil({ store, onAppuiLongDate, children }: PropsEcranAccueil) {
+export function EcranAccueil({ store, onAppuiLongDate, onCloturer, children }: PropsEcranAccueil) {
   const [feuille, setFeuille] = useState(false);
   const [notee, setNotee] = useState<DepenseNotee | null>(null);
   const etat = useStore(store, (s) => s.etat);
@@ -53,6 +55,7 @@ export function EcranAccueil({ store, onAppuiLongDate, children }: PropsEcranAcc
       vue={vue}
       onAppuiLongDate={onAppuiLongDate}
       onNoterDepense={() => setFeuille(true)}
+      onCloturer={onCloturer}
       message={
         notee && (
           <MessageAnnuler

@@ -53,6 +53,33 @@ describe('parcours Maestro « Noter une dépense » (#44)', () => {
   });
 });
 
+describe('parcours Maestro « Clôturer ma journée » (#45)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'cloturer-journee.yaml'), 'utf8');
+
+  it('ouvre E4 depuis l’accueil, ajoute une dépense oubliée, puis clôture', () => {
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    expect(parcours).toContain(`- tapOn: '${fr.accueil.cloturerJournee}'`);
+    expect(parcours).toContain(`- assertVisible: '${fr.cloture.rienDepense}'`);
+    expect(parcours).toContain(`- tapOn: '${fr.cloture.ajouterOubliee}'`);
+    expect(parcours).toContain(`- tapOn: '${fr.depense.categorieLibelle('Culture')}'`);
+    expect(parcours).toContain(`- tapOn: '${fr.cloture.toutNote}'`);
+    expect(parcours).toContain(`visible: '${fr.accueil.journeeCloturee}'`);
+    expect(fr.cloture.depense(840, 'Culture', '')).toMatch(/^8,40.€ en Culture$/);
+    expect(fr.cloture.totalCategorie('Culture', 840)).toMatch(/^Culture.: 8,40.€$/);
+    expect(fr.accueil.caseLibelle('2026-11-06', 'cloturee')).toMatch(/^.*, clôturé$/);
+  });
+
+  it('ne ferme pas le clavier et prend les quatre captures', () => {
+    expect(parcours).not.toMatch(/^- hideKeyboard/m);
+    for (const nom of ['cloturer-rien-depense', 'cloturer-tout-note', 'tampon', 'journee-cloturee'])
+      expect(parcours).toContain(`- takeScreenshot: captures/${nom}`);
+  });
+
+  it('efface les données à la fin : une clôture ne s’annule pas, les autres parcours en ont besoin', () => {
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+});
+
 describe('script de l’émulateur (#52)', () => {
   const script = join(__dirname, 'parcours-android.sh');
 

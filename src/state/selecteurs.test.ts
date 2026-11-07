@@ -1,5 +1,6 @@
 // Sélecteurs de l'accueil (E2) : enveloppe et dépensé de la semaine, 7 cases, jour à rattraper.
 import catalogueJson from '../content/catalogue.json';
+import type { ExpenseRow } from '../data/repositories';
 import type { BudgetVersion } from '../domain/budget';
 import type { Catalog } from '../domain/objets';
 import type { DayKey, LocalDateTime } from '../domain/scellement';
@@ -10,6 +11,7 @@ import {
   joursDepense,
   jourARattraper,
   vueAccueil,
+  vueCloture,
 } from './selecteurs';
 
 const catalog = catalogueJson as Catalog;
@@ -159,5 +161,78 @@ describe('jours proposés pour noter une dépense (E3)', () => {
     expect(joursDepense(s, at('2026-11-09', '11:00'))[0]).toBe('2026-11-09');
     expect(joursDepense(s, at('2026-11-09', '11:00'))).toHaveLength(6);
     expect(joursDepense(s, at('2026-11-09', '12:00'))).toEqual(['2026-11-09']);
+  });
+});
+
+describe('vue de la clôture (E4, #45)', () => {
+  const ligne = (
+    id: string,
+    day: DayKey,
+    amount: number,
+    category: ExpenseRow['category'],
+    note = '',
+  ): ExpenseRow => ({
+    id,
+    day,
+    amount,
+    category,
+    note,
+    created_at: `${day}T12:00`,
+    updated_at: `${day}T12:00`,
+  });
+
+  it('liste les dépenses du jour seulement, et propose « Rien dépensé » sans dépense', () => {
+    const s = etat('2026-11-02', [depenser('2026-11-05', 900)]);
+    const lignes = [ligne('a', '2026-11-05', 900, 'envies')];
+    expect(vueCloture(s, lignes, '2026-11-06', at('2026-11-06'))).toEqual({
+      jour: '2026-11-06',
+      depenses: [],
+      totaux: [],
+      total: 0,
+      validation: 'rien_depense',
+      cloture: false,
+      peutCloturer: true,
+      peutAjouter: true,
+    });
+  });
+
+  it('donne le total par catégorie, dans l’ordre des catégories, et « J’ai tout noté »', () => {
+    const s = etat('2026-11-02', [
+      depenser('2026-11-06', 1250),
+      depenser('2026-11-06', 400),
+      depenser('2026-11-06', 3000),
+    ]);
+    const lignes = [
+      ligne('c', '2026-11-06', 1250, 'envies', 'Cinéma'),
+      ligne('d', '2026-11-06', 400, 'imprevus'),
+      ligne('e', '2026-11-06', 3000, 'envies'),
+      ligne('f', '2026-11-05', 700, 'essentiel'),
+    ];
+    const vue = vueCloture(s, lignes, '2026-11-06', at('2026-11-06'));
+    expect(vue.depenses.map((d) => d.id)).toEqual(['c', 'd', 'e']);
+    expect(vue.totaux).toEqual([
+      { categorie: 'envies', total: 4250 },
+      { categorie: 'imprevus', total: 400 },
+    ]);
+    expect(vue.total).toBe(4650);
+    expect(vue.validation).toBe('tout_note');
+  });
+
+  it('un jour clôturé de semaine ouverte ne se clôture plus, mais accepte une dépense oubliée', () => {
+    const s = etat('2026-11-02', [fermer('2026-11-06', at('2026-11-06', '20:00'))]);
+    expect(vueCloture(s, [], '2026-11-06', at('2026-11-06', '22:00'))).toMatchObject({
+      cloture: true,
+      peutCloturer: false,
+      peutAjouter: true,
+    });
+  });
+
+  it('un jour d’une semaine scellée n’accepte plus de dépense oubliée', () => {
+    const s = etat('2026-11-02', [[{ type: 'open' }, at('2026-11-09', '12:00')]]);
+    expect(vueCloture(s, [], '2026-11-06', at('2026-11-09', '12:00'))).toMatchObject({
+      cloture: false,
+      peutCloturer: false,
+      peutAjouter: false,
+    });
   });
 });

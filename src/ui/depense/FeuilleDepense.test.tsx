@@ -189,6 +189,25 @@ describe('date', () => {
     expect(onEnregistrer).toHaveBeenCalledWith(expect.objectContaining({ day: '2026-11-04' }));
   });
 
+  it('s’ouvre sur le jour demandé (dépense oubliée, E4)', async () => {
+    const onEnregistrer = jest.fn<ReturnType<Enregistrer>, Parameters<Enregistrer>>();
+    onEnregistrer.mockResolvedValue(true);
+    await render(
+      <FeuilleDepense
+        jours={JOURS}
+        aujourdhui={AUJOURDHUI}
+        jourInitial="2026-11-05"
+        onEnregistrer={onEnregistrer}
+        onFermer={jest.fn()}
+      />,
+    );
+    expect(screen.getByRole('radio', { name: 'jeudi 5 novembre' })).toBeSelected();
+    expect(screen.getByRole('radio', { name: 'vendredi 6 novembre' })).not.toBeSelected();
+    await fireEvent.changeText(montant(), '3');
+    await fireEvent.press(categorie('Culture'));
+    expect(onEnregistrer).toHaveBeenCalledWith(expect.objectContaining({ day: '2026-11-05' }));
+  });
+
   it('garde des choix de date de 44 points au moins', async () => {
     await monter();
     screen.getAllByRole('radio').forEach((c) => {

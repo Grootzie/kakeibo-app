@@ -21,12 +21,21 @@ export interface PropsAccueil {
   onAppuiLongDate?: () => void;
   /** Ouvre la feuille « Noter une dépense » (E3). */
   onNoterDepense?: () => void;
+  /** Ouvre « Clôturer ma journée » (E4). */
+  onCloturer?: () => void;
   /** Message « Annuler » après une dépense notée, sous l'enveloppe. */
   message?: ReactNode;
   children?: ReactNode;
 }
 
-export function Accueil({ vue, onAppuiLongDate, onNoterDepense, message, children }: PropsAccueil) {
+export function Accueil({
+  vue,
+  onAppuiLongDate,
+  onNoterDepense,
+  onCloturer,
+  message,
+  children,
+}: PropsAccueil) {
   return (
     <ScrollView
       testID="accueil"
@@ -42,6 +51,7 @@ export function Accueil({ vue, onAppuiLongDate, onNoterDepense, message, childre
       <Boutons
         aujourdhuiCloture={vue?.aujourdhuiCloture ?? false}
         onNoterDepense={onNoterDepense}
+        onCloturer={onCloturer}
       />
       {children}
     </ScrollView>
@@ -215,9 +225,11 @@ function CarteTampons({ cases }: { cases: CaseTampon[] }) {
 function Boutons({
   aujourdhuiCloture,
   onNoterDepense,
+  onCloturer,
 }: {
   aujourdhuiCloture: boolean;
   onNoterDepense?: () => void;
+  onCloturer?: () => void;
 }) {
   const bouton: ViewStyle = {
     minHeight: theme.zoneTactileMin,
@@ -230,7 +242,6 @@ function Boutons({
   const cloture = aujourdhuiCloture ? fr.accueil.journeeCloturee : fr.accueil.cloturerJournee;
   return (
     <View style={{ gap: 12 }}>
-      {/* Clôturer (E4) s'ouvrira avec J2.4. */}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={fr.accueil.noterDepenseLibelle}
@@ -246,6 +257,7 @@ function Boutons({
         accessibilityLabel={cloture}
         disabled={aujourdhuiCloture}
         accessibilityState={{ disabled: aujourdhuiCloture }}
+        onPress={onCloturer}
         style={{ ...bouton, borderWidth: 2, borderColor: c.principal, backgroundColor: c.fond }}
       >
         <Text style={{ color: c.texte, fontSize: 17, fontWeight: '600' }}>{cloture}</Text>
