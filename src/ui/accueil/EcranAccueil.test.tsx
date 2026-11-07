@@ -13,7 +13,7 @@ import { createKakeiboStore } from '../../state/store';
 import { EcranAccueil } from './EcranAccueil';
 
 /** Installation le lundi 2 novembre 2026, budget de 600 € en novembre ; on est le vendredi 6. */
-async function monter(onCloturer?: () => void) {
+async function monter(onCloturer?: () => void, onRattraper?: (jour: string) => void) {
   const db = createTestDb();
   await migrate(db);
   const repos = createRepositories(db);
@@ -37,7 +37,7 @@ async function monter(onCloturer?: () => void) {
   reel = new Date(2026, 10, 6, 12, 0);
   const store = createKakeiboStore(deps);
   await store.getState().ouvrir();
-  await render(<EcranAccueil store={store} onCloturer={onCloturer} />);
+  await render(<EcranAccueil store={store} onCloturer={onCloturer} onRattraper={onRattraper} />);
   return { repos, store };
 }
 
@@ -108,5 +108,19 @@ describe('clôturer ma journée depuis l’accueil (E4, #45)', () => {
     expect(screen.getByLabelText('vendredi, clôturé')).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: fr.accueil.journeeCloturee })).toBeDisabled();
     expect(screen.queryByRole('button', { name: fr.accueil.cloturerJournee })).toBeNull();
+  });
+});
+
+describe('rattraper un jour depuis l’accueil (E5, #46)', () => {
+  test('le bandeau ouvre le plus ancien jour à rattraper, une case ouvre le sien', async () => {
+    const onRattraper = jest.fn();
+    const { store } = await monter(undefined, onRattraper);
+    await act(() => store.getState().cloturerJour('2026-11-02'));
+    await fireEvent.press(
+      screen.getByRole('button', { name: fr.accueil.bandeauRattraper('2026-11-03') }),
+    );
+    expect(onRattraper).toHaveBeenLastCalledWith('2026-11-03');
+    await fireEvent.press(screen.getByRole('button', { name: 'jeudi, à rattraper' }));
+    expect(onRattraper).toHaveBeenLastCalledWith('2026-11-05');
   });
 });

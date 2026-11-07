@@ -17,6 +17,7 @@ import {
 } from '../domain/traitement';
 import type { Horloge } from './clock';
 import { type Charge, charger, persister } from './persistance';
+import { estRattrapable } from './selecteurs';
 import { heureLocale, instantLocal } from './temps';
 
 export interface DependancesStore {
@@ -53,6 +54,12 @@ export interface EtatKakeibo {
     depense: Omit<NouvelleDepense, 'id'>,
   ): Promise<{ id: string; refusal: RefusDepense | null }>;
   supprimerDepense(id: string): Promise<Refusal | null>;
+  /**
+   * Avant d'ouvrir E4 ou E5 sur un jour : traite l'ouverture à l'heure actuelle (scellements
+   * compris), puis dit si ce jour s'ouvre, comme aujourd'hui ou en rattrapage. Null s'il ne
+   * s'ouvre pas : jour clôturé, futur, avant l'installation ou d'une semaine scellée.
+   */
+  ouvrirJour(day: string): Promise<'aujourdhui' | 'rattrapage' | null>;
   /** Clôture « J'ai tout noté », ou « Rien dépensé » si le jour n'a aucune dépense. */
   cloturerJour(day: string): Promise<Refusal | null>;
   marquerBilansVus(): Promise<void>;
@@ -173,6 +180,14 @@ export function createKakeiboStore(deps: DependancesStore) {
 
       ouvrir: async () => {
         await traiter({ type: 'open' });
+      },
+
+      ouvrirJour: async (day) => {
+        await traiter({ type: 'open' });
+        const { etat, maintenant } = get();
+        if (etat === null || maintenant === null) return null;
+        if (day === maintenant.day) return 'aujourdhui';
+        return estRattrapable(etat, day, maintenant) ? 'rattrapage' : null;
       },
 
       enregistrerDepense: (d) => {

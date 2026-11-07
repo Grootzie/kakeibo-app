@@ -33,6 +33,22 @@ fi
 adb exec-out screencap -p > captures/ecran.png || true
 adb exec-out uiautomator dump /dev/tty > captures/hierarchie.xml 2>/dev/null || true
 adb logcat -d > captures/logcat.txt 2>&1 || true
+# Parcours qui ont besoin d'une heure précise (#46) : l'APK publié n'a pas l'horloge de test,
+# alors on règle l'heure du téléphone (adb root), puis on la rend à la fin.
+if [ -f e2e/heure/installer.yaml ]; then
+  adb root >/dev/null 2>&1 || true
+  sleep 5
+  adb shell settings put global auto_time 0 || true
+  adb shell pm clear app.kakeibo >/dev/null 2>&1 || true
+  # Installation le mercredi 4 novembre 2026 à 9 h, puis jeudi 5 à 20 h : mercredi est à rattraper.
+  adb shell date 110409002026.00 || true
+  maestro test e2e/heure/installer.yaml --format junit --output captures/maestro-heure-1.xml || statut=1
+  adb shell date 110520002026.00 || true
+  maestro test e2e/heure/rattraper-jour.yaml --format junit --output captures/maestro-heure-2.xml || statut=1
+  adb shell date "$(date -u +%m%d%H%M%Y.%S)" || true
+  adb shell settings put global auto_time 1 || true
+fi
+
 # Accueil avec le texte agrandi à 200 % (#43) : capture et hiérarchie, puis retour à 100 %.
 adb shell settings put system font_scale 2.0 || true
 adb shell am force-stop app.kakeibo || true

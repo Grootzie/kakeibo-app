@@ -212,7 +212,9 @@ describe('ajouter une dépense oubliée', () => {
   it('ouvre E3 sur ce jour, puis la liste et le bouton se mettent à jour', async () => {
     const p = await preparer(new Date(2026, 10, 7, 9, 0));
     const { repos } = await monter(p, VENDREDI);
-    expect(screen.getByText('vendredi 6 novembre')).toBeOnTheScreen();
+    expect(
+      await screen.findByRole('header', { name: fr.cloture.titreRattrapage(VENDREDI) }),
+    ).toBeOnTheScreen();
     await fireEvent.press(bouton(fr.cloture.ajouterOubliee));
     const radios = screen.getAllByRole('radio');
     const choisi = radios.filter((r) => r.props.accessibilityState?.selected);
@@ -238,12 +240,6 @@ describe('ajouter une dépense oubliée', () => {
     expect(bouton(fr.cloture.journeeCloturee)).toBeDisabled();
     expect(await repos.expenses.all()).toMatchObject([{ day: VENDREDI, amount: 500 }]);
   });
-
-  it('n’est plus proposé quand la semaine du jour est scellée', async () => {
-    const p = await preparer(new Date(2026, 10, 9, 12, 0));
-    await monter(p, VENDREDI);
-    expect(screen.queryByRole('button', { name: fr.cloture.ajouterOubliee })).toBeNull();
-  });
 });
 
 describe('refus du domaine', () => {
@@ -264,5 +260,68 @@ describe('refus du domaine', () => {
     const messages = Object.values(fr.cloture.refus);
     expect(messages).toHaveLength(5);
     messages.forEach((m) => expect(m).not.toMatch(/erreur|échec|interdit|impossible/i));
+  });
+});
+
+describe('rattraper un jour (E5, #46)', () => {
+  const MERCREDI = '2026-11-04';
+
+  it('reprend E4 pour un jour passé, avec le titre « Rattraper mercredi 4 novembre »', async () => {
+    const p = await preparer(new Date(2026, 10, 8, 21, 0));
+    await p.store
+      .getState()
+      .noterDepense({ day: MERCREDI, amount: 1250, category: 'envies', note: '' });
+    await monter(p, MERCREDI);
+    const titre = await screen.findByRole('header', { name: fr.cloture.titreRattrapage(MERCREDI) });
+    expect(titre).toHaveTextContent('Rattraper mercredi 4 novembre');
+    expect(screen.queryByRole('header', { name: fr.cloture.titre })).toBeNull();
+    expect(screen.getByText('12,50 € en Envies')).toBeOnTheScreen();
+    expect(screen.getByText(fr.cloture.total(1250))).toBeOnTheScreen();
+    expect(bouton(fr.cloture.ajouterOubliee)).toBeEnabled();
+    expect(bouton(fr.cloture.toutNote)).toBeEnabled();
+  });
+
+  it('dimanche soir, pose le tampon sur ce jour puis ramène à l’accueil', async () => {
+    const p = await preparer(new Date(2026, 10, 8, 23, 50));
+    const { repos, onTerminer } = await monter(p, MERCREDI);
+    await fireEvent.press(await screen.findByRole('button', { name: fr.cloture.rienDepense }));
+    expect(screen.getByTestId('tampon')).toBeOnTheScreen();
+    expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
+      'Tampon posé sur mercredi 4 novembre.',
+    );
+    expect(await repos.dayClosures.all()).toMatchObject([{ day: MERCREDI, kind: 'no_spend' }]);
+    expect(
+      screen.getByRole('header', { name: fr.cloture.titreRattrapage(MERCREDI) }),
+    ).toBeOnTheScreen();
+    await act(() => jest.advanceTimersByTime(DUREE_TAMPON_MS));
+    expect(onTerminer).toHaveBeenCalledTimes(1);
+  });
+
+  it('s’ouvre encore le lundi suivant à 11:59', async () => {
+    const p = await preparer(new Date(2026, 10, 9, 11, 59));
+    const { repos, onTerminer } = await monter(p, MERCREDI);
+    await fireEvent.press(await screen.findByRole('button', { name: fr.cloture.rienDepense }));
+    expect(await repos.dayClosures.all()).toMatchObject([{ day: MERCREDI }]);
+    expect(onTerminer).not.toHaveBeenCalled();
+  });
+
+  it('ne s’ouvre plus à partir du lundi suivant à 12:00 : retour à l’accueil, rien d’enregistré', async () => {
+    const p = await preparer(new Date(2026, 10, 9, 12, 0));
+    const { repos, onTerminer } = await monter(p, MERCREDI);
+    await act(async () => undefined);
+    expect(onTerminer).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('header')).toBeNull();
+    expect(screen.queryByRole('button', { name: fr.cloture.rienDepense })).toBeNull();
+    expect(screen.queryByRole('button', { name: fr.cloture.ajouterOubliee })).toBeNull();
+    expect(await repos.dayClosures.all()).toEqual([]);
+  });
+
+  it('ne s’ouvre pas pour un jour déjà clôturé', async () => {
+    const p = await preparer(new Date(2026, 10, 8, 21, 0));
+    await p.store.getState().cloturerJour(MERCREDI);
+    const { onTerminer } = await monter(p, MERCREDI);
+    await act(async () => undefined);
+    expect(onTerminer).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('header')).toBeNull();
   });
 });

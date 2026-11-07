@@ -1,5 +1,5 @@
-// Clôturer ma journée (E4). `?jour=AAAA-MM-JJ` ouvre un autre jour (rattrapage, J2.5) ;
-// sans paramètre, c'est aujourd'hui (bouton de l'accueil, notification du soir avec J2.6).
+// Clôturer ma journée (E4). `?jour=AAAA-MM-JJ` ouvre un jour passé : « Rattraper un jour » (E5),
+// seulement s'il est encore rattrapable, sinon retour à l'accueil ; sans paramètre, c'est aujourd'hui (bouton de l'accueil, notification du soir avec J2.6).
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback } from 'react';
 
