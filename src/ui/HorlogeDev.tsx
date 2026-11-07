@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { fr } from '@/i18n/fr';
+import { kakeibo } from '@/state/appStore';
 import { horloge } from '@/state/clock';
 import { theme } from '@/ui/theme';
 
@@ -9,12 +10,16 @@ const JOUR_MS = 24 * 60 * 60 * 1000;
 /** Panneau caché : appui long sur le titre. Rien n'est affiché dans un build publié. */
 export function HorlogeDev() {
   const [, rafraichir] = useState(0);
+  const [budgetDemo, setBudgetDemo] = useState<boolean | null>(null);
   if (!horloge.actif) return null;
 
+  // Après chaque saut de l'horloge, l'appli traite l'heure nouvelle comme une ouverture.
   const agir = (action: () => void) => () => {
     action();
     rafraichir((n) => n + 1);
+    void kakeibo.getState().ouvrir();
   };
+  const poserBudgetDemo = async () => setBudgetDemo(await kakeibo.getState().poserBudgetDemo());
   const jour = () => horloge.avancerJours(1);
   const semaine = () => horloge.avancerSemaines(1);
   const mois = () => horloge.avancerMois(1);
@@ -45,6 +50,20 @@ export function HorlogeDev() {
           <Text style={{ color: theme.couleurs.texte }}>{titre}</Text>
         </Pressable>
       ))}
+      <Pressable
+        testID="budget-demo"
+        accessibilityRole="button"
+        accessibilityLabel={fr.dev.budgetDemoLibelle}
+        onPress={() => void poserBudgetDemo()}
+        style={{ minHeight: theme.zoneTactileMin, justifyContent: 'center' }}
+      >
+        <Text style={{ color: theme.couleurs.texte }}>{fr.dev.budgetDemo}</Text>
+      </Pressable>
+      {budgetDemo !== null && (
+        <Text accessibilityLiveRegion="polite" style={{ color: theme.couleurs.texteDiscret }}>
+          {budgetDemo ? fr.dev.budgetDemoPose : fr.dev.budgetDemoDejaLa}
+        </Text>
+      )}
     </View>
   );
 }

@@ -1,7 +1,14 @@
 # Parcours de démarrage : l'écran d'accueil affiche le bouton « Noter une dépense ».
+# Il affiche aussi l'enveloppe, la carte de tampons et « Clôturer ma journée » (E2, #43).
 # Échoue si le texte est absent (écran blanc, erreur, lanceur Android).
+# L'émulateur de l'intégration continue est parfois lent : on attend le texte jusqu'à 60 s.
 appId: app.kakeibo
 ---
 - launchApp
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 60000
 - assertVisible: 'Noter une dépense'
+- assertVisible: 'Clôturer ma journée'
+- assertVisible: 'Il te reste .* jusqu’à dimanche'
 - takeScreenshot: captures/accueil

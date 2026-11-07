@@ -399,6 +399,51 @@ describe('ordre de traitement', () => {
     expect(s).toEqual(copie);
   });
 
+  test('supprimer une dépense la retire du dépensé tant que la semaine est ouverte', () => {
+    let s = depenser(depart(), '2026-11-03', 150);
+    s = ok(s, { type: 'delete_expense', id: 'e-2026-11-03' }, at('2026-11-04', '09:00'));
+    expect(s.expenses).toEqual([]);
+    s = fermerDu(s, '2026-11-02', '2026-11-08');
+    expect(resultat(s, '2026-W45')).toMatchObject({ spent: 0, inBudget: true, crackedItem: null });
+  });
+
+  test('supprimer une dépense d’une semaine scellée laisse son résultat figé', () => {
+    let s = depenser(depart(), '2026-11-03', 150);
+    s = fermerDu(s, '2026-11-02', '2026-11-08');
+    const avant = resultat(s, '2026-W45');
+    s = ok(s, { type: 'delete_expense', id: 'e-2026-11-03' }, at('2026-11-10', '09:00'));
+    expect(s.expenses).toEqual([]);
+    expect(resultat(s, '2026-W45')).toEqual(avant);
+  });
+
+  test('une dépense hors bornes (0 € ou plus de 99 999,99 €) est refusée, même modifiée', () => {
+    const s = depenser(depart(), '2026-11-03', 15);
+    for (const amount of [0, 10_000_000, 12.5]) {
+      const r = process(
+        s,
+        { type: 'save_expense', expense: { id: 'e-2026-11-03', day: '2026-11-03', amount } },
+        at('2026-11-03'),
+        catalog,
+      );
+      expect(r.refusal).toBe('invalid_amount');
+      expect(r.state.expenses).toEqual(s.expenses);
+    }
+    const max = process(
+      s,
+      { type: 'save_expense', expense: { id: 'n', day: '2026-11-03', amount: 9_999_999 } },
+      at('2026-11-03'),
+      catalog,
+    );
+    expect(max.refusal).toBeNull();
+  });
+
+  test('supprimer une dépense inconnue est refusé, sans rien changer', () => {
+    const s = depenser(depart(), '2026-11-03', 15);
+    const r = process(s, { type: 'delete_expense', id: 'inconnue' }, at('2026-11-03'), catalog);
+    expect(r.refusal).toBe('unknown_expense');
+    expect(r.state.expenses).toEqual(s.expenses);
+  });
+
   test('à l’installation, la pièce du mois s’ouvre et rien n’est à afficher', () => {
     const s = depart();
     expect(s.house.unlocked).toEqual([

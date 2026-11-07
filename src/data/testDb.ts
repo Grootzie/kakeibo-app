@@ -1,6 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
 
-import type { Db } from './db';
+import type { Db, SqlParam } from './db';
 
 /** Base SQLite en mémoire pour les tests (Node), derrière la même interface que expo-sqlite. */
 export function createTestDb(): Db {
@@ -9,9 +9,9 @@ export function createTestDb(): Db {
     execAsync: async (sql) => {
       raw.exec(sql);
     },
-    getFirstAsync: async <T>(sql: string, params: readonly (string | number)[] = []) =>
+    getFirstAsync: async <T>(sql: string, params: readonly SqlParam[] = []) =>
       (raw.prepare(sql).get(...params) as T | undefined) ?? null,
-    getAllAsync: async <T>(sql: string, params: readonly (string | number)[] = []) =>
+    getAllAsync: async <T>(sql: string, params: readonly SqlParam[] = []) =>
       raw.prepare(sql).all(...params) as T[],
     runAsync: async (sql, params = []) => {
       raw.prepare(sql).run(...params);

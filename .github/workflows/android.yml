@@ -82,13 +82,9 @@ jobs:
           api-level: 34
           arch: x86_64
           profile: pixel_6
-          script: |
-            mkdir -p captures
-            adb install "$APK"
-            adb shell monkey -p app.kakeibo -c android.intent.category.LAUNCHER 1
-            sleep 20
-            if ls e2e/*.yaml >/dev/null 2>&1; then maestro test e2e --format junit --output captures/maestro.xml; else echo "Aucun parcours dans e2e/"; fi
-            adb exec-out screencap -p > captures/ecran.png
+          # Un seul script : chaque ligne de « script » s'exécuterait dans son propre shell,
+          # et la capture ne serait pas prise après un échec.
+          script: bash tools/parcours-android.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:

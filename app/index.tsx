@@ -1,35 +1,21 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { fr } from '@/i18n/fr';
+
+import { kakeibo } from '@/state/appStore';
 import { HorlogeDev } from '@/ui/HorlogeDev';
-import { theme } from '@/ui/theme';
+import { EcranAccueil } from '@/ui/accueil/EcranAccueil';
 
 export default function Home() {
+  const router = useRouter();
   const [horlogeVisible, setHorlogeVisible] = useState(false);
   return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: theme.couleurs.fond,
-      }}
+    <EcranAccueil
+      store={kakeibo}
+      onAppuiLongDate={() => setHorlogeVisible((v) => !v)}
+      onCloturer={() => router.push('/cloturer')}
+      onRattraper={(jour) => router.push({ pathname: '/cloturer', params: { jour } })}
     >
-      <Text
-        accessibilityRole="header"
-        onLongPress={() => setHorlogeVisible((v) => !v)}
-        style={{ color: theme.couleurs.texte }}
-      >
-        {fr.app.name}
-      </Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={fr.accueil.noterDepenseLibelle}
-        style={{ marginTop: 24, padding: 16 }}
-      >
-        <Text style={{ color: theme.couleurs.texte }}>{fr.accueil.noterDepense}</Text>
-      </Pressable>
       {horlogeVisible && <HorlogeDev />}
-    </View>
+    </EcranAccueil>
   );
 }
