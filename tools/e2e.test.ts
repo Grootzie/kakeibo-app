@@ -147,6 +147,42 @@ describe('parcours Maestro « Rappel du soir » (#47)', () => {
   });
 });
 
+describe('parcours Maestro « Cartes de première fois » (#48)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'premieres-fois.yaml'), 'utf8');
+  const rattraper = readFileSync(
+    join(__dirname, '..', 'e2e', 'heure', 'rattraper-jour.yaml'),
+    'utf8',
+  );
+  const t = fr.carteExplication.titres;
+
+  it('part d’une appli effacée et la laisse effacée', () => {
+    expect(parcours).toMatch(/^- launchApp:\n    clearState: true\n- extendedWaitUntil:/m);
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n    clearState: true$/);
+  });
+
+  it('montre « Première dépense » puis « Premier tampon », chacune fermée, et plus après redémarrage', () => {
+    for (const titre of [t.first_expense, t.first_stamp]) {
+      expect(parcours).toContain(`visible: '${titre}'`);
+      expect(parcours).toContain(`- assertNotVisible: '${titre}'`);
+      expect(parcours).toContain(`- tapOn: 'Fermer l’explication .*${titre}.*'`);
+      expect(fr.carteExplication.fermerLibelle(titre)).toMatch(
+        new RegExp(`^Fermer l’explication .*${titre}.*$`),
+      );
+    }
+    expect(parcours).toContain('- takeScreenshot: captures/carte-premiere-depense');
+    expect(parcours).toContain('- takeScreenshot: captures/carte-premier-tampon');
+    expect(parcours.indexOf('- stopApp')).toBeLessThan(
+      parcours.lastIndexOf(`- assertNotVisible: '${t.first_stamp}'`),
+    );
+  });
+
+  it('montre « Premier jour à rattraper » sur l’accueil du jour oublié', () => {
+    expect(rattraper).toContain(`- assertVisible: '${t.first_catch_up}'`);
+    expect(rattraper).toContain('- takeScreenshot: captures/carte-premier-jour-a-rattraper');
+    expect(fr.explications.premierJourARattraper).toMatch(/^Tu as oublié de clôturer un soir.*$/);
+  });
+});
+
 describe('script de l’émulateur (#52)', () => {
   const script = join(__dirname, 'parcours-android.sh');
 

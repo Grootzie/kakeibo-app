@@ -16,6 +16,7 @@ import {
   process,
 } from '../domain/traitement';
 import type { Horloge } from './clock';
+import { type IdExplication, ecrireExplicationsVues, lireExplicationsVues } from './explications';
 import { type Charge, charger, persister } from './persistance';
 import { type ReglagesRappel, type ServiceRappels, rappelsAPlanifier } from './rappel';
 import { estRattrapable } from './selecteurs';
@@ -52,6 +53,8 @@ export interface EtatKakeibo {
   maintenant: LocalDateTime | null;
   /** Rappel du soir : reminder_time et reminder_enabled des réglages. */
   reglagesRappel: ReglagesRappel | null;
+  /** Cartes de première fois déjà vues (settings.seen_explanations). */
+  explicationsVues: string[];
   ouvrir(): Promise<void>;
   enregistrerDepense(depense: NouvelleDepense): Promise<RefusDepense | null>;
   /** Nouvelle dépense (E3) : rend son identifiant, pour pouvoir l'annuler. */
@@ -68,6 +71,8 @@ export interface EtatKakeibo {
   /** Clôture « J'ai tout noté », ou « Rien dépensé » si le jour n'a aucune dépense. */
   cloturerJour(day: string): Promise<Refusal | null>;
   marquerBilansVus(): Promise<void>;
+  /** Une carte de première fois s'affiche : elle ne reviendra plus, même après redémarrage. */
+  marquerExplicationVue(id: IdExplication): Promise<void>;
   /**
    * Demande l'autorisation des notifications (E1 en J5 ; en attendant, réglage caché des builds
    * de développement), puis replanifie le rappel du soir. Rend vrai si elle est accordée.
@@ -147,6 +152,7 @@ export function createKakeiboStore(deps: DependancesStore) {
         depenses: charge.depenses,
         clotures: charge.clotures,
         reglagesRappel: reglagesDepuis(charge.settings),
+        explicationsVues: lireExplicationsVues(charge.settings.seen_explanations),
       });
       return charge.etat;
     }
@@ -241,6 +247,7 @@ export function createKakeiboStore(deps: DependancesStore) {
       clotures: [],
       maintenant: null,
       reglagesRappel: null,
+      explicationsVues: [],
 
       ouvrir: async () => {
         await traiter({ type: 'open' });
@@ -298,6 +305,20 @@ export function createKakeiboStore(deps: DependancesStore) {
       marquerBilansVus: async () => {
         await traiter({ type: 'week_reviews_seen' });
       },
+
+      marquerExplicationVue: (id) =>
+        enFile(async () => {
+          const r = await repos();
+          await etatCourant(r);
+          const settings = await r.settings.get();
+          if (settings === null) return;
+          const vues = lireExplicationsVues(settings.seen_explanations);
+          if (!vues.includes(id)) {
+            vues.push(id);
+            await r.settings.save({ ...settings, seen_explanations: ecrireExplicationsVues(vues) });
+          }
+          set({ explicationsVues: vues });
+        }),
 
       demanderAutorisationRappel: async () => {
         const service = deps.rappels;

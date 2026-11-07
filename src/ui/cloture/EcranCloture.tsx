@@ -15,6 +15,8 @@ import { joursDepense, vueCloture } from '../../state/selecteurs';
 import type { KakeiboStore } from '../../state/store';
 import { type DepenseSaisie, FeuilleDepense } from '../depense/FeuilleDepense';
 import { MessageAnnuler } from '../depense/MessageAnnuler';
+import { CarteExplication } from '../explication/CarteExplication';
+import { useCarteExplication } from '../explication/useCarteExplication';
 import { theme } from '../theme';
 import { Tampon, useMoinsAnimations } from './Tampon';
 
@@ -38,6 +40,8 @@ interface DepenseNotee {
   categorie: DepenseSaisie['category'];
 }
 
+const PROPOSEES = ['first_expense'] as const;
+
 type RefusCloture = keyof typeof fr.cloture.refus;
 const messageRefus = (r: Refusal): string =>
   fr.cloture.refus[r in fr.cloture.refus ? (r as RefusCloture) : 'autre'];
@@ -57,6 +61,13 @@ export function EcranCloture({ store, jour, onTerminer }: PropsEcranCloture) {
   const maintenant = useStore(store, (s) => s.maintenant);
   const lignes = useStore(store, (s) => s.depenses);
   const reduit = useMoinsAnimations();
+  // Seule « Première dépense » peut naître ici (dépense oubliée) ; le premier tampon s'explique
+  // à l'accueil, après l'animation du tampon.
+  const { carte, fermer } = useCarteExplication(
+    store,
+    PROPOSEES,
+    acces === 'ouvert' && !feuille && !pose,
+  );
 
   const jourVu = jour ?? maintenant?.day;
   const vue = useMemo(
@@ -219,6 +230,8 @@ export function EcranCloture({ store, jour, onTerminer }: PropsEcranCloture) {
             <Text style={{ color: c.texte, fontWeight: '600' }}>{fr.cloture.total(vue.total)}</Text>
           </View>
         )}
+
+        {carte && !pose && <CarteExplication key={carte} id={carte} onFermer={fermer} />}
 
         {notee && !pose && (
           <MessageAnnuler
