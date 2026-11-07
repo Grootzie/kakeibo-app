@@ -30,6 +30,12 @@ const categorie = (nom: string) =>
   screen.getByRole('button', { name: fr.depense.categorieLibelle(nom) });
 const noms = ['Essentiel', 'Envies', 'Culture', 'Imprévus'];
 
+// Le premier rendu charge les modules de la Modal (3 à 5 s à froid en intégration continue) :
+// on le fait une fois ici, pour que la limite de 5 s de chaque test ne mesure que le test.
+beforeAll(async () => {
+  await monter();
+}, 30_000);
+
 describe('ouverture', () => {
   it('monte du bas, le pavé numérique ouvert sur le montant', async () => {
     await monter();
