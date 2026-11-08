@@ -85,6 +85,24 @@ describe('intégration continue', () => {
     expect(etape).toMatch(/github\.com\/gradle\/gradle-distributions\/releases\/download/);
   });
 
+  it('garde les dépendances de Gradle en cache et réessaie la construction de l’APK (#49)', () => {
+    const android = lire('android.yml');
+    const cache = android.slice(
+      android.indexOf('Cache de Gradle'),
+      android.indexOf('Télécharger Gradle'),
+    );
+    expect(cache).toMatch(/~\/\.gradle\/caches\/modules-2/);
+    const etape = android.slice(
+      android.indexOf('Construire l'),
+      android.indexOf('upload-artifact'),
+    );
+    expect(etape).toMatch(/for tentative in/);
+    expect(etape).toMatch(/\.\/gradlew assembleRelease --no-daemon/);
+    expect(etape).toMatch(/org\.gradle\.internal\.http\.socketTimeout=/);
+    expect(etape).toMatch(/org\.gradle\.internal\.repository\.max\.retries=/);
+    expect(etape).toMatch(/exit 1/);
+  });
+
   it("active l'horloge de test dans l'APK de développement, et seulement là (#49)", () => {
     const android = lire('android.yml');
     const apk = android.slice(android.indexOf('Construire l'), android.indexOf('upload-artifact'));

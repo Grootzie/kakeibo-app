@@ -40,11 +40,16 @@ jobs:
       - name: Projet Android natif
         run: npx expo prebuild --platform android --no-install
       - name: Cache de Gradle
-        # La distribution de Gradle, une fois téléchargée, n'est plus redemandée au réseau (#49).
+        # La distribution de Gradle et les dépendances (Maven), une fois téléchargées,
+        # ne sont plus redemandées au réseau (#49).
         uses: actions/cache@v4
         with:
-          path: ~/.gradle/wrapper/dists
-          key: gradle-dists-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties') }}
+          path: |
+            ~/.gradle/wrapper/dists
+            ~/.gradle/caches/modules-2
+          key: gradle-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            gradle-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties') }}-
       - name: Télécharger Gradle
         # Le téléchargement de Gradle par le wrapper peut échouer (504 de services.gradle.org, #49) :
         # on réessaie quatre fois ; à partir de la deuxième tentative, on va chercher la même
@@ -63,7 +68,22 @@ jobs:
           exit 1
         working-directory: android
       - name: Construire l'APK
-        run: ./gradlew assembleRelease --no-daemon
+        # Une dépendance peut ne pas arriver (délai dépassé sur repo.maven.apache.org, #49) :
+        # délais réseau allongés, plus de nouvelles tentatives par Gradle, et jusqu'à trois
+        # constructions ; ce qui est déjà téléchargé ou compilé n'est pas refait.
+        run: |
+          for tentative in 1 2 3; do
+            if ./gradlew assembleRelease --no-daemon \
+              -Dorg.gradle.internal.http.connectionTimeout=120000 \
+              -Dorg.gradle.internal.http.socketTimeout=120000 \
+              -Dorg.gradle.internal.repository.max.retries=6 \
+              -Dorg.gradle.internal.repository.initial.backoff=2000; then
+              exit 0
+            fi
+            echo "Construction de l'APK ratée (tentative $tentative)."
+            sleep $((tentative * 30))
+          done
+          exit 1
         env:
           # Horloge de test et budget de démonstration (réglage caché) dans cet APK de
           # développement, pour les parcours Maestro (#49). Jamais dans un build publié.
