@@ -13,7 +13,12 @@ appId: app.kakeibo
     timeout: 60000
 - assertVisible: 'mercredi, à clôturer aujourd’hui'
 # 1. Budget de démonstration.
+# Appui long sur la date : le réglage caché s'ouvre. S'il ne s'ouvre pas, l'échec est ici,
+# et non sur le bouton du budget.
 - longPressOn: 'mercredi.4.novembre'
+- extendedWaitUntil:
+    visible: 'Horloge de test'
+    timeout: 10000
 - scrollUntilVisible:
     element:
       text: 'Poser un budget de démonstration.*'

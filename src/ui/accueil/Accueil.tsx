@@ -81,13 +81,22 @@ function EnTete({ jour, onAppuiLong }: { jour: string; onAppuiLong?: () => void 
         columnGap: 8,
       }}
     >
-      <Text
-        accessibilityRole="header"
+      {/* Appui long : réglage caché des builds de développement. Un Pressable, car l'appui long
+          d'un simple Text dans le ScrollView ne se déclenche pas sur Android (#49). Il reste
+          invisible au lecteur d'écran : la date y est annoncée comme titre. */}
+      <Pressable
+        testID="date-accueil"
+        accessible={false}
         onLongPress={onAppuiLong}
-        style={{ flexShrink: 1, fontSize: 20, fontWeight: '600', color: c.texte }}
+        style={{ flexShrink: 1 }}
       >
-        {fr.accueil.date(jour)}
-      </Text>
+        <Text
+          accessibilityRole="header"
+          style={{ fontSize: 20, fontWeight: '600', color: c.texte }}
+        >
+          {fr.accueil.date(jour)}
+        </Text>
+      </Pressable>
       <View style={{ flexDirection: 'row', marginLeft: 'auto' }}>
         {acces.map(({ titre, libelle }) => (
           <Pressable
