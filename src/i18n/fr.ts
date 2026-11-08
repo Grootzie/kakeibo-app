@@ -53,6 +53,11 @@ export function jourEtDate(jour: string): string {
   return `${nomDuJour(jour)} ${j === 1 ? '1er' : j}${NBSP}${MOIS[m - 1]}`;
 }
 
+/** Mois 'AAAA-MM' -> « novembre ». */
+export function nomDuMois(mois: string): string {
+  return MOIS[Number(mois.slice(5, 7)) - 1];
+}
+
 const JOURS_COURTS = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'] as const;
 
 /** Jour 'AAAA-MM-JJ' -> « mer. 4 ». */
@@ -149,6 +154,10 @@ export const fr = {
     cloturerJournee: 'Clôturer ma journée',
     journeeCloturee: 'Journée clôturée',
     bandeauRattraper: (jour: string) => `Tu peux encore rattraper ${jourEtDate(jour)}.`,
+    bandeauBilanSemaine: 'Le bilan de ta semaine est prêt.',
+    bandeauBilanSemaines: 'Le bilan de tes dernières semaines est prêt.',
+    /** Mois 'AAAA-MM' -> « Le bilan de novembre est prêt. » */
+    bandeauBilanMois: (mois: string) => `Le bilan de ${nomDuMois(mois)} est prêt.`,
     reste: (centimes: number, jusqua: string) =>
       `Il te reste ${formatEuros(centimes)} jusqu’à ${jusqua}`,
     depassement: (centimes: number) => `Tu as dépassé de ${formatEuros(centimes)} cette semaine`,
@@ -218,6 +227,12 @@ export const fr = {
   ],
 
   bilan: {
+    /** E6 et E7 arrivent avec J3.2 et J3.4 : en attendant, leur titre et un retour. */
+    titreSemaine: 'Bilan de la semaine',
+    titreMois: (mois: string) => `Bilan de ${nomDuMois(mois)}`,
+    titreMoisSans: 'Bilan du mois',
+    retour: 'Retour',
+    retourLibelle: 'Retour à l’accueil',
     toutTamponsDansBudget:
       'Tous tes tampons, et dans ton enveloppe : une capsule tombe de la machine.',
     toutTamponsHorsBudget: (objet: NomObjet) =>

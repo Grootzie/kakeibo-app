@@ -11,7 +11,9 @@ import {
   canAddExpense,
   canCloseDay,
 } from '../domain/scellement';
-import type { AppState } from '../domain/traitement';
+import type { MonthReview } from '../domain/bilanMois';
+import type { MonthKey } from '../domain/calendrier';
+import { type AppState, type WeekReviewScreen, weekReviewScreen } from '../domain/traitement';
 
 export interface EnveloppeSemaine {
   semaine: WeekId;
@@ -89,8 +91,63 @@ export function joursDepense(etat: AppState, now: LocalDateTime): DayKey[] {
   return expenseDays(now, contexte(etat)).reverse();
 }
 
-/** Bandeau unique de l'accueil. En J2, seulement le jour à rattraper (J3 et J5 ajouteront les autres). */
-export type BandeauAccueil = { type: 'jour_a_rattraper'; jour: DayKey };
+/** Bilans que process a préparés (étape 5 de l'ordre de traitement) et pas encore faits. */
+export interface BilansAAfficher {
+  /** Semaines scellées pas encore vues : écran « une semaine » ou « récapitulatif » (E6). */
+  semaines: WeekReviewScreen | null;
+  /** Mois terminé dont le bilan (E7) attend, avec ses chiffres (Q1 à Q3). */
+  mois: MonthKey | null;
+  chiffresMois: MonthReview | null;
+}
+
+export function bilansAAfficher(etat: AppState): BilansAAfficher {
+  return {
+    semaines: weekReviewScreen(etat),
+    mois: etat.monthToReview,
+    chiffresMois: etat.monthReview,
+  };
+}
+
+/** Mois civil précédent : '2026-12' -> '2026-11', '2027-01' -> '2026-12'. */
+function moisPrecedent(mois: MonthKey): MonthKey {
+  const [a, m] = mois.split('-').map(Number);
+  return m === 1 ? `${a - 1}-12` : `${a}-${String(m - 1).padStart(2, '0')}`;
+}
+
+/**
+ * Résolution du mois en cours : la Q4 du bilan du mois précédent, affichée tout le mois (E7).
+ * Null si ce bilan n'est pas fait ou si sa Q4 est restée vide.
+ */
+export function resolutionDuMois(
+  etat: AppState,
+  now: LocalDateTime,
+): { mois: MonthKey; resolution: string } | null {
+  const mois = now.day.slice(0, 7);
+  const bilan = etat.reviews.find((r) => r.month === moisPrecedent(mois));
+  const resolution = bilan?.resolution.trim() ?? '';
+  return resolution === '' ? null : { mois, resolution };
+}
+
+/** Bandeau unique de l'accueil (E2). */
+export type BandeauAccueil =
+  | { type: 'bilan_semaine'; ecran: WeekReviewScreen }
+  | { type: 'bilan_mois'; mois: MonthKey }
+  | { type: 'jour_a_rattraper'; jour: DayKey }
+  | { type: 'resolution'; mois: MonthKey; resolution: string };
+
+/**
+ * Un seul bandeau à la fois, par ordre de priorité : bilan de la semaine prêt, bilan du mois
+ * prêt, jour à rattraper, résolution du mois.
+ */
+export function bandeauAccueil(etat: AppState, now: LocalDateTime): BandeauAccueil | null {
+  const bilans = bilansAAfficher(etat);
+  if (bilans.semaines !== null) return { type: 'bilan_semaine', ecran: bilans.semaines };
+  if (bilans.mois !== null) return { type: 'bilan_mois', mois: bilans.mois };
+  const jour = jourARattraper(etat, now);
+  if (jour !== null) return { type: 'jour_a_rattraper', jour };
+  const resolution = resolutionDuMois(etat, now);
+  return resolution === null ? null : { type: 'resolution', ...resolution };
+}
 
 /** Tout ce que l'accueil (E2) affiche, hors maison. */
 export interface VueAccueil {
@@ -102,13 +159,12 @@ export interface VueAccueil {
 }
 
 export function vueAccueil(etat: AppState, now: LocalDateTime): VueAccueil {
-  const rattraper = jourARattraper(etat, now);
   return {
     jour: now.day,
     enveloppe: enveloppeSemaine(etat, now),
     cases: casesSemaine(etat, now),
     aujourdhuiCloture: etat.closedDays.includes(now.day),
-    bandeau: rattraper === null ? null : { type: 'jour_a_rattraper', jour: rattraper },
+    bandeau: bandeauAccueil(etat, now),
   };
 }
 

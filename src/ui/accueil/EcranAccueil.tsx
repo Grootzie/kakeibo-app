@@ -24,6 +24,10 @@ export interface PropsEcranAccueil {
   onCloturer?: () => void;
   /** Ouvre « Rattraper un jour » (E5) sur ce jour. */
   onRattraper?: (jour: string) => void;
+  /** Ouvre le bilan de la semaine (E6). */
+  onBilanSemaine?: () => void;
+  /** Ouvre le bilan du mois (E7). */
+  onBilanMois?: () => void;
   /** Faux quand un autre écran est par-dessus : les cartes de première fois attendent. */
   visible?: boolean;
   children?: ReactNode;
@@ -34,6 +38,8 @@ export function EcranAccueil({
   onAppuiLongDate,
   onCloturer,
   onRattraper,
+  onBilanSemaine,
+  onBilanMois,
   visible = true,
   children,
 }: PropsEcranAccueil) {
@@ -72,6 +78,8 @@ export function EcranAccueil({
       onNoterDepense={() => setFeuille(true)}
       onCloturer={onCloturer}
       onRattraper={onRattraper}
+      onBilanSemaine={onBilanSemaine}
+      onBilanMois={onBilanMois}
       explication={carte && <CarteExplication key={carte} id={carte} onFermer={fermer} />}
       message={
         notee && (

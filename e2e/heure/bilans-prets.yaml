@@ -1,0 +1,64 @@
+# Bandeau des bilans (J3.1, #61) : une semaine scellée propose son bilan sur l'accueil, avant le
+# jour à rattraper ; le bandeau ouvre l'écran du bilan (posé en attendant J3.2), qui ramène à
+# l'accueil ; deux semaines manquées donnent un seul bandeau, celui du récapitulatif.
+# Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
+# du téléphone au mercredi 4 novembre 2026 à 9:00. L'horloge de test avance les semaines.
+appId: app.kakeibo
+---
+- launchApp
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 60000
+- longPressOn: 'mercredi.4.novembre'
+- extendedWaitUntil:
+    visible: 'Horloge de test'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Poser un budget de démonstration.*'
+    direction: DOWN
+- tapOn: 'Poser un budget de démonstration.*'
+- assertVisible: 'Budget de démonstration posé'
+# 1. Mercredi 11 novembre : la semaine 45 est scellée depuis lundi 12:00, lundi 9 et mardi 10
+#    sont à rattraper ; le bilan de la semaine passe avant.
+- tapOn: '\+1 semaine'
+- assertVisible: 'Décalage.: 7 jours'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.11.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'mercredi.11.novembre'
+    timeout: 10000
+- tapOn:
+    text: 'Fermer l’explication .*Premier jour à rattraper.*'
+    optional: true
+- assertVisible: 'Le bilan de ta semaine est prêt\.'
+- assertNotVisible: 'Tu peux encore rattraper.*'
+- assertVisible: 'lundi, à rattraper'
+- takeScreenshot: captures/bilans-semaine-prete
+# 2. Le bandeau ouvre le bilan de la semaine ; « Retour » ramène à l'accueil, bandeau toujours là.
+- tapOn: 'Le bilan de ta semaine est prêt\.'
+- assertVisible: 'Bilan de la semaine'
+- takeScreenshot: captures/bilans-ecran-semaine
+- tapOn: 'Retour à l’accueil'
+- assertVisible: 'Le bilan de ta semaine est prêt\.'
+# 3. Mercredi 18 novembre : deux semaines attendent, un seul bandeau pour le récapitulatif.
+- scrollUntilVisible:
+    element:
+      text: '\+1 semaine'
+    direction: DOWN
+- tapOn: '\+1 semaine'
+- assertVisible: 'Décalage.: 14 jours'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.18.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'mercredi.18.novembre'
+    timeout: 10000
+- assertVisible: 'Le bilan de tes dernières semaines est prêt\.'
+- assertNotVisible: 'Le bilan de ta semaine est prêt\.'
+- takeScreenshot: captures/bilans-recapitulatif
+- launchApp:
+    clearState: true
