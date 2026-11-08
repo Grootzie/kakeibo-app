@@ -53,6 +53,18 @@ describe('intégration continue', () => {
     expect(etape).toMatch(/\.maestro\/bin\/maestro" --version/);
   });
 
+  it('réessaie le téléchargement de Gradle avant de construire l’APK (#49)', () => {
+    const android = lire('android.yml');
+    const etape = android.slice(
+      android.indexOf('Télécharger Gradle'),
+      android.indexOf('Construire l'),
+    );
+    expect(etape).toMatch(/for tentative in/);
+    expect(etape).toMatch(/\.\/gradlew --version --no-daemon/);
+    expect(etape).toMatch(/working-directory: android/);
+    expect(android.indexOf('Télécharger Gradle')).toBeLessThan(android.indexOf('assembleRelease'));
+  });
+
   it("active l'horloge de test dans l'APK de développement, et seulement là (#49)", () => {
     const android = lire('android.yml');
     const apk = android.slice(android.indexOf('Construire l'), android.indexOf('upload-artifact'));

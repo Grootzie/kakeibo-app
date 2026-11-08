@@ -39,6 +39,19 @@ jobs:
       - run: npm ci
       - name: Projet Android natif
         run: npx expo prebuild --platform android --no-install
+      - name: Télécharger Gradle
+        # Le téléchargement de Gradle par le wrapper peut échouer (504, #49) :
+        # on réessaie quatre fois avant de construire.
+        run: |
+          for tentative in 1 2 3 4; do
+            if ./gradlew --version --no-daemon; then
+              exit 0
+            fi
+            echo "Téléchargement de Gradle raté (tentative $tentative)."
+            sleep $((tentative * 15))
+          done
+          exit 1
+        working-directory: android
       - name: Construire l'APK
         run: ./gradlew assembleRelease --no-daemon
         env:
