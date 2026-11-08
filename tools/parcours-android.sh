@@ -7,6 +7,8 @@ set -u
 
 APK="${APK:?chemin du fichier APK manquant}"
 mkdir -p captures
+# Sans Maestro, aucun parcours ne serait joué : on s'arrête tout de suite, clairement (#49).
+command -v maestro >/dev/null 2>&1 || { echo "Maestro est introuvable : aucun parcours joué." >&2; exit 1; }
 
 # L'émulateur dit avoir démarré bien avant que le lanceur réponde : on attend le lanceur (2 min au plus).
 for _ in $(seq 1 60); do

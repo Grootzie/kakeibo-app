@@ -74,8 +74,17 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Installer Maestro
+        # Le téléchargement peut échouer (504, #49) sans que l'installeur échoue :
+        # on réessaie quatre fois, puis on vérifie que Maestro répond.
         run: |
-          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          for tentative in 1 2 3 4; do
+            if curl -fsSL "https://get.maestro.mobile.dev" | bash && "$HOME/.maestro/bin/maestro" --version; then
+              break
+            fi
+            echo "Téléchargement de Maestro raté (tentative $tentative)."
+            sleep $((tentative * 15))
+          done
+          "$HOME/.maestro/bin/maestro" --version
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
       - name: Émulateur, parcours et captures
         uses: reactivecircus/android-emulator-runner@v2

@@ -43,6 +43,16 @@ describe('intégration continue', () => {
     expect(android).toMatch(/maestro/i);
   });
 
+  it('réessaie le téléchargement de Maestro et vérifie son installation (#49)', () => {
+    const android = lire('android.yml');
+    const etape = android.slice(
+      android.indexOf('Installer Maestro'),
+      android.indexOf('android-emulator-runner'),
+    );
+    expect(etape).toMatch(/for tentative in/);
+    expect(etape).toMatch(/\.maestro\/bin\/maestro" --version/);
+  });
+
   it("active l'horloge de test dans l'APK de développement, et seulement là (#49)", () => {
     const android = lire('android.yml');
     const apk = android.slice(android.indexOf('Construire l'), android.indexOf('upload-artifact'));

@@ -368,8 +368,8 @@ describe('script de l’émulateur (#52)', () => {
 
   /** Joue le script avec de faux adb et maestro ; renvoie le code de sortie et le dossier. */
   function jouer(
-    /** Vrai : tous les parcours réussissent ; un nom de fichier : seul ce parcours échoue. */
-    maestroReussit: boolean | string,
+    /** Vrai : tous les parcours réussissent ; un nom de fichier : seul ce parcours échoue ; null : Maestro absent. */
+    maestroReussit: boolean | string | null,
     heure = false,
     rappel = false,
     parcoursJ2 = false,
@@ -407,14 +407,15 @@ describe('script de l’émulateur (#52)', () => {
         'esac',
       ].join('\n'),
     );
-    faux(
-      'maestro',
-      typeof maestroReussit === 'string'
-        ? `case "$*" in *${maestroReussit}*) exit 1 ;; esac\nexit 0`
-        : maestroReussit
-          ? 'exit 0'
-          : 'exit 1',
-    );
+    if (maestroReussit !== null)
+      faux(
+        'maestro',
+        typeof maestroReussit === 'string'
+          ? `case "$*" in *${maestroReussit}*) exit 1 ;; esac\nexit 0`
+          : maestroReussit
+            ? 'exit 0'
+            : 'exit 1',
+      );
     faux('sleep', 'exit 0');
     let code = 0;
     try {
@@ -426,8 +427,18 @@ describe('script de l’émulateur (#52)', () => {
     } catch (erreur) {
       code = (erreur as { status: number }).status;
     }
-    return { code, dossier, journal: readFileSync(journal, 'utf8') };
+    return {
+      code,
+      dossier,
+      journal: existsSync(journal) ? readFileSync(journal, 'utf8') : '',
+    };
   }
+
+  it('échoue tout de suite, sans rien installer, si Maestro manque (#49)', () => {
+    const { code, journal } = jouer(null, true, true, true);
+    expect(code).not.toBe(0);
+    expect(journal).not.toMatch(/adb install/);
+  });
 
   it('attend le lanceur, installe l’APK puis joue les parcours', () => {
     const { code, journal } = jouer(true);
