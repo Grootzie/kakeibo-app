@@ -45,7 +45,24 @@ Pas de maison à l'accueil (J4), pas de bienvenue (E1, J5), pas de dépenses ré
 - **J2.6 · Rappel du soir.** (#47) Notification locale (expo-notifications) à 21:00 par défaut, seulement si la journée n'est pas clôturée, annulée à la clôture, qui ouvre E4 ; trois textes en alternance ; un refus d'autorisation n'empêche rien. Sections : Notifications, Textes et ton, E10.
 - **J2.7 · Cartes de première fois de J2.** (#48) Première dépense, premier tampon, premier jour à rattraper : une seule fois chacune (`seen_explanations`). Leur fiche dans Comprendre attend la décision du propriétaire (E12 est prévu en J5). Sections : E12, Messages d'explication, Principes du produit (10).
 - **J2.8 · Parcours « journée type » et « rattrapage » (Testeur).** (#49) Deux parcours Maestro sur l'émulateur, avec l'horloge de test : noter, voir l'enveloppe baisser, clôturer ; oublier un jour, le rattraper, puis constater qu'il ne l'est plus après le lundi 12:00. Sections : Jalons, E2 à E5, Horloge de test.
+- **J2.1 bis · Fiabiliser le parcours Maestro de l'émulateur.** (#52) Ajouté en cours de jalon : attente du lanceur de l'émulateur, capture et journaux joints même en cas d'échec.
+
+Validé le 8 novembre 2026 : parcours « journée type » et « rattrapage » au vert sur l'émulateur Android avec l'horloge de test, intégration continue verte sur `main`.
+
+## J3 · Bilans
+
+Validé quand : parcours Maestro « semaine parfaite » et « semaine hors budget » au vert sur l'émulateur Android, avec l'horloge de test.
+
+La maison arrive en J4 (en parallèle) : en attendant, le bilan montre l'objet seul, avec son dessin provisoire. Les fiches dans Comprendre attendent E12 (J5).
+
+- **J3.1 · Bilans prêts dans l'état et bandeau de l'accueil.** (#61) Le store expose les bilans que `process` prépare ; `ceremony_seen` et `month_review` enregistrés ; un seul bandeau à l'accueil, par priorité : bilan de la semaine, bilan du mois, jour à rattraper, résolution. Sections : E2, E6, E7, Ordre de traitement, Modèle de données.
+- **J3.2 · Bilan de la semaine (E6).** (#62) Quatre temps animés : tampons, dépensé face à l'enveloppe, résultat (capsule et objet, poussière, fêlure) avec les textes de la spec, conclusion ; objet en attente ; animations réduites et lecteur d'écran. Sections : E6, Résultat d'une semaine, Objets et pièces, Textes et ton, Accessibilité.
+- **J3.3 · Récapitulatif après une longue absence (E6).** (#63) Un seul écran pour les semaines manquées, sans reproche. Sections : E6, Ordre de traitement, scénarios 14 et 15.
+- **J3.4 · Bilan du mois : les quatre questions (E7).** (#64) Q1 à Q3 chiffrées, par catégorie, épargne réelle, Q4 en 140 caractères, validation qui débloque la pièce suivante (et celles des mois sautés). Sections : E7, Bilan du mois, Objets et pièces, scénarios 17 et 25.
+- **J3.5 · Budget du nouveau mois et résolution sur l'accueil.** (#65) Budget pré-rempli à confirmer (une version ajoutée seulement si un montant change), résolution affichée sur l'accueil tout le mois. Sections : E7, E2, Budget et enveloppe, Modèle de données.
+- **J3.6 · Réparation annoncée et cartes de première fois de J3.** (#66) Annonce « Réparée à l'or, … » (emplacement à décider par le propriétaire) ; cartes première capsule, première poussière, première fêlure, première réparation, premier bilan du mois, nouvelle pièce. Sections : Fêlure et réparation, Textes et ton, E12, Messages d'explication.
+- **J3.7 · Parcours « semaine parfaite » et « semaine hors budget » (Testeur).** (#67) Deux parcours Maestro sur l'émulateur, avec l'horloge de test, une capture par temps du bilan. Sections : Jalons, E2, E4, E6, Horloge de test.
 
 ## Ensuite
 
-J3 à J9 : voir « Jalons » dans la spec. L'agent Produit découpe chaque jalon en tickets quand le précédent est validé.
+J4 à J9 : voir « Jalons » dans la spec. L'agent Produit découpe chaque jalon en tickets quand le précédent est validé.
