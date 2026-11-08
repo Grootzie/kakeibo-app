@@ -1,6 +1,7 @@
 // Accueil (E2) sans la maison, qui vient en J4. Composant d'affichage : la vue lui est passée.
 import type { ReactNode } from 'react';
 import { Pressable, ScrollView, Text, View, type ViewStyle } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { fr } from '../../i18n/fr';
 import type {
@@ -42,26 +43,33 @@ export function Accueil({
   explication,
   children,
 }: PropsAccueil) {
+  // Zone sûre, comme E4 : sur Android l'appli est dessinée bord à bord, et sans elle la date
+  // passait sous la barre d'état (l'appui long arrivait au système, #49).
   return (
-    <ScrollView
-      testID="accueil"
+    <SafeAreaView
+      testID="accueil-zone-sure"
+      edges={['top', 'bottom']}
       style={{ flex: 1, backgroundColor: c.fond }}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ padding: ESPACE, gap: ESPACE }}
     >
-      {vue && <EnTete jour={vue.jour} onAppuiLong={onAppuiLongDate} />}
-      {vue?.bandeau && <Bandeau bandeau={vue.bandeau} onRattraper={onRattraper} />}
-      {explication}
-      {vue && <Enveloppe enveloppe={vue.enveloppe} />}
-      {message}
-      {vue && <CarteTampons cases={vue.cases} onRattraper={onRattraper} />}
-      <Boutons
-        aujourdhuiCloture={vue?.aujourdhuiCloture ?? false}
-        onNoterDepense={onNoterDepense}
-        onCloturer={onCloturer}
-      />
-      {children}
-    </ScrollView>
+      <ScrollView
+        testID="accueil"
+        style={{ flex: 1, backgroundColor: c.fond }}
+        contentContainerStyle={{ padding: ESPACE, gap: ESPACE }}
+      >
+        {vue && <EnTete jour={vue.jour} onAppuiLong={onAppuiLongDate} />}
+        {vue?.bandeau && <Bandeau bandeau={vue.bandeau} onRattraper={onRattraper} />}
+        {explication}
+        {vue && <Enveloppe enveloppe={vue.enveloppe} />}
+        {message}
+        {vue && <CarteTampons cases={vue.cases} onRattraper={onRattraper} />}
+        <Boutons
+          aujourdhuiCloture={vue?.aujourdhuiCloture ?? false}
+          onNoterDepense={onNoterDepense}
+          onCloturer={onCloturer}
+        />
+        {children}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -81,13 +89,22 @@ function EnTete({ jour, onAppuiLong }: { jour: string; onAppuiLong?: () => void 
         columnGap: 8,
       }}
     >
-      <Text
-        accessibilityRole="header"
+      {/* Appui long : réglage caché des builds de développement. Un Pressable, car l'appui long
+          d'un simple Text dans le ScrollView ne se déclenche pas sur Android (#49). Il reste
+          invisible au lecteur d'écran : la date y est annoncée comme titre. */}
+      <Pressable
+        testID="date-accueil"
+        accessible={false}
         onLongPress={onAppuiLong}
-        style={{ flexShrink: 1, fontSize: 20, fontWeight: '600', color: c.texte }}
+        style={{ flexShrink: 1 }}
       >
-        {fr.accueil.date(jour)}
-      </Text>
+        <Text
+          accessibilityRole="header"
+          style={{ fontSize: 20, fontWeight: '600', color: c.texte }}
+        >
+          {fr.accueil.date(jour)}
+        </Text>
+      </Pressable>
       <View style={{ flexDirection: 'row', marginLeft: 'auto' }}>
         {acces.map(({ titre, libelle }) => (
           <Pressable

@@ -7,6 +7,8 @@ set -u
 
 APK="${APK:?chemin du fichier APK manquant}"
 mkdir -p captures
+# Sans Maestro, aucun parcours ne serait joué : on s'arrête tout de suite, clairement (#49).
+command -v maestro >/dev/null 2>&1 || { echo "Maestro est introuvable : aucun parcours joué." >&2; exit 1; }
 
 # L'émulateur dit avoir démarré bien avant que le lanceur réponde : on attend le lanceur (2 min au plus).
 for _ in $(seq 1 60); do
@@ -65,6 +67,15 @@ if [ -f e2e/heure/installer.yaml ]; then
     sleep 2
     maestro test e2e/heure/rappel-toucher.yaml --format junit --output captures/maestro-heure-4.xml || statut=1
   fi
+  # Parcours « journée type » et « rattrapage » (#49) : appli effacée, mercredi 4 novembre 2026
+  # à 9:00 ; l'horloge de test de l'APK de développement avance ensuite les jours.
+  for parcours in journee-type rattrapage; do
+    if [ -f "e2e/heure/$parcours.yaml" ]; then
+      adb shell pm clear app.kakeibo >/dev/null 2>&1 || true
+      adb shell date 110409002026.00 || true
+      maestro test "e2e/heure/$parcours.yaml" --format junit --output "captures/maestro-$parcours.xml" || statut=1
+    fi
+  done
   adb shell date "$(date -u +%m%d%H%M%Y.%S)" || true
   adb shell settings put global auto_time 1 || true
 fi

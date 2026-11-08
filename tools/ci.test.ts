@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
 const lire = (fichier: string): string =>
@@ -41,6 +41,79 @@ describe('intégration continue', () => {
     expect(android).toMatch(/pull_request:/);
     expect(android).toMatch(/android-emulator-runner/);
     expect(android).toMatch(/maestro/i);
+  });
+
+  it('réessaie le téléchargement de Maestro et vérifie son installation (#49)', () => {
+    const android = lire('android.yml');
+    const etape = android.slice(
+      android.indexOf('Installer Maestro'),
+      android.indexOf('android-emulator-runner'),
+    );
+    expect(etape).toMatch(/for tentative in/);
+    expect(etape).toMatch(/\.maestro\/bin\/maestro" --version/);
+  });
+
+  it('réessaie le téléchargement de Gradle avant de construire l’APK (#49)', () => {
+    const android = lire('android.yml');
+    const etape = android.slice(
+      android.indexOf('Télécharger Gradle'),
+      android.indexOf('Construire l'),
+    );
+    expect(etape).toMatch(/for tentative in/);
+    expect(etape).toMatch(/\.\/gradlew --version --no-daemon/);
+    expect(etape).toMatch(/working-directory: android/);
+    expect(android.indexOf('Télécharger Gradle')).toBeLessThan(android.indexOf('assembleRelease'));
+  });
+
+  it('garde Gradle en cache et se replie sur les versions GitHub de Gradle (#49)', () => {
+    const android = lire('android.yml');
+    const cache = android.slice(
+      android.indexOf('Cache de Gradle'),
+      android.indexOf('Télécharger Gradle'),
+    );
+    expect(cache).toMatch(/actions\/cache@v4/);
+    expect(cache).toMatch(/~\/\.gradle\/wrapper\/dists/);
+    expect(cache).toMatch(/hashFiles\('android\/gradle\/wrapper\/gradle-wrapper\.properties'\)/);
+    expect(android.indexOf('Projet Android natif')).toBeLessThan(
+      android.indexOf('Cache de Gradle'),
+    );
+    const etape = android.slice(
+      android.indexOf('Télécharger Gradle'),
+      android.indexOf('Construire l'),
+    );
+    expect(etape).toMatch(/gradle-wrapper\.properties/);
+    expect(etape).toMatch(/github\.com\/gradle\/gradle-distributions\/releases\/download/);
+  });
+
+  it('garde les dépendances de Gradle en cache et réessaie la construction de l’APK (#49)', () => {
+    const android = lire('android.yml');
+    const cache = android.slice(
+      android.indexOf('Cache de Gradle'),
+      android.indexOf('Télécharger Gradle'),
+    );
+    expect(cache).toMatch(/~\/\.gradle\/caches\/modules-2/);
+    const etape = android.slice(
+      android.indexOf('Construire l'),
+      android.indexOf('upload-artifact'),
+    );
+    expect(etape).toMatch(/for tentative in/);
+    expect(etape).toMatch(/\.\/gradlew assembleRelease --no-daemon/);
+    expect(etape).toMatch(/org\.gradle\.internal\.http\.socketTimeout=/);
+    expect(etape).toMatch(/org\.gradle\.internal\.repository\.max\.retries=/);
+    expect(etape).toMatch(/exit 1/);
+  });
+
+  it("active l'horloge de test dans l'APK de développement, et seulement là (#49)", () => {
+    const android = lire('android.yml');
+    const apk = android.slice(android.indexOf('Construire l'), android.indexOf('upload-artifact'));
+    expect(apk).toMatch(/EXPO_PUBLIC_HORLOGE_TEST: '1'/);
+    expect(android.match(/EXPO_PUBLIC_HORLOGE_TEST/g)).toHaveLength(1);
+    expect(lire('ci.yml')).not.toMatch(/EXPO_PUBLIC_HORLOGE_TEST/);
+    for (const fichier of ['app.json', 'package.json', 'eas.json'])
+      if (existsSync(join(__dirname, '..', fichier)))
+        expect(readFileSync(join(__dirname, '..', fichier), 'utf8')).not.toMatch(
+          /EXPO_PUBLIC_HORLOGE_TEST/,
+        );
   });
 
   it('ne dépend ni de secret ni de service payant', () => {
