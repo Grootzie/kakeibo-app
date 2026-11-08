@@ -67,6 +67,19 @@ describe('en-tête', () => {
     expect(screen.getByRole('header', { name: 'vendredi 6 novembre' })).toBeOnTheScreen();
   });
 
+  it('reste hors de la barre d’état et de la barre de navigation, comme E4', async () => {
+    // Sur Android, l'appli est dessinée bord à bord : sans zone sûre, la date passait sous la
+    // barre d'état et l'appui long arrivait au système (parcours Maestro de #49).
+    await render(<Accueil vue={vue()} />);
+    const zone = screen.getByTestId('accueil-zone-sure');
+    expect(zone.props.edges).toMatchObject({ top: 'additive', bottom: 'additive' });
+    expect(StyleSheet.flatten(zone.props.style)).toMatchObject({
+      flex: 1,
+      backgroundColor: theme.couleurs.fond,
+    });
+    expect(zone).toContainElement(screen.getByTestId('date-accueil'));
+  });
+
   it('montre le carnet et les réglages, inactifs tant que E9 et E10 n’existent pas', async () => {
     await render(<Accueil vue={vue()} />);
     expect(screen.getByRole('button', { name: fr.accueil.carnetLibelle })).toBeDisabled();
