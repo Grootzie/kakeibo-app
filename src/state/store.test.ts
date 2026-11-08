@@ -304,6 +304,77 @@ describe('store de l’état', () => {
     expect((await rouvrir()).getState().etat?.unseenWeeks).toEqual([]);
   });
 
+  describe('bilans prêts (J3.1, #61)', () => {
+    test('le store expose les semaines pas encore vues et le mois à faire, relus à l’identique', async () => {
+      const { store, tel, rouvrir } = await monter({ budget: true });
+      await store
+        .getState()
+        .enregistrerDepense({ day: '2026-11-02', amount: 4200, category: 'envies', note: '' });
+      tel.regler(2026, 12, 1, 9, 0);
+      await store.getState().ouvrir();
+      const etat = store.getState().etat!;
+      expect(etat.unseenWeeks).toEqual(['2026-W45', '2026-W46', '2026-W47', '2026-W48']);
+      expect(etat.monthToReview).toBe('2026-11');
+      expect(etat.monthReview).toMatchObject({ q1: 90000, q2: 30000, q3: 4200 });
+      const relu = (await rouvrir()).getState().etat!;
+      expect(relu.unseenWeeks).toEqual(etat.unseenWeeks);
+      expect(relu.monthToReview).toBe('2026-11');
+    });
+
+    test('valider le bilan du mois enregistre month_review et débloque la pièce, ensemble', async () => {
+      const { store, repos, tel, rouvrir } = await monter({ budget: true });
+      await store
+        .getState()
+        .enregistrerDepense({ day: '2026-11-02', amount: 4200, category: 'envies', note: '' });
+      tel.regler(2026, 12, 1, 9, 0);
+      await store.getState().ouvrir();
+      expect(await store.getState().validerBilanMois('Cuisiner le soir.')).toBeNull();
+      expect(await repos.monthReviews.all()).toEqual([
+        {
+          month: '2026-11',
+          completed_at: '2026-12-01T09:00',
+          q1: '90000',
+          q2: '30000',
+          q3: '4200',
+          real_savings: 85800,
+          resolution: 'Cuisiner le soir.',
+        },
+      ]);
+      expect(await repos.unlockedRooms.all()).toContainEqual(
+        expect.objectContaining({ year: 2026, room_id: 'room-12' }),
+      );
+      expect(store.getState().etat?.monthToReview).toBeNull();
+      const relu = (await rouvrir()).getState().etat!;
+      expect(relu.monthToReview).toBeNull();
+      expect(relu.reviews).toEqual([
+        { month: '2026-11', resolution: 'Cuisiner le soir.', validatedAt: '2026-12-01T09:00' },
+      ]);
+    });
+
+    test('un bilan refusé (aucun mois à faire, résolution trop longue) n’écrit rien', async () => {
+      const { store, repos, tel } = await monter({ budget: true });
+      await store.getState().ouvrir();
+      expect(await store.getState().validerBilanMois('')).toBe('month_not_proposed');
+      tel.regler(2026, 12, 1, 9, 0);
+      await store.getState().ouvrir(); // E7 s'ouvre sur le mois que l'ouverture a proposé
+      expect(await store.getState().validerBilanMois('x'.repeat(141))).toBe('resolution_too_long');
+      expect(await repos.monthReviews.all()).toEqual([]);
+    });
+
+    test('si l’enregistrement échoue, ni le bilan ni la pièce ne sont écrits', async () => {
+      const { store, repos, tel } = await monter({ budget: true });
+      tel.regler(2026, 12, 1, 9, 0);
+      await store.getState().ouvrir();
+      const pieces = await repos.unlockedRooms.all();
+      const add = repos.monthReviews.add;
+      repos.monthReviews.add = () => Promise.reject(new Error('disque plein'));
+      await expect(store.getState().validerBilanMois('')).rejects.toThrow('disque plein');
+      repos.monthReviews.add = add;
+      expect(await repos.monthReviews.all()).toEqual([]);
+      expect(await repos.unlockedRooms.all()).toEqual(pieces);
+    });
+  });
+
   test('les actions simultanées s’enregistrent toutes, l’une après l’autre', async () => {
     const { store, repos, tel } = await monter();
     await store.getState().ouvrir();

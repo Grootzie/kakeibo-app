@@ -70,7 +70,13 @@ export interface EtatKakeibo {
   ouvrirJour(day: string): Promise<'aujourdhui' | 'rattrapage' | null>;
   /** Clôture « J'ai tout noté », ou « Rien dépensé » si le jour n'a aucune dépense. */
   cloturerJour(day: string): Promise<Refusal | null>;
+  /** Les bilans de semaine affichés (E6) sont vus : week_result.ceremony_seen passe à vrai. */
   marquerBilansVus(): Promise<void>;
+  /**
+   * Valide le bilan du mois proposé (E7) avec sa résolution (Q4, 140 caractères au plus) :
+   * month_review et la pièce débloquée s'enregistrent dans une seule transaction.
+   */
+  validerBilanMois(resolution: string): Promise<Refusal | null>;
   /** Une carte de première fois s'affiche : elle ne reviendra plus, même après redémarrage. */
   marquerExplicationVue(id: IdExplication): Promise<void>;
   /**
@@ -305,6 +311,14 @@ export function createKakeiboStore(deps: DependancesStore) {
       marquerBilansVus: async () => {
         await traiter({ type: 'week_reviews_seen' });
       },
+
+      // Le mois validé est celui que E7 affiche : s'il n'est plus proposé, le domaine refuse.
+      validerBilanMois: (resolution) =>
+        traiter((etat) => ({
+          type: 'validate_month',
+          month: etat.monthToReview ?? '',
+          resolution,
+        })),
 
       marquerExplicationVue: (id) =>
         enFile(async () => {

@@ -16,6 +16,8 @@ export default function Home() {
       onAppuiLongDate={() => setHorlogeVisible((v) => !v)}
       onCloturer={() => router.push('/cloturer')}
       onRattraper={(jour) => router.push({ pathname: '/cloturer', params: { jour } })}
+      onBilanSemaine={() => router.push('/bilan-semaine')}
+      onBilanMois={() => router.push('/bilan-mois')}
     >
       {horlogeVisible && <HorlogeDev />}
     </EcranAccueil>

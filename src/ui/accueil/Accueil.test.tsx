@@ -225,6 +225,60 @@ describe('bandeau', () => {
   });
 });
 
+describe('bandeau des bilans (J3.1, #61)', () => {
+  it('le bilan de la semaine prêt est un bouton annoncé qui ouvre E6', async () => {
+    const onBilanSemaine = jest.fn();
+    await render(
+      <Accueil
+        vue={vue({ bandeau: { type: 'bilan_semaine', ecran: { kind: 'week', week: '2026-W45' } } })}
+        onBilanSemaine={onBilanSemaine}
+      />,
+    );
+    const bandeau = screen.getByRole('button', { name: 'Le bilan de ta semaine est prêt.' });
+    expect(StyleSheet.flatten(bandeau.props.style).minHeight).toBeGreaterThanOrEqual(44);
+    await fireEvent.press(bandeau);
+    expect(onBilanSemaine).toHaveBeenCalledTimes(1);
+  });
+
+  it('plusieurs semaines prêtes : un seul bandeau pour le récapitulatif', async () => {
+    await render(
+      <Accueil
+        vue={vue({
+          bandeau: {
+            type: 'bilan_semaine',
+            ecran: { kind: 'recap', weeks: ['2026-W45', '2026-W46'] },
+          },
+        })}
+      />,
+    );
+    expect(
+      screen.getByRole('button', { name: 'Le bilan de tes dernières semaines est prêt.' }),
+    ).toBeOnTheScreen();
+    expect(screen.getAllByTestId('bandeau')).toHaveLength(1);
+  });
+
+  it('le bilan du mois prêt est un bouton qui ouvre E7', async () => {
+    const onBilanMois = jest.fn();
+    await render(
+      <Accueil
+        vue={vue({ bandeau: { type: 'bilan_mois', mois: '2026-11' } })}
+        onBilanMois={onBilanMois}
+      />,
+    );
+    await fireEvent.press(screen.getByRole('button', { name: 'Le bilan de novembre est prêt.' }));
+    expect(onBilanMois).toHaveBeenCalledTimes(1);
+  });
+
+  it('la résolution du mois attend J3.5 pour s’afficher', async () => {
+    await render(
+      <Accueil
+        vue={vue({ bandeau: { type: 'resolution', mois: '2026-12', resolution: 'Cuisiner.' } })}
+      />,
+    );
+    expect(screen.queryByTestId('bandeau')).toBeNull();
+  });
+});
+
 describe('texte agrandi', () => {
   it('ne tronque aucun texte et laisse défiler l’écran', async () => {
     await render(<Accueil vue={vue()} />);

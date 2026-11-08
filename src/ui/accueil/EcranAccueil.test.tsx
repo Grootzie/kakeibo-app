@@ -124,3 +124,30 @@ describe('rattraper un jour depuis l’accueil (E5, #46)', () => {
     expect(onRattraper).toHaveBeenLastCalledWith('2026-11-05');
   });
 });
+
+describe('bandeau des bilans depuis l’accueil (J3.1, #61)', () => {
+  test('la semaine scellée propose son bilan, puis, une fois vu, le jour à rattraper revient', async () => {
+    const db = createTestDb();
+    await migrate(db);
+    const repos = createRepositories(db);
+    let reel = new Date(2026, 10, 2, 8, 0);
+    const store = createKakeiboStore({
+      depots: async () => repos,
+      catalogue: catalogueJson as Catalog,
+      horloge: createClock({ actif: true, reel: () => reel }),
+      nouvelId: () => 'id',
+    });
+    await store.getState().ouvrir();
+    reel = new Date(2026, 10, 10, 9, 0); // mardi 10 novembre : la semaine 45 est scellée
+    await store.getState().ouvrir();
+    const onBilanSemaine = jest.fn();
+    await render(<EcranAccueil store={store} onBilanSemaine={onBilanSemaine} />);
+    await fireEvent.press(screen.getByRole('button', { name: fr.accueil.bandeauBilanSemaine }));
+    expect(onBilanSemaine).toHaveBeenCalledTimes(1);
+    await act(() => store.getState().marquerBilansVus());
+    expect(screen.queryByRole('button', { name: fr.accueil.bandeauBilanSemaine })).toBeNull();
+    expect(
+      screen.getByRole('button', { name: fr.accueil.bandeauRattraper('2026-11-09') }),
+    ).toBeOnTheScreen();
+  });
+});

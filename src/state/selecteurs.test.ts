@@ -6,11 +6,14 @@ import type { Catalog } from '../domain/objets';
 import type { DayKey, LocalDateTime } from '../domain/scellement';
 import { type AppEvent, type AppState, createAppState, process } from '../domain/traitement';
 import {
+  bandeauAccueil,
+  bilansAAfficher,
   casesSemaine,
   enveloppeSemaine,
   estRattrapable,
   joursDepense,
   jourARattraper,
+  resolutionDuMois,
   vueAccueil,
   vueCloture,
 } from './selecteurs';
@@ -31,6 +34,7 @@ function etat(installDay: DayKey, evenements: [AppEvent, LocalDateTime][]): AppS
   for (const [e, t] of evenements) s = process(s, e, t, catalog).state;
   return s;
 }
+const ouvrir = (t: LocalDateTime): [AppEvent, LocalDateTime] => [{ type: 'open' }, t];
 const fermer = (day: DayKey, t = at(day)): [AppEvent, LocalDateTime] => [
   { type: 'close_day', day },
   t,
@@ -264,5 +268,108 @@ describe('jour rattrapable (E5, #46)', () => {
   it('dit à l’écran de clôture qu’il s’agit d’un rattrapage', () => {
     expect(vueCloture(s(), [], '2026-11-04', at('2026-11-06')).rattrapage).toBe(true);
     expect(vueCloture(s(), [], '2026-11-06', at('2026-11-06')).rattrapage).toBe(false);
+  });
+});
+
+describe('bilans à afficher (J3.1, #61)', () => {
+  it('rien n’est prêt avant le premier scellement', () => {
+    const s = etat('2026-11-02', [fermer('2026-11-02')]);
+    expect(bilansAAfficher(s)).toEqual({ semaines: null, mois: null, chiffresMois: null });
+  });
+
+  it('une semaine scellée pas encore vue donne l’écran « une semaine »', () => {
+    const s = etat('2026-11-02', [ouvrir(at('2026-11-09', '12:00'))]);
+    expect(bilansAAfficher(s).semaines).toEqual({ kind: 'week', week: '2026-W45' });
+  });
+
+  it('plusieurs semaines manquées donnent un seul écran récapitulatif', () => {
+    const s = etat('2026-11-02', [ouvrir(at('2026-11-17', '09:00'))]);
+    expect(bilansAAfficher(s).semaines).toEqual({
+      kind: 'recap',
+      weeks: ['2026-W45', '2026-W46'],
+    });
+  });
+
+  it('le mois terminé est proposé avec ses chiffres à partir du 1er du mois suivant', () => {
+    const s = etat('2026-11-02', [
+      depenser('2026-11-03', 5000),
+      [{ type: 'week_reviews_seen' }, at('2026-12-01', '08:00')],
+    ]);
+    const bilans = bilansAAfficher(s);
+    expect(bilans.mois).toBe('2026-11');
+    expect(bilans.chiffresMois).toEqual({
+      month: '2026-11',
+      q1: 90000,
+      q2: 30000,
+      q3: 5000,
+      realSavings: 85000,
+      goalReached: true,
+    });
+  });
+});
+
+describe('bandeau unique de l’accueil (E2, J3.1, #61)', () => {
+  // Installée le lundi 2 novembre, rien clôturé : le 1er décembre à 9:00, les semaines 45 à 48
+  // sont scellées, novembre attend son bilan et lundi 30 novembre est à rattraper.
+  const decembre = at('2026-12-01', '09:00');
+  const tout = () => etat('2026-11-02', [ouvrir(decembre)]);
+  const suite = (s: AppState, e: AppEvent, t = decembre) => process(s, e, t, catalog).state;
+
+  it('1. le bilan de la semaine passe avant tout le reste', () => {
+    const s = tout();
+    expect(jourARattraper(s, decembre)).toBe('2026-11-30');
+    expect(s.monthToReview).toBe('2026-11');
+    expect(bandeauAccueil(s, decembre)).toEqual({
+      type: 'bilan_semaine',
+      ecran: { kind: 'recap', weeks: ['2026-W45', '2026-W46', '2026-W47', '2026-W48'] },
+    });
+  });
+
+  it('une seule semaine prête : le bandeau ouvre l’écran « une semaine »', () => {
+    const s = etat('2026-11-02', [ouvrir(at('2026-11-10', '09:00'))]);
+    expect(bandeauAccueil(s, at('2026-11-10', '09:00'))).toEqual({
+      type: 'bilan_semaine',
+      ecran: { kind: 'week', week: '2026-W45' },
+    });
+  });
+
+  it('2. puis le bilan du mois, devant le jour à rattraper', () => {
+    const s = suite(tout(), { type: 'week_reviews_seen' });
+    expect(bandeauAccueil(s, decembre)).toEqual({ type: 'bilan_mois', mois: '2026-11' });
+  });
+
+  it('3. puis le jour à rattraper, devant la résolution', () => {
+    let s = suite(tout(), { type: 'week_reviews_seen' });
+    s = suite(s, { type: 'validate_month', month: '2026-11', resolution: 'Cuisiner le soir.' });
+    expect(bandeauAccueil(s, decembre)).toEqual({ type: 'jour_a_rattraper', jour: '2026-11-30' });
+  });
+
+  it('4. enfin la résolution du mois, tirée du bilan du mois précédent', () => {
+    let s = suite(tout(), { type: 'week_reviews_seen' });
+    s = suite(s, { type: 'validate_month', month: '2026-11', resolution: 'Cuisiner le soir.' });
+    s = suite(s, { type: 'close_day', day: '2026-11-30' });
+    expect(bandeauAccueil(s, decembre)).toEqual({
+      type: 'resolution',
+      mois: '2026-12',
+      resolution: 'Cuisiner le soir.',
+    });
+    // Toute la durée du mois, puis plus en janvier, qui attend la résolution de décembre.
+    expect(resolutionDuMois(s, at('2026-12-31', '20:00'))).toEqual({
+      mois: '2026-12',
+      resolution: 'Cuisiner le soir.',
+    });
+    expect(resolutionDuMois(s, at('2027-01-01', '20:00'))).toBeNull();
+  });
+
+  it('sans résolution écrite, ni bandeau de résolution ni bandeau vide', () => {
+    let s = suite(tout(), { type: 'week_reviews_seen' });
+    s = suite(s, { type: 'validate_month', month: '2026-11', resolution: '   ' });
+    s = suite(s, { type: 'close_day', day: '2026-11-30' });
+    expect(bandeauAccueil(s, decembre)).toBeNull();
+  });
+
+  it('la vue de l’accueil porte ce bandeau unique', () => {
+    const s = tout();
+    expect(vueAccueil(s, decembre).bandeau).toEqual(bandeauAccueil(s, decembre));
   });
 });

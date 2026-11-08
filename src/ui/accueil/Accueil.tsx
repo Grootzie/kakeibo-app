@@ -26,6 +26,10 @@ export interface PropsAccueil {
   onCloturer?: () => void;
   /** Ouvre « Rattraper un jour » (E5) : case « à rattraper » ou bandeau. */
   onRattraper?: (jour: string) => void;
+  /** Ouvre le bilan de la semaine (E6) : une semaine ou le récapitulatif. */
+  onBilanSemaine?: () => void;
+  /** Ouvre le bilan du mois (E7). */
+  onBilanMois?: () => void;
   /** Message « Annuler » après une dépense notée, sous l'enveloppe. */
   message?: ReactNode;
   /** Carte de première fois, sous le bandeau. */
@@ -39,6 +43,8 @@ export function Accueil({
   onNoterDepense,
   onCloturer,
   onRattraper,
+  onBilanSemaine,
+  onBilanMois,
   message,
   explication,
   children,
@@ -57,7 +63,14 @@ export function Accueil({
         contentContainerStyle={{ padding: ESPACE, gap: ESPACE }}
       >
         {vue && <EnTete jour={vue.jour} onAppuiLong={onAppuiLongDate} />}
-        {vue?.bandeau && <Bandeau bandeau={vue.bandeau} onRattraper={onRattraper} />}
+        {vue?.bandeau && (
+          <Bandeau
+            bandeau={vue.bandeau}
+            onRattraper={onRattraper}
+            onBilanSemaine={onBilanSemaine}
+            onBilanMois={onBilanMois}
+          />
+        )}
         {explication}
         {vue && <Enveloppe enveloppe={vue.enveloppe} />}
         {message}
@@ -128,22 +141,59 @@ function EnTete({ jour, onAppuiLong }: { jour: string; onAppuiLong?: () => void 
   );
 }
 
-/** Le bandeau « jour à rattraper » ouvre E5 sur le plus ancien jour à rattraper. */
+/** Texte et action du bandeau ; null pour la résolution, affichée avec J3.5. */
+function contenuBandeau(
+  bandeau: BandeauAccueil,
+  actions: {
+    onRattraper?: (jour: string) => void;
+    onBilanSemaine?: () => void;
+    onBilanMois?: () => void;
+  },
+): { texte: string; onPress?: () => void } | null {
+  switch (bandeau.type) {
+    case 'bilan_semaine':
+      return {
+        texte:
+          bandeau.ecran.kind === 'recap'
+            ? fr.accueil.bandeauBilanSemaines
+            : fr.accueil.bandeauBilanSemaine,
+        onPress: actions.onBilanSemaine,
+      };
+    case 'bilan_mois':
+      return { texte: fr.accueil.bandeauBilanMois(bandeau.mois), onPress: actions.onBilanMois };
+    case 'jour_a_rattraper':
+      return {
+        texte: fr.accueil.bandeauRattraper(bandeau.jour),
+        onPress: () => actions.onRattraper?.(bandeau.jour),
+      };
+    case 'resolution':
+      return null;
+  }
+}
+
+/**
+ * Un seul bandeau, par priorité : bilan de la semaine (E6), bilan du mois (E7), jour à
+ * rattraper (E5, le plus ancien), résolution du mois. C'est un bouton qui ouvre son écran.
+ */
 function Bandeau({
   bandeau,
-  onRattraper,
+  ...actions
 }: {
   bandeau: BandeauAccueil;
   onRattraper?: (jour: string) => void;
+  onBilanSemaine?: () => void;
+  onBilanMois?: () => void;
 }) {
-  const texte = fr.accueil.bandeauRattraper(bandeau.jour);
+  const contenu = contenuBandeau(bandeau, actions);
+  if (contenu === null) return null;
+  const { texte, onPress } = contenu;
   return (
     <Pressable
       testID="bandeau"
       accessibilityRole="button"
       accessibilityLabel={texte}
       accessibilityLiveRegion="polite"
-      onPress={() => onRattraper?.(bandeau.jour)}
+      onPress={onPress}
       style={{
         minHeight: theme.zoneTactileMin,
         justifyContent: 'center',

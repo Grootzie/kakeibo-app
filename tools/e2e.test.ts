@@ -385,7 +385,7 @@ describe('script de l’émulateur (#52)', () => {
       if (rappel)
         writeFileSync(join(dossier, 'e2e', 'heure', 'rappel-toucher.yaml'), 'appId: app.kakeibo\n');
       if (parcoursJ2)
-        for (const nom of ['journee-type.yaml', 'rattrapage.yaml'])
+        for (const nom of ['journee-type.yaml', 'rattrapage.yaml', 'bilans-prets.yaml'])
           writeFileSync(join(dossier, 'e2e', 'heure', nom), 'appId: app.kakeibo\n');
     }
     const journal = join(dossier, 'journal.txt');
@@ -545,6 +545,22 @@ describe('script de l’émulateur (#52)', () => {
     }
   });
 
+  it('bilans prêts : appli effacée, mercredi 4 novembre 2026 à 9:00, après le rattrapage (#61)', () => {
+    const { code, journal } = jouer(true, true, true, true);
+    expect(code).toBe(0);
+    const lignes = journal.split('\n');
+    const position = (debut: string) => lignes.findIndex((l) => l.startsWith(debut));
+    const rattrapage = position('maestro test e2e/heure/rattrapage.yaml');
+    const bilans = position('maestro test e2e/heure/bilans-prets.yaml');
+    const automatique = position('adb shell settings put global auto_time 1');
+    expect(rattrapage).toBeGreaterThanOrEqual(0);
+    expect([rattrapage, bilans, automatique]).toEqual(
+      [rattrapage, bilans, automatique].sort((a, b) => a - b),
+    );
+    expect(lignes[bilans - 2]).toBe('adb shell pm clear app.kakeibo');
+    expect(lignes[bilans - 1]).toBe('adb shell date 110409002026.00');
+  });
+
   it('échoue si le parcours « journée type » ou « rattrapage » échoue, et joue l’autre (#49)', () => {
     for (const [echoue, autre] of [
       ['journee-type.yaml', 'rattrapage.yaml'],
@@ -570,5 +586,26 @@ describe('script de l’émulateur (#52)', () => {
   it('échoue si le parcours de rattrapage échoue', () => {
     const { code } = jouer(false, true);
     expect(code).toBe(1);
+  });
+});
+
+describe('parcours Maestro « bilans prêts » (J3.1, #61)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'heure', 'bilans-prets.yaml'), 'utf8');
+  const motif = (texte: string) => texte.replace(/\./g, '\\.');
+
+  it('la semaine scellée passe avant le jour à rattraper, le bandeau ouvre son écran et le récapitulatif suit', () => {
+    dansLOrdre(parcours, [
+      "- tapOn: '\\+1 semaine'",
+      `- assertVisible: '${motif(fr.accueil.bandeauBilanSemaine)}'`,
+      "- assertNotVisible: 'Tu peux encore rattraper.*'",
+      '- takeScreenshot: captures/bilans-semaine-prete',
+      `- tapOn: '${motif(fr.accueil.bandeauBilanSemaine)}'`,
+      `- assertVisible: '${fr.bilan.titreSemaine}'`,
+      '- takeScreenshot: captures/bilans-ecran-semaine',
+      `- tapOn: '${fr.bilan.retourLibelle}'`,
+      "- tapOn: '\\+1 semaine'",
+      `- assertVisible: '${motif(fr.accueil.bandeauBilanSemaines)}'`,
+      '- takeScreenshot: captures/bilans-recapitulatif',
+    ]);
   });
 });
