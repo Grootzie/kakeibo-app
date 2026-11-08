@@ -65,6 +65,26 @@ describe('intégration continue', () => {
     expect(android.indexOf('Télécharger Gradle')).toBeLessThan(android.indexOf('assembleRelease'));
   });
 
+  it('garde Gradle en cache et se replie sur les versions GitHub de Gradle (#49)', () => {
+    const android = lire('android.yml');
+    const cache = android.slice(
+      android.indexOf('Cache de Gradle'),
+      android.indexOf('Télécharger Gradle'),
+    );
+    expect(cache).toMatch(/actions\/cache@v4/);
+    expect(cache).toMatch(/~\/\.gradle\/wrapper\/dists/);
+    expect(cache).toMatch(/hashFiles\('android\/gradle\/wrapper\/gradle-wrapper\.properties'\)/);
+    expect(android.indexOf('Projet Android natif')).toBeLessThan(
+      android.indexOf('Cache de Gradle'),
+    );
+    const etape = android.slice(
+      android.indexOf('Télécharger Gradle'),
+      android.indexOf('Construire l'),
+    );
+    expect(etape).toMatch(/gradle-wrapper\.properties/);
+    expect(etape).toMatch(/github\.com\/gradle\/gradle-distributions\/releases\/download/);
+  });
+
   it("active l'horloge de test dans l'APK de développement, et seulement là (#49)", () => {
     const android = lire('android.yml');
     const apk = android.slice(android.indexOf('Construire l'), android.indexOf('upload-artifact'));
