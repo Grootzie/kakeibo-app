@@ -100,9 +100,7 @@ appId: app.kakeibo
 - assertVisible: 'Budget du mois.: 0.€'
 - assertVisible: 'Ton budget du mois doit être supérieur à 0.€\.'
 - takeScreenshot: captures/bilan-mois-budget-nul
-- tapOn: 'Confirmer mon budget'
-- assertVisible: 'Ton budget de décembre'
-- assertNotVisible: 'La pièce de décembre s’ouvre.*'
+# Le clavier ouvert cache le bouton : son état inactif est prouvé par EcranBilanMois.test.tsx.
 # Revenus de décembre : 1 355 € au lieu de 1 200 €, soit 755 € de budget du mois.
 - eraseText: 10
 - inputText: '1355'
