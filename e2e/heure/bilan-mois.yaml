@@ -40,6 +40,9 @@ appId: app.kakeibo
     visible: 'Première dépense'
     timeout: 10000
 - tapOn: 'Fermer l’explication .*Première dépense.*'
+- extendedWaitUntil:
+    notVisible: 'Première dépense'
+    timeout: 10000
 - tapOn: 'Noter une dépense'
 - assertVisible: 'Enregistrer en Culture'
 - inputText: '25'
@@ -95,10 +98,14 @@ appId: app.kakeibo
 - eraseText: 10
 - inputText: '1355'
 - assertVisible: 'Budget du mois.: 755.€'
+# Entrée valide le champ et ferme le clavier, qui cachait le bouton (sans « hideKeyboard »,
+# qui envoie « Retour »).
+- pressKey: Enter
 - scrollUntilVisible:
     element:
       text: 'Confirmer mon budget'
     direction: DOWN
+    centerElement: true
 - takeScreenshot: captures/bilan-mois-budget-change
 - tapOn: 'Confirmer mon budget'
 # 5. La pièce de décembre s'ouvre.
@@ -122,6 +129,9 @@ appId: app.kakeibo
       visible: 'Premier jour à rattraper'
     commands:
       - tapOn: 'Fermer l’explication .*Premier jour à rattraper.*'
+      - extendedWaitUntil:
+          notVisible: 'Premier jour à rattraper'
+          timeout: 10000
 # 7. Bilans de semaine vus (réglage caché, en attendant E6), puis les quatre jours oubliés
 # rattrapés depuis le bandeau : il ne reste que la résolution.
 - longPressOn: 'vendredi.4.décembre'
@@ -149,6 +159,9 @@ appId: app.kakeibo
       visible: 'Premier tampon'
     commands:
       - tapOn: 'Fermer l’explication .*Premier tampon.*'
+      - extendedWaitUntil:
+          notVisible: 'Premier tampon'
+          timeout: 10000
 - tapOn: 'Tu peux encore rattraper mardi.1er.décembre\.'
 - assertVisible: 'Rattraper mardi.1er.décembre'
 - tapOn: 'Rien dépensé aujourd’hui'

@@ -41,6 +41,10 @@ appId: app.kakeibo
     visible: 'Première dépense'
     timeout: 10000
 - tapOn: 'Fermer l’explication .*Première dépense.*'
+# La carte fermée, les boutons remontent : on attend qu'elle ait disparu avant de toucher.
+- extendedWaitUntil:
+    notVisible: 'Première dépense'
+    timeout: 10000
 - assertVisible: 'Il te reste 87,50.€ jusqu’à dimanche'
 - tapOn: 'Noter une dépense'
 - assertVisible: 'Enregistrer en Culture'
