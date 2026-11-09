@@ -98,10 +98,25 @@ appId: app.kakeibo
 - eraseText: 10
 - inputText: '600'
 - assertVisible: 'Budget du mois.: 0.€'
+# Entrée ferme le clavier, qui cachait le message et le bouton.
+- pressKey: Enter
+- scrollUntilVisible:
+    element:
+      text: 'Confirmer mon budget'
+    direction: DOWN
+    centerElement: true
 - assertVisible: 'Ton budget du mois doit être supérieur à 0.€\.'
 - takeScreenshot: captures/bilan-mois-budget-nul
-# Le clavier ouvert cache le bouton : son état inactif est prouvé par EcranBilanMois.test.tsx.
+# Bouton inactif : le toucher ne fait rien.
+- tapOn: 'Confirmer mon budget'
+- assertVisible: 'Ton budget de décembre'
+- assertNotVisible: 'La pièce de décembre s’ouvre.*'
 # Revenus de décembre : 1 355 € au lieu de 1 200 €, soit 755 € de budget du mois.
+- scrollUntilVisible:
+    element:
+      text: 'Revenus, en euros'
+    direction: UP
+- tapOn: 'Revenus, en euros'
 - eraseText: 10
 - inputText: '1355'
 - assertVisible: 'Budget du mois.: 755.€'
