@@ -19,6 +19,12 @@ function fromUtc(ms: number): DayKey {
   return `${pad(date.getUTCFullYear(), 4)}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
 }
 
+/** Mois civil précédent : '2026-12' -> '2026-11', '2027-01' -> '2026-12'. */
+export function previousMonth(month: MonthKey): MonthKey {
+  const [annee, mois] = month.split('-').map(Number);
+  return mois === 1 ? `${pad(annee - 1, 4)}-12` : `${pad(annee, 4)}-${pad(mois - 1)}`;
+}
+
 export function addDays(day: DayKey, n: number): DayKey {
   return fromUtc(toUtc(day) + n * MS_PAR_JOUR);
 }

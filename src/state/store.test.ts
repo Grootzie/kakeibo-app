@@ -375,6 +375,58 @@ describe('store de l’état', () => {
     });
   });
 
+  describe('budget du nouveau mois (J3.5)', () => {
+    const inchange = { income: 200000, fixedCosts: 110000, savingsGoal: 30000 };
+
+    async function apresBilan() {
+      const m = await monter({ budget: true });
+      m.tel.regler(2026, 12, 1, 9, 0);
+      await m.store.getState().ouvrir();
+      expect(await m.store.getState().validerBilanMois('')).toBeNull();
+      return m;
+    }
+
+    test('confirmer sans rien changer n’ajoute aucune version', async () => {
+      const { store, repos } = await apresBilan();
+      expect(await store.getState().confirmerBudget(inchange)).toBeNull();
+      expect((await repos.budgetVersions.all()).map((b) => b.id)).toEqual(['b-nov']);
+    });
+
+    test('changer un montant ajoute une version de décembre, relue à la prochaine ouverture', async () => {
+      const { store, repos, rouvrir } = await apresBilan();
+      expect(await store.getState().confirmerBudget({ ...inchange, income: 215500 })).toBeNull();
+      expect(await repos.budgetVersions.all()).toEqual([
+        expect.objectContaining({ id: 'b-nov', income: 200000 }),
+        {
+          id: expect.any(String),
+          month: '2026-12',
+          income: 215500,
+          fixed_costs: 110000,
+          savings_goal: 30000,
+          effective_from: '2026-12-02', // en vigueur dès le lendemain
+        },
+      ]);
+      const relu = (await rouvrir()).getState().etat!;
+      expect(relu.budgets).toHaveLength(2);
+    });
+
+    test('un budget nul est refusé et n’écrit rien', async () => {
+      const { store, repos } = await apresBilan();
+      expect(await store.getState().confirmerBudget({ ...inchange, savingsGoal: 90000 })).toBe(
+        'invalid_budget',
+      );
+      expect(await repos.budgetVersions.all()).toHaveLength(1);
+    });
+
+    test('refusé avant le bilan du mois précédent', async () => {
+      const { store } = await monter({ budget: true });
+      await store.getState().ouvrir();
+      expect(await store.getState().confirmerBudget({ ...inchange, income: 1 })).toBe(
+        'budget_not_open',
+      );
+    });
+  });
+
   test('les actions simultanées s’enregistrent toutes, l’une après l’autre', async () => {
     const { store, repos, tel } = await monter();
     await store.getState().ouvrir();

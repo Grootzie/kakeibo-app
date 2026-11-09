@@ -1,7 +1,7 @@
 // Bilan du mois : les quatre questions (J1.7).
 // Pur : montants en centimes, jour courant passé en paramètre, aucune horloge.
 import { type BudgetVersion, type Cents, type Expense } from './budget';
-import type { DayKey, MonthKey } from './calendrier';
+import { type DayKey, type MonthKey, previousMonth } from './calendrier';
 
 export interface MonthReview {
   month: MonthKey;
@@ -79,11 +79,6 @@ export function monthReviewOf(
 ): MonthReview | null {
   const version = latestBudgetOfMonth(month, versions);
   return version === null ? null : monthReview(month, version, expenses);
-}
-
-function previousMonth(month: MonthKey): MonthKey {
-  const [annee, mois] = month.split('-').map(Number);
-  return mois === 1 ? `${annee - 1}-12` : `${annee}-${String(mois - 1).padStart(2, '0')}`;
 }
 
 /**

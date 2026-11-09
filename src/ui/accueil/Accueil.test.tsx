@@ -269,13 +269,19 @@ describe('bandeau des bilans (J3.1, #61)', () => {
     expect(onBilanMois).toHaveBeenCalledTimes(1);
   });
 
-  it('la résolution du mois attend J3.5 pour s’afficher', async () => {
+  it('la résolution du mois s’affiche dans le bandeau, lue d’un seul tenant, sans être un bouton', async () => {
     await render(
       <Accueil
-        vue={vue({ bandeau: { type: 'resolution', mois: '2026-12', resolution: 'Cuisiner.' } })}
+        vue={vue({
+          bandeau: { type: 'resolution', mois: '2026-12', resolution: 'Cuisiner le soir.' },
+        })}
       />,
     );
-    expect(screen.queryByTestId('bandeau')).toBeNull();
+    const texte = 'Ta résolution du mois\u00a0: «\u00a0Cuisiner le soir.\u00a0»';
+    expect(screen.getAllByTestId('bandeau')).toHaveLength(1);
+    expect(screen.getByTestId('bandeau').props.accessibilityLabel).toBe(texte);
+    expect(screen.getByText(texte)).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: texte })).toBeNull();
   });
 });
 

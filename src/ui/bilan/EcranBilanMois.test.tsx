@@ -1,5 +1,6 @@
 // Bilan du mois (E7, #64), avec le vrai store sur une base de test : Q1 à Q3 chiffrées et par
-// catégorie, épargne réelle, Q4 en 140 caractères, validation qui ouvre la pièce suivante.
+// catégorie, épargne réelle, Q4 en 140 caractères, validation, puis confirmation du budget du
+// nouveau mois (J3.5, #65) et la pièce suivante qui s'ouvre.
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { AccessibilityInfo, StyleSheet } from 'react-native';
 
@@ -68,6 +69,13 @@ async function monter(p: { repos: Repositories; store: KakeiboStore }) {
 }
 
 const bouton = (nom: string) => screen.getByRole('button', { name: nom });
+const champ = (nom: string) => screen.getByLabelText(fr.bilanMois.champLibelle(nom));
+
+/** Valide le bilan, puis confirme le budget du nouveau mois sans rien changer. */
+async function validerEtConfirmer() {
+  await fireEvent.press(bouton(fr.bilanMois.valider));
+  await fireEvent.press(await screen.findByRole('button', { name: fr.bilanMois.confirmerBudget }));
+}
 
 beforeEach(() => {
   jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => undefined);
@@ -150,6 +158,7 @@ describe('les trois premières questions', () => {
     expect(screen.getByRole('header', { name: fr.bilan.titreMoisSans })).toBeOnTheScreen();
     expect(screen.getByText(fr.bilanMois.rienAFaire)).toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: fr.bilanMois.valider })).toBeNull();
+    expect(screen.queryByRole('button', { name: fr.bilanMois.confirmerBudget })).toBeNull();
     await fireEvent.press(bouton(fr.bilan.retourLibelle));
     expect(onTerminer).toHaveBeenCalledTimes(1);
   });
@@ -186,8 +195,20 @@ describe('la validation', () => {
     const valider = bouton(fr.bilanMois.valider);
     expect(StyleSheet.flatten(valider.props.style).minHeight).toBeGreaterThanOrEqual(44);
     await fireEvent.press(valider);
+    // Confirmation du budget de décembre, pré-rempli avec la version en vigueur.
+    expect(await screen.findByRole('header', { name: 'Ton budget de décembre' })).toBeOnTheScreen();
+    expect(screen.getByText(fr.bilanMois.enregistre('2026-11'))).toBeOnTheScreen();
+    expect(champ(fr.bilanMois.revenus).props.value).toBe('2000');
+    expect(champ(fr.bilanMois.chargesFixes).props.value).toBe('1100');
+    expect(champ(fr.bilanMois.epargneVisee).props.value).toBe('300');
+    expect(screen.getByText(euros('Budget du mois : 600 €'))).toBeOnTheScreen();
+    expect(screen.queryByText(/s’ouvre/)).toBeNull();
+    const confirmer = bouton(fr.bilanMois.confirmerBudget);
+    expect(StyleSheet.flatten(confirmer.props.style).minHeight).toBeGreaterThanOrEqual(44);
+    await fireEvent.press(confirmer);
     const message = `La pièce de décembre s’ouvre${N}: c’est le mois d’Ōmisoka, le réveillon.`;
     expect(await screen.findByText(message)).toBeOnTheScreen();
+    expect((await repos.budgetVersions.all()).map((b) => b.id)).toEqual(['b-nov']);
     expect(screen.getByText(fr.bilanMois.enregistre('2026-11'))).toBeOnTheScreen();
     expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
       `${fr.bilanMois.enregistre('2026-11')} ${message}`,
@@ -198,6 +219,7 @@ describe('la validation', () => {
     expect(store.getState().etat?.monthToReview).toBeNull();
     // Plus de question ni de bouton de validation : le bilan est fait.
     expect(screen.queryByRole('button', { name: fr.bilanMois.valider })).toBeNull();
+    expect(screen.queryByRole('button', { name: fr.bilanMois.confirmerBudget })).toBeNull();
     await fireEvent.press(bouton(fr.bilan.retourLibelle));
     expect(onTerminer).toHaveBeenCalledTimes(1);
   });
@@ -206,7 +228,7 @@ describe('la validation', () => {
     const { repos } = await monter(
       await preparer({ depenses: [{ day: '2026-11-03', amount: 80000, category: 'envies' }] }),
     );
-    await fireEvent.press(bouton(fr.bilanMois.valider));
+    await validerEtConfirmer();
     expect(await screen.findByText(/La pièce de décembre s’ouvre/)).toBeOnTheScreen();
     expect(await repos.monthReviews.all()).toEqual([
       expect.objectContaining({ month: '2026-11', resolution: '' }),
@@ -216,7 +238,7 @@ describe('la validation', () => {
   it('ouvre aussi les pièces des mois sautés, une phrase chacune', async () => {
     await monter(await preparer({ maintenant: new Date(2027, 3, 1, 9, 0) }));
     expect(screen.getByRole('header', { name: 'Bilan de mars' })).toBeOnTheScreen();
-    await fireEvent.press(bouton(fr.bilanMois.valider));
+    await validerEtConfirmer();
     expect(
       await screen.findByText(
         `La pièce de février s’ouvre${N}: c’est le mois de Setsubun, la veille du printemps.`,
@@ -247,8 +269,61 @@ describe('la validation', () => {
     });
     await janvier.getState().ouvrir();
     await monter({ repos: p.repos, store: janvier });
-    await fireEvent.press(bouton(fr.bilanMois.valider));
+    await validerEtConfirmer();
     expect(await screen.findByText(fr.bilanMois.enregistre('2026-12'))).toBeOnTheScreen();
     expect(screen.queryByText(/s’ouvre/)).toBeNull();
+  });
+});
+
+describe('le budget du nouveau mois (J3.5, #65)', () => {
+  it('changer un montant au pavé numérique ajoute une version de décembre', async () => {
+    const { repos, store } = await monter(await preparer());
+    await fireEvent.press(bouton(fr.bilanMois.valider));
+    const revenus = await screen.findByLabelText(fr.bilanMois.champLibelle(fr.bilanMois.revenus));
+    expect(revenus.props.keyboardType).toBe('decimal-pad');
+    await fireEvent.changeText(revenus, '2155,50');
+    await fireEvent.changeText(champ(fr.bilanMois.chargesFixes), '1000');
+    expect(screen.getByText(euros('Budget du mois : 855,50 €'))).toBeOnTheScreen();
+    await fireEvent.press(bouton(fr.bilanMois.confirmerBudget));
+    expect(await screen.findByText(/La pièce de décembre s’ouvre/)).toBeOnTheScreen();
+    expect(await repos.budgetVersions.all()).toEqual([
+      expect.objectContaining({ id: 'b-nov' }),
+      expect.objectContaining({
+        month: '2026-12',
+        income: 215550,
+        fixed_costs: 100000,
+        savings_goal: 30000,
+        effective_from: '2026-12-02', // en vigueur dès le lendemain
+      }),
+    ]);
+    expect(store.getState().etat?.budgets).toHaveLength(2);
+  });
+
+  it('un budget nul ou un montant illisible ne se confirme pas, et le dit sans reproche', async () => {
+    const { repos } = await monter(await preparer());
+    await fireEvent.press(bouton(fr.bilanMois.valider));
+    const epargne = await screen.findByLabelText(
+      fr.bilanMois.champLibelle(fr.bilanMois.epargneVisee),
+    );
+    await fireEvent.changeText(epargne, '900');
+    expect(screen.getByText(fr.bilanMois.budgetNul)).toBeOnTheScreen();
+    const confirmer = bouton(fr.bilanMois.confirmerBudget);
+    expect(confirmer.props.accessibilityState).toMatchObject({ disabled: true });
+    await fireEvent.press(confirmer);
+    await fireEvent.changeText(epargne, '12,345');
+    expect(bouton(fr.bilanMois.confirmerBudget).props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+    expect(await repos.budgetVersions.all()).toHaveLength(1);
+    expect(screen.queryByText(/s’ouvre/)).toBeNull();
+  });
+
+  it('les annonces suivent les étapes : le budget à confirmer, puis la pièce qui s’ouvre', async () => {
+    await monter(await preparer());
+    await fireEvent.press(bouton(fr.bilanMois.valider));
+    await screen.findByRole('button', { name: fr.bilanMois.confirmerBudget });
+    expect(AccessibilityInfo.announceForAccessibility).toHaveBeenLastCalledWith(
+      `${fr.bilanMois.enregistre('2026-11')} ${fr.bilanMois.budgetTitre('2026-12')}`,
+    );
   });
 });

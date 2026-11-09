@@ -40,6 +40,13 @@ export interface NouvelleDepense {
   note: string;
 }
 
+/** Revenus, charges fixes et épargne visée d'un mois, en centimes. */
+export interface MontantsBudget {
+  income: number;
+  fixedCosts: number;
+  savingsGoal: number;
+}
+
 /** Refus d'une dépense : ceux du domaine, et une note trop longue. */
 export type RefusDepense = Refusal | 'note_too_long';
 
@@ -79,6 +86,11 @@ export interface EtatKakeibo {
    * month_review et la pièce débloquée s'enregistrent dans une seule transaction.
    */
   validerBilanMois(resolution: string): Promise<Refusal | null>;
+  /**
+   * Confirme le budget du nouveau mois (E7), après le bilan : sans changement, rien ne s'ajoute ;
+   * sinon une nouvelle version du budget, jamais une modification.
+   */
+  confirmerBudget(montants: MontantsBudget): Promise<Refusal | null>;
   /** Une carte de première fois s'affiche : elle ne reviendra plus, même après redémarrage. */
   marquerExplicationVue(id: IdExplication): Promise<void>;
   /**
@@ -322,6 +334,9 @@ export function createKakeiboStore(deps: DependancesStore) {
           month: etat.monthToReview ?? '',
           resolution,
         })),
+
+      confirmerBudget: (montants) =>
+        traiter({ type: 'confirm_budget', id: deps.nouvelId(), ...montants }),
 
       marquerExplicationVue: (id) =>
         enFile(async () => {

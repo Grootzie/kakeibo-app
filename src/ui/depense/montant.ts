@@ -12,3 +12,10 @@ export function lireMontant(texte: string): Cents | null {
   // Calcul sur les chiffres, sans nombre à virgule : 0,29 vaut exactement 29 centimes.
   return Number(entiers || '0') * 100 + Number(decimales.padEnd(2, '0'));
 }
+
+/** 200000 -> « 2000 », 123450 -> « 1234,50 » : un montant pré-rempli que `lireMontant` relit. */
+export function ecrireMontant(centimes: Cents): string {
+  const euros = Math.trunc(centimes / 100);
+  const reste = centimes % 100;
+  return reste === 0 ? String(euros) : `${euros},${String(reste).padStart(2, '0')}`;
+}

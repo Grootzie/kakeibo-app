@@ -141,7 +141,7 @@ function EnTete({ jour, onAppuiLong }: { jour: string; onAppuiLong?: () => void 
   );
 }
 
-/** Texte et action du bandeau ; null pour la résolution, affichée avec J3.5. */
+/** Texte et action du bandeau ; la résolution n'ouvre rien. */
 function contenuBandeau(
   bandeau: BandeauAccueil,
   actions: {
@@ -149,7 +149,7 @@ function contenuBandeau(
     onBilanSemaine?: () => void;
     onBilanMois?: () => void;
   },
-): { texte: string; onPress?: () => void } | null {
+): { texte: string; onPress?: () => void } {
   switch (bandeau.type) {
     case 'bilan_semaine':
       return {
@@ -167,7 +167,7 @@ function contenuBandeau(
         onPress: () => actions.onRattraper?.(bandeau.jour),
       };
     case 'resolution':
-      return null;
+      return { texte: fr.accueil.bandeauResolution(bandeau.resolution) };
   }
 }
 
@@ -184,9 +184,22 @@ function Bandeau({
   onBilanSemaine?: () => void;
   onBilanMois?: () => void;
 }) {
-  const contenu = contenuBandeau(bandeau, actions);
-  if (contenu === null) return null;
-  const { texte, onPress } = contenu;
+  const { texte, onPress } = contenuBandeau(bandeau, actions);
+  const style = {
+    minHeight: theme.zoneTactileMin,
+    justifyContent: 'center' as const,
+    backgroundColor: c.discret,
+    borderRadius: 8,
+    padding: 12,
+  };
+  if (bandeau.type === 'resolution') {
+    // Résolution du mois : un rappel à lire, rien à ouvrir.
+    return (
+      <View testID="bandeau" accessible accessibilityLabel={texte} style={style}>
+        <Text style={{ color: c.texte }}>{texte}</Text>
+      </View>
+    );
+  }
   return (
     <Pressable
       testID="bandeau"
@@ -194,13 +207,7 @@ function Bandeau({
       accessibilityLabel={texte}
       accessibilityLiveRegion="polite"
       onPress={onPress}
-      style={{
-        minHeight: theme.zoneTactileMin,
-        justifyContent: 'center',
-        backgroundColor: c.discret,
-        borderRadius: 8,
-        padding: 12,
-      }}
+      style={style}
     >
       <Text style={{ color: c.texte }}>{texte}</Text>
     </Pressable>

@@ -87,7 +87,7 @@ export function reviseBudget(
  * déjà effective. Sans version du mois, reconduction : la plus récente version déjà effective,
  * tous mois confondus. Null seulement si aucune version n'est effective.
  */
-function versionInForce(
+export function budgetInForce(
   month: MonthKey,
   versions: BudgetVersion[],
   asOf: DayKey,
@@ -113,7 +113,7 @@ export function weekEnvelope(week: WeekId, budgets: BudgetVersion[], installDay:
   let numerateur = 0; // en centimes × DENOMINATEUR
   for (const jour of countedDays(week, installDay)) {
     const mois = jour.slice(0, 7);
-    const version = versionInForce(mois, budgets, lundi);
+    const version = budgetInForce(mois, budgets, lundi);
     if (version === null) continue;
     numerateur += budgetOf(version) * (DENOMINATEUR / daysInMonth(mois));
   }

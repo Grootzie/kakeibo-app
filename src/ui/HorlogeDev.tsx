@@ -12,6 +12,7 @@ export function HorlogeDev() {
   const [, rafraichir] = useState(0);
   const [budgetDemo, setBudgetDemo] = useState<boolean | null>(null);
   const [rappel, setRappel] = useState<boolean | null>(null);
+  const [bilansVus, setBilansVus] = useState(false);
   if (!horloge.actif) return null;
 
   // Après chaque saut de l'horloge, l'appli traite l'heure nouvelle comme une ouverture.
@@ -24,6 +25,11 @@ export function HorlogeDev() {
   // En attendant E1 (J5) : la demande d'autorisation du rappel du soir.
   const autoriserRappel = async () =>
     setRappel(await kakeibo.getState().demanderAutorisationRappel());
+  // En attendant E6 (J3.2), qui marquera lui-même les bilans de semaine vus.
+  const marquerBilansVus = async () => {
+    await kakeibo.getState().marquerBilansVus();
+    setBilansVus(true);
+  };
   const jour = () => horloge.avancerJours(1);
   const semaine = () => horloge.avancerSemaines(1);
   const mois = () => horloge.avancerMois(1);
@@ -80,6 +86,20 @@ export function HorlogeDev() {
       {rappel !== null && (
         <Text accessibilityLiveRegion="polite" style={{ color: theme.couleurs.texteDiscret }}>
           {rappel ? fr.dev.rappelAutorise : fr.dev.rappelRefuse}
+        </Text>
+      )}
+      <Pressable
+        testID="bilans-vus"
+        accessibilityRole="button"
+        accessibilityLabel={fr.dev.bilansVus}
+        onPress={() => void marquerBilansVus()}
+        style={{ minHeight: theme.zoneTactileMin, justifyContent: 'center' }}
+      >
+        <Text style={{ color: theme.couleurs.texte }}>{fr.dev.bilansVus}</Text>
+      </Pressable>
+      {bilansVus && (
+        <Text accessibilityLiveRegion="polite" style={{ color: theme.couleurs.texteDiscret }}>
+          {fr.dev.bilansVusFait}
         </Text>
       )}
     </View>
