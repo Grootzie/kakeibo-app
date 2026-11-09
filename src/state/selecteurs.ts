@@ -13,6 +13,7 @@ import {
 } from '../domain/scellement';
 import type { MonthReview } from '../domain/bilanMois';
 import type { MonthKey } from '../domain/calendrier';
+import type { Catalog } from '../domain/objets';
 import { type AppState, type WeekReviewScreen, weekReviewScreen } from '../domain/traitement';
 
 export interface EnveloppeSemaine {
@@ -171,6 +172,59 @@ export function vueAccueil(etat: AppState, now: LocalDateTime): VueAccueil {
 type Categorie = ExpenseRow['category'];
 const CATEGORIES: Categorie[] = ['essentiel', 'envies', 'culture', 'imprevus'];
 
+/** Total des catégories qui ont au moins une dépense, dans l'ordre des catégories. */
+function totauxParCategorie(lignes: ExpenseRow[]): { categorie: Categorie; total: Cents }[] {
+  return CATEGORIES.map((categorie) => ({
+    categorie,
+    total: lignes.filter((d) => d.category === categorie).reduce((t, d) => t + d.amount, 0),
+  })).filter((t) => t.total > 0);
+}
+
+/** Ce que le bilan du mois (E7) affiche avant la validation. */
+export interface VueBilanMois {
+  mois: MonthKey;
+  /** Q1 à Q3, épargne réelle et objectif, tels que le domaine les calcule ; null sans budget. */
+  chiffres: MonthReview | null;
+  /** Détail de Q3 : dépenses datées du mois, par catégorie. */
+  parCategorie: { categorie: Categorie; total: Cents }[];
+}
+
+/** Bilan du mois proposé par process ; null s'il n'y en a pas à faire. */
+export function vueBilanMois(etat: AppState, lignes: ExpenseRow[]): VueBilanMois | null {
+  const mois = etat.monthToReview;
+  if (mois === null) return null;
+  return {
+    mois,
+    chiffres: etat.monthReview,
+    parCategorie: totauxParCategorie(lignes.filter((d) => d.day.slice(0, 7) === mois)),
+  };
+}
+
+/**
+ * Pièces ouvertes par la validation du bilan de ce mois (celle du mois suivant et celles des
+ * mois sautés), dans l'ordre des mois, avec la fête de leur mois. Vide en décembre.
+ */
+export function piecesOuvertesParBilan(
+  etat: AppState,
+  mois: MonthKey,
+  catalogue: Catalog,
+): { mois: MonthKey; fete: string }[] {
+  const bilan = etat.reviews.find((r) => r.month === mois);
+  if (bilan === undefined) return [];
+  const annee = Number(mois.slice(0, 4));
+  return catalogue.rooms
+    .filter((salle) =>
+      etat.house.unlocked.some(
+        (u) => u.year === annee && u.room === salle.id && u.unlockedAt === bilan.validatedAt,
+      ),
+    )
+    .sort((a, b) => a.month - b.month)
+    .map((salle) => ({
+      mois: `${mois.slice(0, 4)}-${String(salle.month).padStart(2, '0')}`,
+      fete: salle.feast,
+    }));
+}
+
 /** Ce que l'écran « Clôturer ma journée » (E4) affiche pour un jour. */
 export interface VueCloture {
   jour: DayKey;
@@ -196,10 +250,7 @@ export function vueCloture(
   now: LocalDateTime,
 ): VueCloture {
   const depenses = lignes.filter((d) => d.day === jour);
-  const totaux = CATEGORIES.map((categorie) => ({
-    categorie,
-    total: depenses.filter((d) => d.category === categorie).reduce((t, d) => t + d.amount, 0),
-  })).filter((t) => t.total > 0);
+  const totaux = totauxParCategorie(depenses);
   const ctx = contexte(etat);
   return {
     jour,

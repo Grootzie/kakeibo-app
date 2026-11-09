@@ -39,6 +39,23 @@ describe('catalogue', () => {
     }
   });
 
+  it('donne à chaque pièce la fête ou la saison de son mois, comme le tableau de la spec (#64)', () => {
+    expect(catalog.rooms.map((r) => [r.month, r.feast])).toEqual([
+      [1, 'Shōgatsu, le Nouvel An'],
+      [2, 'Setsubun, la veille du printemps'],
+      [3, 'Hinamatsuri, la fête des filles'],
+      [4, 'Hanami, les cerisiers en fleur'],
+      [5, 'Kodomo no hi, la fête des enfants'],
+      [6, 'Tsuyu, la saison des pluies'],
+      [7, 'Tanabata, la fête des étoiles'],
+      [8, 'Obon et les nuits d’été'],
+      [9, 'Tsukimi, la lune d’automne'],
+      [10, 'Les récoltes d’automne'],
+      [11, 'Tori no ichi et Shichi-go-san'],
+      [12, 'Ōmisoka, le réveillon'],
+    ]);
+  });
+
   it('suit les objets du tableau de la spec', () => {
     const nom = (id: string) => catalog.items.find((i) => i.id === id)?.name;
     expect(nom('kadomatsu')).toBe('kadomatsu');

@@ -11,6 +11,8 @@ export interface CatalogRoom {
   /** 1 pour janvier, 12 pour décembre. */
   month: number;
   name: string;
+  /** Fête ou saison du mois, telle que le tableau de la spec la nomme. */
+  feast: string;
 }
 
 export interface CatalogItem {

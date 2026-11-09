@@ -1,21 +1,16 @@
-// Bilan du mois (E7), ouvert par le bandeau de l'accueil. Écran posé en attendant J3.4.
+// Bilan du mois (E7), ouvert par le bandeau de l'accueil, ou de lui-même à la première ouverture
+// à partir du 1er du mois suivant.
 import { useRouter } from 'expo-router';
+import { useCallback } from 'react';
 
-import { fr } from '@/i18n/fr';
-import { useKakeibo } from '@/state/appStore';
-import type { EtatKakeibo } from '@/state/store';
-import { EcranBilanProvisoire } from '@/ui/bilan/EcranBilanProvisoire';
-
-const moisAFaire = (s: EtatKakeibo): string | null => s.etat?.monthToReview ?? null;
+import { kakeibo } from '@/state/appStore';
+import { EcranBilanMois } from '@/ui/bilan/EcranBilanMois';
 
 export default function BilanMois() {
   const router = useRouter();
-  const mois = useKakeibo(moisAFaire);
-  return (
-    <EcranBilanProvisoire
-      testID="ecran-bilan-mois"
-      titre={mois === null ? fr.bilan.titreMoisSans : fr.bilan.titreMois(mois)}
-      onRetour={() => (router.canGoBack() ? router.back() : router.replace('/'))}
-    />
-  );
+  const terminer = useCallback(() => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/');
+  }, [router]);
+  return <EcranBilanMois store={kakeibo} onTerminer={terminer} />;
 }

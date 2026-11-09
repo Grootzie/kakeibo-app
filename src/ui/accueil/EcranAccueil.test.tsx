@@ -151,3 +151,56 @@ describe('bandeau des bilans depuis l’accueil (J3.1, #61)', () => {
     ).toBeOnTheScreen();
   });
 });
+
+describe('bilan du mois à l’ouverture (E7, J3.4, #64)', () => {
+  /** Installée le lundi 2 novembre 2026, rouverte le 1er décembre à 9:00. */
+  async function decembre() {
+    const db = createTestDb();
+    await migrate(db);
+    const repos = createRepositories(db);
+    let reel = new Date(2026, 10, 2, 8, 0);
+    const store = createKakeiboStore({
+      depots: async () => repos,
+      catalogue: catalogueJson as Catalog,
+      horloge: createClock({ actif: true, reel: () => reel }),
+      nouvelId: () => 'id',
+    });
+    await store.getState().ouvrir();
+    reel = new Date(2026, 11, 1, 9, 0);
+    await store.getState().ouvrir();
+    return store;
+  }
+
+  test('s’ouvre seul, une fois, quand il est le premier bilan à faire', async () => {
+    const store = await decembre();
+    await store.getState().marquerBilansVus();
+    const onBilanMois = jest.fn();
+    const { rerender } = await render(<EcranAccueil store={store} onBilanMois={onBilanMois} />);
+    expect(onBilanMois).toHaveBeenCalledTimes(1);
+    // Retour à l'accueil sans valider : il ne se rouvre pas, le bandeau reste.
+    await rerender(<EcranAccueil store={store} onBilanMois={onBilanMois} visible={false} />);
+    await rerender(<EcranAccueil store={store} onBilanMois={onBilanMois} visible />);
+    await act(() => store.getState().ouvrir());
+    expect(onBilanMois).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByRole('button', { name: fr.accueil.bandeauBilanMois('2026-11') }),
+    ).toBeOnTheScreen();
+  });
+
+  test('attend que les bilans de semaine soient vus, puis s’ouvre', async () => {
+    const store = await decembre();
+    const onBilanMois = jest.fn();
+    await render(<EcranAccueil store={store} onBilanMois={onBilanMois} />);
+    expect(onBilanMois).not.toHaveBeenCalled();
+    await act(() => store.getState().marquerBilansVus());
+    expect(onBilanMois).toHaveBeenCalledTimes(1);
+  });
+
+  test('ne s’ouvre pas sous un autre écran', async () => {
+    const store = await decembre();
+    await store.getState().marquerBilansVus();
+    const onBilanMois = jest.fn();
+    await render(<EcranAccueil store={store} onBilanMois={onBilanMois} visible={false} />);
+    expect(onBilanMois).not.toHaveBeenCalled();
+  });
+});

@@ -45,6 +45,8 @@ export type RefusDepense = Refusal | 'note_too_long';
 
 export interface EtatKakeibo {
   pret: boolean;
+  /** Catalogue des pièces et des objets livré avec l'appli, pour nommer ce que l'état montre. */
+  catalogue: Catalog;
   etat: AppState | null;
   /** Dépenses complètes, dans l'ordre des jours. */
   depenses: ExpenseRow[];
@@ -248,6 +250,7 @@ export function createKakeiboStore(deps: DependancesStore) {
 
     return {
       pret: false,
+      catalogue: deps.catalogue,
       etat: null,
       depenses: [],
       clotures: [],

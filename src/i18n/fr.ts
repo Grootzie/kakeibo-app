@@ -1,6 +1,7 @@
 // Tous les textes visibles de l'appli (voir « Textes et ton » dans docs/spec.md).
 // Espaces insécables : U+00A0 avant ? ! : ; et à l'intérieur des guillemets « ».
 
+import { RESOLUTION_MAX_LENGTH } from '../domain/bilanMois';
 import { MAX_AMOUNT, MIN_AMOUNT, NOTE_MAX_LENGTH } from '../domain/depense';
 
 const NBSP = ' ';
@@ -57,6 +58,19 @@ export function jourEtDate(jour: string): string {
 export function nomDuMois(mois: string): string {
   return MOIS[Number(mois.slice(5, 7)) - 1];
 }
+
+/**
+ * « de » devant un nom : « de mars », « d’avril », « d’Ōmisoka », « des récoltes d’automne ».
+ * Les mots japonais en h (Hinamatsuri, Hanami) ne s'élident pas.
+ */
+export function de(nom: string): string {
+  if (nom.startsWith('Les ')) return `des ${nom.slice(4)}`;
+  const initiale = nom.normalize('NFD')[0].toLowerCase();
+  return 'aeiouy'.includes(initiale) ? `d’${nom}` : `de ${nom}`;
+}
+
+/** Mois 'AAAA-MM' -> « de novembre », « d’avril ». */
+const duMois = (mois: string): string => de(nomDuMois(mois));
 
 const JOURS_COURTS = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'] as const;
 
@@ -157,7 +171,7 @@ export const fr = {
     bandeauBilanSemaine: 'Le bilan de ta semaine est prêt.',
     bandeauBilanSemaines: 'Le bilan de tes dernières semaines est prêt.',
     /** Mois 'AAAA-MM' -> « Le bilan de novembre est prêt. » */
-    bandeauBilanMois: (mois: string) => `Le bilan de ${nomDuMois(mois)} est prêt.`,
+    bandeauBilanMois: (mois: string) => `Le bilan ${duMois(mois)} est prêt.`,
     reste: (centimes: number, jusqua: string) =>
       `Il te reste ${formatEuros(centimes)} jusqu’à ${jusqua}`,
     depassement: (centimes: number) => `Tu as dépassé de ${formatEuros(centimes)} cette semaine`,
@@ -227,9 +241,9 @@ export const fr = {
   ],
 
   bilan: {
-    /** E6 et E7 arrivent avec J3.2 et J3.4 : en attendant, leur titre et un retour. */
+    /** E6 arrive avec J3.2 : en attendant, son titre et un retour. */
     titreSemaine: 'Bilan de la semaine',
-    titreMois: (mois: string) => `Bilan de ${nomDuMois(mois)}`,
+    titreMois: (mois: string) => `Bilan ${duMois(mois)}`,
     titreMoisSans: 'Bilan du mois',
     retour: 'Retour',
     retourLibelle: 'Retour à l’accueil',
@@ -243,6 +257,30 @@ export const fr = {
       `Pas de capsule cette semaine, et ${avecArticle(objet)} ${accord(objet, 's’est fêlé', 's’est fêlée')}. Rien n’est perdu${NBSP}: 7 jours de clôture d’affilée, et ${accord(objet, 'il sera réparé', 'elle sera réparée')} à l’or.`,
   },
 
+  /** Bilan du mois (E7) : les quatre questions, puis la validation. */
+  bilanMois: {
+    q1: 'Ce que j’avais',
+    q2: 'Ce que je voulais mettre de côté',
+    q3: 'Ce que j’ai dépensé',
+    epargne: 'Ce que j’ai vraiment épargné',
+    /** Une question et sa réponse chiffrée, lues ensemble par le lecteur d'écran. */
+    ligne: (question: string, centimes: number) => `${question}${NBSP}: ${formatEuros(centimes)}`,
+    montant: formatEuros,
+    aucuneDepense: 'Aucune dépense notée ce mois-ci.',
+    sansBudget: 'Aucun budget n’était posé pour ce mois.',
+    objectifAtteint: 'Tu as mis de côté ce que tu voulais.',
+    objectifManque:
+      'Ton épargne n’a pas atteint ton objectif ce mois-ci. Le voir, c’est déjà le cœur du kakeibo.',
+    q4: `Comment puis-je faire mieux${NBSP}?`,
+    q4Libelle: `Comment puis-je faire mieux${NBSP}? Texte libre, ${RESOLUTION_MAX_LENGTH} caractères au plus`,
+    q4Exemple: 'Facultatif',
+    compteur: (n: number) => `${n}/${RESOLUTION_MAX_LENGTH}`,
+    valider: 'Valider mon bilan',
+    refus: 'Ton bilan n’a pas pu être enregistré. Réessaie dans un instant.',
+    rienAFaire: 'Aucun bilan du mois à faire pour l’instant.',
+    enregistre: (mois: string) => `Bilan ${duMois(mois)} enregistré.`,
+  },
+
   messages: {
     ouvertureCapsule: (objet: NomObjet & { indefini: string }) =>
       `${objet.indefini} ${objet.nom} entre dans ta maison.`,
@@ -254,10 +292,12 @@ export const fr = {
     poussiereJours: 'La maison prend la poussière. Une clôture suffit à l’aérer.',
     poussiereSemaineIncomplete:
       'Un voile de poussière reste jusqu’à ta prochaine semaine complète.',
-    objetEnAttente: (piece: string, moisBilan: string) =>
-      `Ton objet attend la pièce de ${piece}${NBSP}: elle s’ouvrira avec le bilan de ${moisBilan}.`,
-    nouvellePiece: (piece: string, fete: string) =>
-      `La pièce de ${piece} s’ouvre${NBSP}: c’est le mois de ${fete}.`,
+    /** Mois 'AAAA-MM' de la pièce et du bilan qui l'ouvrira. */
+    objetEnAttente: (moisPiece: string, moisBilan: string) =>
+      `Ton objet attend la pièce ${duMois(moisPiece)}${NBSP}: elle s’ouvrira avec le bilan ${duMois(moisBilan)}.`,
+    /** Mois 'AAAA-MM' de la pièce et fête du catalogue. */
+    nouvellePiece: (mois: string, fete: string) =>
+      `La pièce ${duMois(mois)} s’ouvre${NBSP}: c’est le mois ${de(fete)}.`,
     nouvelleAnnee: (annee: number) =>
       `Une nouvelle année commence. Ta maison de ${annee} rejoint l’album, telle que tu l’as faite.`,
     finEssai:

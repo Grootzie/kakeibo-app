@@ -3,62 +3,74 @@
     {
       "id": "room-01",
       "month": 1,
-      "name": "Genkan, l’entrée"
+      "name": "Genkan, l’entrée",
+      "feast": "Shōgatsu, le Nouvel An"
     },
     {
       "id": "room-02",
       "month": 2,
-      "name": "Chanoma, la salle commune"
+      "name": "Chanoma, la salle commune",
+      "feast": "Setsubun, la veille du printemps"
     },
     {
       "id": "room-03",
       "month": 3,
-      "name": "Washitsu, la salle de tatamis"
+      "name": "Washitsu, la salle de tatamis",
+      "feast": "Hinamatsuri, la fête des filles"
     },
     {
       "id": "room-04",
       "month": 4,
-      "name": "Niwa, le jardin"
+      "name": "Niwa, le jardin",
+      "feast": "Hanami, les cerisiers en fleur"
     },
     {
       "id": "room-05",
       "month": 5,
-      "name": "Furoba, la salle de bain"
+      "name": "Furoba, la salle de bain",
+      "feast": "Kodomo no hi, la fête des enfants"
     },
     {
       "id": "room-06",
       "month": 6,
-      "name": "Daidokoro, la cuisine"
+      "name": "Daidokoro, la cuisine",
+      "feast": "Tsuyu, la saison des pluies"
     },
     {
       "id": "room-07",
       "month": 7,
-      "name": "Shosai, le bureau"
+      "name": "Shosai, le bureau",
+      "feast": "Tanabata, la fête des étoiles"
     },
     {
       "id": "room-08",
       "month": 8,
-      "name": "Engawa, la véranda"
+      "name": "Engawa, la véranda",
+      "feast": "Obon et les nuits d’été"
     },
     {
       "id": "room-09",
       "month": 9,
-      "name": "Chashitsu, le pavillon de thé"
+      "name": "Chashitsu, le pavillon de thé",
+      "feast": "Tsukimi, la lune d’automne"
     },
     {
       "id": "room-10",
       "month": 10,
-      "name": "Irori-no-ma, la salle du foyer"
+      "name": "Irori-no-ma, la salle du foyer",
+      "feast": "Les récoltes d’automne"
     },
     {
       "id": "room-11",
       "month": 11,
-      "name": "Kura, la réserve"
+      "name": "Kura, la réserve",
+      "feast": "Tori no ichi et Shichi-go-san"
     },
     {
       "id": "room-12",
       "month": 12,
-      "name": "Doma, la salle en terre battue"
+      "name": "Doma, la salle en terre battue",
+      "feast": "Ōmisoka, le réveillon"
     }
   ],
   "items": [

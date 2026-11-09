@@ -1,0 +1,95 @@
+# Bilan du mois (E7, J3.4, #64) : novembre dépasse son budget (675 € dépensés pour 600 €) ; le
+# 4 décembre, E7 chiffre Q1 à Q3 par catégorie et l'épargne réelle, sans reproche ; la
+# résolution s'écrit en 140 caractères au plus, et la validation ouvre la pièce de décembre.
+# Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
+# du téléphone au mercredi 4 novembre 2026 à 9:00. L'horloge de test avance d'un mois.
+# Le bilan des semaines (E6) n'existe pas encore (J3.2) : il passe avant celui du mois sur
+# l'accueil, alors E7 s'ouvre ici par son lien (kakeibo://bilan-mois).
+# Budget de démonstration : 1 200 € de revenus, 600 € de charges fixes, 0 € d'épargne.
+appId: app.kakeibo
+---
+- launchApp
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 60000
+- longPressOn: 'mercredi.4.novembre'
+- extendedWaitUntil:
+    visible: 'Horloge de test'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Poser un budget de démonstration.*'
+    direction: DOWN
+- tapOn: 'Poser un budget de démonstration.*'
+- assertVisible: 'Budget de démonstration posé'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.4.novembre'
+    direction: UP
+# 1. Deux dépenses en novembre : 650 € en Essentiel, 25 € en Culture.
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Essentiel'
+- inputText: '650'
+# Pas de « hideKeyboard » : sur Android, Maestro envoie « Retour », qui ferme la feuille (Modal).
+- tapOn: 'Enregistrer en Essentiel'
+- extendedWaitUntil:
+    visible: 'Première dépense'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Première dépense.*'
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Culture'
+- inputText: '25'
+- tapOn: 'Enregistrer en Culture'
+- extendedWaitUntil:
+    visible: 'Tu as dépassé de 575.€ cette semaine'
+    timeout: 10000
+# 2. Vendredi 4 décembre : le bilan de novembre est à faire.
+- scrollUntilVisible:
+    element:
+      text: '\+1 mois'
+    direction: DOWN
+- tapOn: '\+1 mois'
+- scrollUntilVisible:
+    element:
+      text: 'vendredi.4.décembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'vendredi.4.décembre'
+    timeout: 10000
+- openLink: 'kakeibo://bilan-mois'
+- extendedWaitUntil:
+    visible: 'Bilan de novembre'
+    timeout: 10000
+- assertVisible: 'Ce que j’avais.: 600.€'
+- assertVisible: 'Ce que je voulais mettre de côté.: 0.€'
+- assertVisible: 'Ce que j’ai dépensé.: 675.€'
+- assertVisible: 'Essentiel.: 650.€'
+- assertVisible: 'Culture.: 25.€'
+- assertVisible: 'Ce que j’ai vraiment épargné.: −75.€'
+- assertVisible: 'Ton épargne n’a pas atteint ton objectif ce mois-ci\..*'
+- takeScreenshot: captures/bilan-mois-questions
+# 3. La quatrième question, avec son compteur.
+- tapOn: 'Comment puis-je faire mieux.*Texte libre.*'
+- inputText: 'Cuisiner le soir.'
+- assertVisible: '17/140'
+- takeScreenshot: captures/bilan-mois-resolution
+# 4. Valider : la pièce de décembre s'ouvre.
+- scrollUntilVisible:
+    element:
+      text: 'Valider mon bilan'
+    direction: DOWN
+- tapOn: 'Valider mon bilan'
+- extendedWaitUntil:
+    visible: 'Bilan de novembre enregistré\.'
+    timeout: 10000
+- assertVisible: 'La pièce de décembre s’ouvre.: c’est le mois d’Ōmisoka, le réveillon\.'
+- assertNotVisible: 'Valider mon bilan'
+- takeScreenshot: captures/bilan-mois-valide
+# 5. Retour à l'accueil : le bilan du mois n'y est plus proposé.
+- tapOn: 'Retour à l’accueil'
+- extendedWaitUntil:
+    visible: 'vendredi.4.décembre'
+    timeout: 10000
+- assertNotVisible: 'Le bilan de novembre est prêt\.'
+- launchApp:
+    clearState: true
