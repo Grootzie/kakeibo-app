@@ -1,10 +1,14 @@
 # Bilan du mois (E7, J3.4, #64) : novembre dépasse son budget (675 € dépensés pour 600 €) ; le
 # 4 décembre, E7 chiffre Q1 à Q3 par catégorie et l'épargne réelle, sans reproche ; la
-# résolution s'écrit en 140 caractères au plus, et la validation ouvre la pièce de décembre.
+# résolution s'écrit en 140 caractères au plus ; après la validation, le budget de décembre se
+# confirme pré-rempli, ici avec des revenus changés (J3.5, #65), et la pièce de décembre s'ouvre.
+# De retour sur l'accueil, la résolution s'affiche dans le bandeau une fois les bilans de semaine
+# vus et les jours oubliés rattrapés ; l'enveloppe suit le nouveau budget la semaine suivante.
 # Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
 # du téléphone au mercredi 4 novembre 2026 à 9:00. L'horloge de test avance d'un mois.
 # Le bilan des semaines (E6) n'existe pas encore (J3.2) : il passe avant celui du mois sur
-# l'accueil, alors E7 s'ouvre ici par son lien (kakeibo://bilan-mois).
+# l'accueil, alors E7 s'ouvre ici par son lien (kakeibo://bilan-mois), et le réglage caché
+# marque les bilans de semaine vus.
 # Budget de démonstration : 1 200 € de revenus, 600 € de charges fixes, 0 € d'épargne.
 appId: app.kakeibo
 ---
@@ -73,23 +77,112 @@ appId: app.kakeibo
 - inputText: 'Cuisiner le soir.'
 - assertVisible: '17/140'
 - takeScreenshot: captures/bilan-mois-resolution
-# 4. Valider : la pièce de décembre s'ouvre.
+# 4. Valider : le budget de décembre se confirme, pré-rempli avec le budget de démonstration.
 - scrollUntilVisible:
     element:
       text: 'Valider mon bilan'
     direction: DOWN
 - tapOn: 'Valider mon bilan'
 - extendedWaitUntil:
-    visible: 'Bilan de novembre enregistré\.'
+    visible: 'Ton budget de décembre'
     timeout: 10000
-- assertVisible: 'La pièce de décembre s’ouvre.: c’est le mois d’Ōmisoka, le réveillon\.'
+- assertVisible: 'Bilan de novembre enregistré\.'
+- assertVisible: 'Budget du mois.: 600.€'
+- assertNotVisible: 'La pièce de décembre s’ouvre.*'
+- takeScreenshot: captures/bilan-mois-budget
+# Revenus de décembre : 1 355 € au lieu de 1 200 €, soit 755 € de budget du mois.
+- tapOn: 'Revenus, en euros'
+- eraseText: 10
+- inputText: '1355'
+- assertVisible: 'Budget du mois.: 755.€'
+- scrollUntilVisible:
+    element:
+      text: 'Confirmer mon budget'
+    direction: DOWN
+- takeScreenshot: captures/bilan-mois-budget-change
+- tapOn: 'Confirmer mon budget'
+# 5. La pièce de décembre s'ouvre.
+- extendedWaitUntil:
+    visible: 'La pièce de décembre s’ouvre.: c’est le mois d’Ōmisoka, le réveillon\.'
+    timeout: 10000
+- assertVisible: 'Bilan de novembre enregistré\.'
 - assertNotVisible: 'Valider mon bilan'
+- assertNotVisible: 'Confirmer mon budget'
 - takeScreenshot: captures/bilan-mois-valide
-# 5. Retour à l'accueil : le bilan du mois n'y est plus proposé.
+# 6. Retour à l'accueil : le bilan du mois n'y est plus proposé ; l'enveloppe de la semaine du
+# 30 novembre suit encore le budget en vigueur le lundi : 20 € + 6 × 600 € / 31 = 136,13 €.
 - tapOn: 'Retour à l’accueil'
 - extendedWaitUntil:
     visible: 'vendredi.4.décembre'
     timeout: 10000
 - assertNotVisible: 'Le bilan de novembre est prêt\.'
+- assertVisible: 'Il te reste 136,13.€ jusqu’à dimanche'
+- runFlow:
+    when:
+      visible: 'Premier jour à rattraper'
+    commands:
+      - tapOn: 'Fermer l’explication .*Premier jour à rattraper.*'
+# 7. Bilans de semaine vus (réglage caché, en attendant E6), puis les quatre jours oubliés
+# rattrapés depuis le bandeau : il ne reste que la résolution.
+- longPressOn: 'vendredi.4.décembre'
+- extendedWaitUntil:
+    visible: 'Horloge de test'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Marquer les bilans de semaine vus'
+    direction: DOWN
+- tapOn: 'Marquer les bilans de semaine vus'
+- assertVisible: 'Bilans de semaine marqués vus'
+- scrollUntilVisible:
+    element:
+      text: 'vendredi.4.décembre'
+    direction: UP
+- tapOn: 'Tu peux encore rattraper lundi.30.novembre\.'
+- assertVisible: 'Rattraper lundi.30.novembre'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Tu peux encore rattraper mardi.1er.décembre\.'
+    timeout: 10000
+- runFlow:
+    when:
+      visible: 'Premier tampon'
+    commands:
+      - tapOn: 'Fermer l’explication .*Premier tampon.*'
+- tapOn: 'Tu peux encore rattraper mardi.1er.décembre\.'
+- assertVisible: 'Rattraper mardi.1er.décembre'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Tu peux encore rattraper mercredi.2.décembre\.'
+    timeout: 10000
+- tapOn: 'Tu peux encore rattraper mercredi.2.décembre\.'
+- assertVisible: 'Rattraper mercredi.2.décembre'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Tu peux encore rattraper jeudi.3.décembre\.'
+    timeout: 10000
+- tapOn: 'Tu peux encore rattraper jeudi.3.décembre\.'
+- assertVisible: 'Rattraper jeudi.3.décembre'
+- tapOn: 'Rien dépensé aujourd’hui'
+# 8. La résolution de novembre s'affiche dans le bandeau, tout le mois de décembre.
+- extendedWaitUntil:
+    visible: 'Ta résolution du mois.: «.Cuisiner le soir\..»'
+    timeout: 10000
+- assertNotVisible: 'Tu peux encore rattraper.*'
+- takeScreenshot: captures/accueil-resolution
+# 9. Semaine du 7 décembre : l'enveloppe suit le budget de décembre, 7 × 755 € / 31 = 170,48 €.
+- scrollUntilVisible:
+    element:
+      text: '\+1 semaine'
+    direction: DOWN
+- tapOn: '\+1 semaine'
+- scrollUntilVisible:
+    element:
+      text: 'vendredi.11.décembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'Il te reste 170,48.€ jusqu’à dimanche'
+    timeout: 10000
+- takeScreenshot: captures/accueil-budget-decembre
 - launchApp:
     clearState: true

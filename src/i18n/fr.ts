@@ -124,6 +124,9 @@ export const fr = {
     autoriserRappelLibelle: `Autoriser le rappel du soir${NBSP}: demande l’autorisation des notifications`,
     rappelAutorise: 'Rappel du soir autorisé',
     rappelRefuse: `Notifications refusées${NBSP}: aucun rappel`,
+    /** En attendant E6 (J3.2), qui les marquera vus lui-même. */
+    bilansVus: 'Marquer les bilans de semaine vus',
+    bilansVusFait: 'Bilans de semaine marqués vus',
   },
 
   notifications: {
@@ -172,6 +175,9 @@ export const fr = {
     bandeauBilanSemaines: 'Le bilan de tes dernières semaines est prêt.',
     /** Mois 'AAAA-MM' -> « Le bilan de novembre est prêt. » */
     bandeauBilanMois: (mois: string) => `Le bilan ${duMois(mois)} est prêt.`,
+    /** Q4 du bilan du mois précédent, affichée tout le mois. */
+    bandeauResolution: (resolution: string) =>
+      `Ta résolution du mois${NBSP}: «${NBSP}${resolution}${NBSP}»`,
     reste: (centimes: number, jusqua: string) =>
       `Il te reste ${formatEuros(centimes)} jusqu’à ${jusqua}`,
     depassement: (centimes: number) => `Tu as dépassé de ${formatEuros(centimes)} cette semaine`,
@@ -279,6 +285,18 @@ export const fr = {
     refus: 'Ton bilan n’a pas pu être enregistré. Réessaie dans un instant.',
     rienAFaire: 'Aucun bilan du mois à faire pour l’instant.',
     enregistre: (mois: string) => `Bilan ${duMois(mois)} enregistré.`,
+    /** Confirmation du budget du nouveau mois (J3.5), pré-rempli avec la version en vigueur. */
+    budgetTitre: (mois: string) => `Ton budget ${duMois(mois)}`,
+    budgetIntro:
+      'Voici ton budget pour le mois qui commence. Change un montant si ta situation a changé.',
+    revenus: 'Revenus',
+    chargesFixes: 'Charges fixes',
+    epargneVisee: 'Épargne visée',
+    champLibelle: (nom: string) => `${nom}, en euros`,
+    budgetDuMois: (centimes: number) => `Budget du mois${NBSP}: ${formatEuros(centimes)}`,
+    budgetNul: `Ton budget du mois doit être supérieur à ${formatEuros(0)}.`,
+    confirmerBudget: 'Confirmer mon budget',
+    refusBudget: 'Ton budget n’a pas pu être enregistré. Réessaie dans un instant.',
   },
 
   messages: {

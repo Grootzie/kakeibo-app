@@ -1,5 +1,5 @@
 // Lecture du montant tapé au pavé numérique (E3) : virgule ou point, deux décimales au plus.
-import { lireMontant } from './montant';
+import { ecrireMontant, lireMontant } from './montant';
 
 describe('montant tapé', () => {
   it('se lit en centimes, avec la virgule ou le point', () => {
@@ -27,5 +27,15 @@ describe('montant tapé', () => {
     expect(lireMontant('0,29')).toBe(29);
     expect(lireMontant('1,15')).toBe(115);
     expect(lireMontant('4,35')).toBe(435);
+  });
+});
+
+describe('montant pré-rempli (E7, budget du nouveau mois)', () => {
+  it('s’écrit sans décimales inutiles, avec la virgule, et se relit à l’identique', () => {
+    expect(ecrireMontant(200000)).toBe('2000');
+    expect(ecrireMontant(123450)).toBe('1234,50');
+    expect(ecrireMontant(1205)).toBe('12,05');
+    expect(ecrireMontant(0)).toBe('0');
+    for (const c of [0, 1, 99, 100, 123456789]) expect(lireMontant(ecrireMontant(c))).toBe(c);
   });
 });

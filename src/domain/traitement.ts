@@ -1,7 +1,7 @@
 // Ordre de traitement : enchaînement des règles à chaque ouverture et à chaque clôture (J1.8).
 // Pur : l'heure courante et le catalogue sont passés en paramètre ; l'état reçu n'est jamais modifié.
 import { type MonthReview, isValidResolution, monthReviewOf, monthToReview } from './bilanMois';
-import { type BudgetVersion, type Expense } from './budget';
+import { type BudgetVersion, type Cents, type Expense, budgetInForce, budgetOf } from './budget';
 import { type MonthKey, type WeekId, weekDays } from './calendrier';
 import {
   type RepairEvent,
@@ -70,14 +70,29 @@ export type AppEvent =
   /** Suppression depuis le carnet, même dans une semaine scellée : le résultat reste figé. */
   | { type: 'delete_expense'; id: string }
   | { type: 'week_reviews_seen' }
-  | { type: 'validate_month'; month: MonthKey; resolution: string };
+  | { type: 'validate_month'; month: MonthKey; resolution: string }
+  /**
+   * Confirmation du budget du nouveau mois (E7), après le bilan du mois précédent. Sans aucun
+   * changement, rien ne s'ajoute ; sinon une nouvelle version, identifiée par `id`.
+   */
+  | {
+      type: 'confirm_budget';
+      id: string;
+      income: Cents;
+      fixedCosts: Cents;
+      savingsGoal: Cents;
+    };
 
 export type Refusal =
   | RefusalReason
   | 'month_not_proposed'
   | 'resolution_too_long'
   | 'unknown_expense'
-  | 'invalid_amount';
+  | 'invalid_amount'
+  /** Le bilan du mois précédent n'est pas validé : pas de budget du nouveau mois à confirmer. */
+  | 'budget_not_open'
+  /** Montant négatif ou non entier, ou budget du mois nul ou négatif. */
+  | 'invalid_budget';
 
 export interface ProcessResult {
   state: AppState;
@@ -172,6 +187,39 @@ function derive(state: AppState, now: LocalDateTime): AppState {
   };
 }
 
+/** Mois civil précédent : '2026-12' -> '2026-11', '2027-01' -> '2026-12'. */
+function previousMonth(month: MonthKey): MonthKey {
+  const [a, m] = month.split('-').map(Number);
+  return m === 1 ? `${a - 1}-12` : `${a}-${String(m - 1).padStart(2, '0')}`;
+}
+
+export interface BudgetToConfirm {
+  /** Le nouveau mois : celui du jour courant. */
+  month: MonthKey;
+  income: Cents;
+  fixedCosts: Cents;
+  savingsGoal: Cents;
+}
+
+/**
+ * Budget du nouveau mois à confirmer (E7) : pré-rempli avec la version en vigueur aujourd'hui
+ * (celle du mois, sinon reconduite), à zéro sans aucune version. Null tant que le bilan du mois
+ * précédent n'est pas validé.
+ */
+export function budgetToConfirm(state: AppState, now: LocalDateTime): BudgetToConfirm | null {
+  const month = now.day.slice(0, 7);
+  if (!state.reviews.some((r) => r.month === previousMonth(month))) return null;
+  const v = budgetInForce(month, state.budgets, now.day);
+  return {
+    month,
+    income: v?.income ?? 0,
+    fixedCosts: v?.fixedCosts ?? 0,
+    savingsGoal: v?.savingsGoal ?? 0,
+  };
+}
+
+const isValidCents = (n: Cents): boolean => Number.isSafeInteger(n) && n >= 0;
+
 function record(
   catalog: Catalog,
   state: AppState,
@@ -237,6 +285,29 @@ function record(
         },
         refusal: null,
       };
+    }
+    case 'confirm_budget': {
+      const proposed = budgetToConfirm(state, now);
+      if (proposed === null) return { state, refusal: 'budget_not_open' };
+      const { id, income, fixedCosts, savingsGoal } = event;
+      const version: BudgetVersion = {
+        id,
+        month: proposed.month,
+        income,
+        fixedCosts,
+        savingsGoal,
+        effectiveFrom: now.day,
+      };
+      if (![income, fixedCosts, savingsGoal].every(isValidCents) || budgetOf(version) <= 0) {
+        return { state, refusal: 'invalid_budget' };
+      }
+      const unchanged =
+        income === proposed.income &&
+        fixedCosts === proposed.fixedCosts &&
+        savingsGoal === proposed.savingsGoal;
+      // On n'écrase jamais une version : on en ajoute une, et seulement si un montant change.
+      if (unchanged) return { state, refusal: null };
+      return { state: { ...state, budgets: [...state.budgets, version] }, refusal: null };
     }
   }
 }

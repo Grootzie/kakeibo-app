@@ -14,7 +14,13 @@ import {
 import type { MonthReview } from '../domain/bilanMois';
 import type { MonthKey } from '../domain/calendrier';
 import type { Catalog } from '../domain/objets';
-import { type AppState, type WeekReviewScreen, weekReviewScreen } from '../domain/traitement';
+import {
+  type AppState,
+  type BudgetToConfirm,
+  type WeekReviewScreen,
+  budgetToConfirm,
+  weekReviewScreen,
+} from '../domain/traitement';
 
 export interface EnveloppeSemaine {
   semaine: WeekId;
@@ -107,6 +113,14 @@ export function bilansAAfficher(etat: AppState): BilansAAfficher {
     mois: etat.monthToReview,
     chiffresMois: etat.monthReview,
   };
+}
+
+/**
+ * Budget du nouveau mois à confirmer après le bilan (E7, J3.5) : pré-rempli avec la version en
+ * vigueur aujourd'hui ; null tant que le bilan du mois précédent n'est pas validé.
+ */
+export function budgetAConfirmer(etat: AppState, now: LocalDateTime): BudgetToConfirm | null {
+  return budgetToConfirm(etat, now);
 }
 
 /** Mois civil précédent : '2026-12' -> '2026-11', '2027-01' -> '2026-12'. */

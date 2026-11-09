@@ -679,10 +679,69 @@ describe('parcours Maestro « bilan du mois » (J3.4, #64)', () => {
       "- assertVisible: '17/140'",
       '- takeScreenshot: captures/bilan-mois-resolution',
       `- tapOn: '${b.valider}'`,
-      `visible: '${motif(b.enregistre('2026-11'))}'`,
+      // Depuis J3.5, la confirmation du budget s'intercale avant la pièce qui s'ouvre.
+      `'${motif(b.enregistre('2026-11'))}'`,
       '- takeScreenshot: captures/bilan-mois-valide',
       `- tapOn: '${fr.bilan.retourLibelle}'`,
       `- assertNotVisible: '${motif(fr.accueil.bandeauBilanMois('2026-11'))}'`,
+    ]);
+  });
+});
+
+describe('parcours Maestro « bilan du mois » : budget du nouveau mois et résolution (J3.5, #65)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'heure', 'bilan-mois.yaml'), 'utf8');
+  const motif = (texte: string) => texte.replace(/\./g, '\\.').replace(/\u00a0/g, '.');
+  const b = fr.bilanMois;
+
+  it('calcule les textes attendus avec ceux de l’appli', () => {
+    expect(b.budgetTitre('2026-12')).toBe('Ton budget de décembre');
+    expect(b.budgetDuMois(60000)).toMatch(/^Budget du mois.: 600.€$/);
+    expect(b.budgetDuMois(75500)).toMatch(/^Budget du mois.: 755.€$/);
+    expect(b.champLibelle(b.revenus)).toBe('Revenus, en euros');
+    expect(b.confirmerBudget).toBe('Confirmer mon budget');
+    expect(fr.accueil.reste(13613, 'dimanche')).toMatch(/^Il te reste 136,13.€ jusqu’à dimanche$/);
+    expect(fr.accueil.reste(17048, 'dimanche')).toMatch(/^Il te reste 170,48.€ jusqu’à dimanche$/);
+    expect(fr.dev.bilansVus).toBe('Marquer les bilans de semaine vus');
+    expect(fr.dev.bilansVusFait).toBe('Bilans de semaine marqués vus');
+    expect(fr.accueil.bandeauRattraper('2026-11-30')).toMatch(
+      /^Tu peux encore rattraper lundi.30.novembre\.$/,
+    );
+    expect(fr.accueil.bandeauRattraper('2026-12-01')).toMatch(
+      /^Tu peux encore rattraper mardi.1er.décembre\.$/,
+    );
+    expect(fr.accueil.bandeauResolution('Cuisiner le soir.')).toMatch(
+      /^Ta résolution du mois.: «.Cuisiner le soir\..»$/,
+    );
+  });
+
+  it('confirme le budget de décembre changé, puis la pièce s’ouvre', () => {
+    dansLOrdre(parcours, [
+      `- tapOn: '${b.valider}'`,
+      `visible: '${b.budgetTitre('2026-12')}'`,
+      "- assertVisible: 'Budget du mois.: 600.€'",
+      '- takeScreenshot: captures/bilan-mois-budget',
+      "- tapOn: 'Revenus, en euros'",
+      "- inputText: '1355'",
+      "- assertVisible: 'Budget du mois.: 755.€'",
+      `- tapOn: '${b.confirmerBudget}'`,
+      `visible: '${motif(fr.messages.nouvellePiece('2026-12', 'Ōmisoka, le réveillon'))}'`,
+      '- takeScreenshot: captures/bilan-mois-valide',
+    ]);
+  });
+
+  it('montre la résolution sur l’accueil, puis l’enveloppe qui suit le nouveau budget', () => {
+    dansLOrdre(parcours, [
+      `- tapOn: '${fr.bilan.retourLibelle}'`,
+      "- assertVisible: 'Il te reste 136,13.€ jusqu’à dimanche'",
+      `- tapOn: '${fr.dev.bilansVus}'`,
+      "- tapOn: 'Tu peux encore rattraper lundi.30.novembre\\.'",
+      "- tapOn: 'Tu peux encore rattraper jeudi.3.décembre\\.'",
+      `- tapOn: '${fr.cloture.rienDepense}'`,
+      "visible: 'Ta résolution du mois.: «.Cuisiner le soir\\..»'",
+      '- takeScreenshot: captures/accueil-resolution',
+      "- tapOn: '\\+1 semaine'",
+      "visible: 'Il te reste 170,48.€ jusqu’à dimanche'",
+      '- takeScreenshot: captures/accueil-budget-decembre',
     ]);
   });
 });
