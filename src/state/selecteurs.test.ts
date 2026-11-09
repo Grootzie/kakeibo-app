@@ -18,6 +18,7 @@ import {
   vueAccueil,
   vueBilanMois,
   vueCloture,
+  vueRecapitulatif,
 } from './selecteurs';
 
 const catalog = catalogueJson as Catalog;
@@ -473,5 +474,114 @@ describe('bilan du mois (E7, J3.4, #64)', () => {
       catalog,
     ).state;
     expect(piecesOuvertesParBilan(s, '2026-12', catalog)).toEqual([]);
+  });
+});
+
+describe('récapitulatif après une longue absence (E6, J3.3, #63)', () => {
+  const semaine45 = (montant: number): [AppEvent, LocalDateTime][] => [
+    depenser('2026-11-03', montant),
+    ...['02', '03', '04', '05', '06', '07', '08'].map((j) => fermer(`2026-11-${j}`)),
+  ];
+
+  it('rien quand une seule semaine attend : son bilan s’affiche seul', () => {
+    const s = etat('2026-11-02', [ouvrir(at('2026-11-10', '09:00'))]);
+    expect(vueRecapitulatif(s, at('2026-11-10', '09:00'), catalog)).toBeNull();
+  });
+
+  it('rien quand tous les bilans de semaine sont vus', () => {
+    const t = at('2026-11-25', '09:00');
+    const s = etat('2026-11-02', [ouvrir(t), [{ type: 'week_reviews_seen' }, t]]);
+    expect(vueRecapitulatif(s, t, catalog)).toBeNull();
+  });
+
+  it('trois semaines d’absence : une ligne par semaine, de la plus ancienne à la plus récente', () => {
+    // Semaine 45 complète et hors budget (150 € pour 140 €), puis plus aucune ouverture
+    // jusqu'au mercredi 25 novembre : les semaines 45, 46 et 47 attendent leur bilan.
+    const t = at('2026-11-25', '09:00');
+    const s = etat('2026-11-02', [...semaine45(15000), ouvrir(t)]);
+    expect(vueRecapitulatif(s, t, catalog)).toEqual({
+      semaines: [
+        {
+          semaine: '2026-W45',
+          lundi: '2026-11-02',
+          tampons: 7,
+          jours: 7,
+          dansLeBudget: false,
+          objetGagne: 'râteau porte-bonheur kumade',
+          objetFele: 'échelle',
+        },
+        {
+          semaine: '2026-W46',
+          lundi: '2026-11-09',
+          tampons: 0,
+          jours: 7,
+          dansLeBudget: true,
+          objetGagne: null,
+          objetFele: null,
+        },
+        {
+          semaine: '2026-W47',
+          lundi: '2026-11-16',
+          tampons: 0,
+          jours: 7,
+          dansLeBudget: true,
+          objetGagne: null,
+          objetFele: null,
+        },
+      ],
+      poussiere: { niveau: 2, joursSansCloture: true, semaineIncomplete: true },
+      reparations: [{ objet: 'échelle', progression: 0 }],
+    });
+  });
+
+  it('scénario 14 : semaines 46 à 48 sans capsule ni fêlure, poussière niveau 2', () => {
+    const t = at('2026-12-01', '09:00');
+    const s = etat('2026-11-02', [
+      ...semaine45(12000),
+      [{ type: 'week_reviews_seen' }, at('2026-11-08')],
+      ouvrir(t),
+    ]);
+    const vue = vueRecapitulatif(s, t, catalog);
+    expect(vue?.semaines.map((l) => l.semaine)).toEqual(['2026-W46', '2026-W47', '2026-W48']);
+    expect(vue?.semaines.every((l) => l.objetGagne === null && l.objetFele === null)).toBe(true);
+    expect(vue?.poussiere.niveau).toBe(2);
+    expect(vue?.reparations).toEqual([]);
+    // Le bilan de novembre reste proposé, et le lundi 30 novembre rattrapable.
+    expect(s.monthToReview).toBe('2026-11');
+    expect(estRattrapable(s, '2026-11-30', t)).toBe(true);
+  });
+
+  it('la file de réparation, dans l’ordre où les objets se sont fêlés', () => {
+    // Semaine 45 hors budget : l'échelle se fêle. Semaine 46 hors budget, sans clôture : le
+    // râteau gagné en semaine 45 se fêle à son tour et attend que l'échelle soit réparée.
+    const t = at('2026-11-25', '09:00');
+    const s = etat('2026-11-02', [...semaine45(15000), depenser('2026-11-10', 15000), ouvrir(t)]);
+    expect(vueRecapitulatif(s, t, catalog)?.reparations).toEqual([
+      { objet: 'échelle', progression: 0 },
+      { objet: 'râteau porte-bonheur kumade', progression: 0 },
+    ]);
+  });
+
+  it('la semaine d’installation ne compte que ses jours décomptés', () => {
+    // Installation le mercredi 4 novembre : 5 jours décomptés en semaine 45.
+    const t = at('2026-11-18', '09:00');
+    const s = etat('2026-11-04', [fermer('2026-11-04'), ouvrir(t)]);
+    const vue = vueRecapitulatif(s, t, catalog);
+    expect(vue?.semaines[0]).toMatchObject({ lundi: '2026-11-02', tampons: 1, jours: 5 });
+  });
+
+  it('poussière : seulement le voile d’une semaine incomplète quand les derniers jours sont clôturés', () => {
+    // Semaine 46 incomplète (lundi 9 oublié), puis mardi 17 et mercredi 18 clôturés.
+    const t = at('2026-11-18', '22:00');
+    const s = etat('2026-11-02', [
+      ...semaine45(12000),
+      ...['10', '11', '12', '13', '14', '15', '16', '17', '18'].map((j) => fermer(`2026-11-${j}`)),
+      ouvrir(t),
+    ]);
+    expect(vueRecapitulatif(s, t, catalog)?.poussiere).toEqual({
+      niveau: 1,
+      joursSansCloture: false,
+      semaineIncomplete: true,
+    });
   });
 });

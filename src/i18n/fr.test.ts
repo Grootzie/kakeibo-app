@@ -149,3 +149,50 @@ describe('bilan du mois (E7, #64)', () => {
     expect(fr.bilanMois.objectifManque).not.toMatch(/dommage|hélas|malheureusement|trop|échec/i);
   });
 });
+
+describe('récapitulatif après une longue absence (E6, #63)', () => {
+  const N = '\u00a0';
+  const r = fr.recapitulatif;
+
+  it('nomme chaque semaine par son lundi', () => {
+    expect(r.semaine('2026-11-02')).toBe(`Semaine du 2${N}novembre`);
+    expect(r.semaine('2027-03-01')).toBe(`Semaine du 1er${N}mars`);
+  });
+
+  it('compte les tampons sur les jours décomptés, au singulier jusqu’à 1', () => {
+    expect(r.tampons(7, 7)).toBe('7 tampons sur 7');
+    expect(r.tampons(1, 5)).toBe('1 tampon sur 5');
+    expect(r.tampons(0, 7)).toBe('0 tampon sur 7');
+  });
+
+  it('dit le résultat de chaque semaine avec le vocabulaire fixe', () => {
+    expect(r.dansEnveloppe).toBe('Dans ton enveloppe');
+    expect(r.horsEnveloppe).toBe('Au-delà de ton enveloppe');
+    expect(r.objetGagne('chat porte-bonheur')).toBe(`Objet gagné${N}: chat porte-bonheur`);
+    expect(r.poussiere).toBe('Pas de capsule, un peu de poussière');
+    expect(r.objetFele('échelle')).toBe(`Objet fêlé${N}: échelle`);
+  });
+
+  it('lit une semaine d’un seul tenant, phrase après phrase', () => {
+    expect(r.ligneLibelle(['Semaine du 2 novembre', '7 tampons sur 7', 'Dans ton enveloppe'])).toBe(
+      'Semaine du 2 novembre. 7 tampons sur 7. Dans ton enveloppe.',
+    );
+  });
+
+  it('reprend « Réparation : x jours sur 7 » pour la file de réparation', () => {
+    expect(r.reparationEnCours('échelle', 0)).toBe(`Réparation${N}: 0 jour sur 7 (échelle)`);
+    expect(r.reparationEnCours('échelle', 4)).toBe(`Réparation${N}: 4 jours sur 7 (échelle)`);
+    expect(r.reparationEnsuite('chat porte-bonheur')).toBe(
+      `À réparer ensuite${N}: chat porte-bonheur`,
+    );
+    expect(r.reparationAucune).toBe('Aucun objet à réparer.');
+  });
+
+  it('constate et encourage, sans reproche', () => {
+    const tous = collectStrings(r);
+    tous.forEach((t) =>
+      expect(t).not.toMatch(/dommage|hélas|malheureusement|trop|échec|oublié|raté|absen/i),
+    );
+    expect(r.conclusion).toBe(`Rien n’est perdu${N}: une clôture ce soir, et tout repart.`);
+  });
+});
