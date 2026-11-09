@@ -134,10 +134,12 @@ appId: app.kakeibo
           timeout: 10000
 # 7. Bilans de semaine vus (réglage caché, en attendant E6), puis les quatre jours oubliés
 # rattrapés depuis le bandeau : il ne reste que la résolution.
-- longPressOn: 'vendredi.4.décembre'
-- extendedWaitUntil:
-    visible: 'Horloge de test'
-    timeout: 10000
+# Le réglage caché est resté ouvert depuis l'étape 2 : l'appui long le refermerait.
+- runFlow:
+    when:
+      notVisible: 'Horloge de test'
+    commands:
+      - longPressOn: 'vendredi.4.décembre'
 - scrollUntilVisible:
     element:
       text: 'Marquer les bilans de semaine vus'
