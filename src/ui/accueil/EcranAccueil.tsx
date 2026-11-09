@@ -1,6 +1,6 @@
 // Accueil relié à l'état : vue de l'accueil, feuille « Noter une dépense » (E3) et
 // message « Annuler ». Ne parle qu'au store, qui seul appelle le domaine et les dépôts.
-import { type ReactNode, useCallback, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 
 import { joursDepense, vueAccueil } from '../../state/selecteurs';
@@ -26,7 +26,10 @@ export interface PropsEcranAccueil {
   onRattraper?: (jour: string) => void;
   /** Ouvre le bilan de la semaine (E6). */
   onBilanSemaine?: () => void;
-  /** Ouvre le bilan du mois (E7). */
+  /**
+   * Ouvre le bilan du mois (E7) : par le bandeau, et de lui-même, une fois par mois à faire,
+   * quand il est le premier bilan prêt (après ceux des semaines).
+   */
   onBilanMois?: () => void;
   /** Faux quand un autre écran est par-dessus : les cartes de première fois attendent. */
   visible?: boolean;
@@ -54,6 +57,16 @@ export function EcranAccueil({
     () => (etat && maintenant ? vueAccueil(etat, maintenant) : null),
     [etat, maintenant],
   );
+  // E7 s'ouvre de lui-même à la première ouverture à partir du 1er du mois suivant : une fois
+  // par mois à faire, tant que l'accueil reste monté ; ensuite le bandeau reste.
+  const bilanMoisOuvert = useRef<string | null>(null);
+  const moisAFaire = vue?.bandeau?.type === 'bilan_mois' ? vue.bandeau.mois : null;
+  useEffect(() => {
+    if (!visible || moisAFaire === null || bilanMoisOuvert.current === moisAFaire) return;
+    bilanMoisOuvert.current = moisAFaire;
+    onBilanMois?.();
+  }, [visible, moisAFaire, onBilanMois]);
+
   const jours = useMemo(
     () => (etat && maintenant ? joursDepense(etat, maintenant) : []),
     [etat, maintenant],

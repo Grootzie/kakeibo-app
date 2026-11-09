@@ -1,5 +1,5 @@
-// Place des bilans de la semaine (E6) et du mois (E7), en attendant J3.2 et J3.4 : un titre et
-// un retour à l'accueil. Rien n'y est marqué vu ni validé : le bandeau de l'accueil reste.
+// Place du bilan de la semaine (E6), en attendant J3.2 : un titre et un retour à l'accueil.
+// Rien n'y est marqué vu : le bandeau de l'accueil reste.
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

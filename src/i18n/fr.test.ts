@@ -99,3 +99,53 @@ describe('accueil (E2, #43)', () => {
     );
   });
 });
+
+describe('bilan du mois (E7, #64)', () => {
+  const N = '\u00a0';
+
+  it('annonce la nouvelle pièce avec le texte de la spec', () => {
+    expect(fr.messages.nouvellePiece('2027-03', 'Hinamatsuri, la fête des filles')).toBe(
+      `La pièce de mars s’ouvre${N}: c’est le mois de Hinamatsuri, la fête des filles.`,
+    );
+  });
+
+  it('élide « de » devant une voyelle et le contracte devant « les »', () => {
+    expect(fr.messages.nouvellePiece('2027-04', 'Hanami, les cerisiers en fleur')).toBe(
+      `La pièce d’avril s’ouvre${N}: c’est le mois de Hanami, les cerisiers en fleur.`,
+    );
+    expect(fr.messages.nouvellePiece('2027-08', 'Obon et les nuits d’été')).toBe(
+      `La pièce d’août s’ouvre${N}: c’est le mois d’Obon et les nuits d’été.`,
+    );
+    expect(fr.messages.nouvellePiece('2027-10', 'Les récoltes d’automne')).toBe(
+      `La pièce d’octobre s’ouvre${N}: c’est le mois des récoltes d’automne.`,
+    );
+    expect(fr.messages.nouvellePiece('2026-12', 'Ōmisoka, le réveillon')).toBe(
+      `La pièce de décembre s’ouvre${N}: c’est le mois d’Ōmisoka, le réveillon.`,
+    );
+    expect(fr.accueil.bandeauBilanMois('2027-04')).toBe('Le bilan d’avril est prêt.');
+    expect(fr.bilan.titreMois('2027-10')).toBe('Bilan d’octobre');
+    expect(fr.messages.objetEnAttente('2027-08', '2027-07')).toBe(
+      `Ton objet attend la pièce d’août${N}: elle s’ouvrira avec le bilan de juillet.`,
+    );
+    expect(fr.messages.objetEnAttente('2026-12', '2026-11')).toBe(
+      `Ton objet attend la pièce de décembre${N}: elle s’ouvrira avec le bilan de novembre.`,
+    );
+  });
+
+  it('pose les quatre questions et chiffre les réponses à la française', () => {
+    expect(fr.bilanMois.q1).toBe('Ce que j’avais');
+    expect(fr.bilanMois.q2).toBe('Ce que je voulais mettre de côté');
+    expect(fr.bilanMois.q3).toBe('Ce que j’ai dépensé');
+    expect(fr.bilanMois.epargne).toBe('Ce que j’ai vraiment épargné');
+    expect(fr.bilanMois.q4).toBe(`Comment puis-je faire mieux${N}?`);
+    expect(fr.bilanMois.ligne('Ce que j’avais', 90000)).toBe(`Ce que j’avais${N}: 900${N}€`);
+    expect(fr.bilanMois.ligne('Ce que j’ai vraiment épargné', -6250)).toBe(
+      `Ce que j’ai vraiment épargné${N}: −62,50${N}€`,
+    );
+    expect(fr.bilanMois.compteur(12)).toBe('12/140');
+  });
+
+  it('ne fait aucun reproche quand l’objectif n’est pas atteint', () => {
+    expect(fr.bilanMois.objectifManque).not.toMatch(/dommage|hélas|malheureusement|trop|échec/i);
+  });
+});

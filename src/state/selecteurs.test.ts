@@ -13,8 +13,10 @@ import {
   estRattrapable,
   joursDepense,
   jourARattraper,
+  piecesOuvertesParBilan,
   resolutionDuMois,
   vueAccueil,
+  vueBilanMois,
   vueCloture,
 } from './selecteurs';
 
@@ -371,5 +373,105 @@ describe('bandeau unique de l’accueil (E2, J3.1, #61)', () => {
   it('la vue de l’accueil porte ce bandeau unique', () => {
     const s = tout();
     expect(vueAccueil(s, decembre).bandeau).toEqual(bandeauAccueil(s, decembre));
+  });
+});
+
+describe('bilan du mois (E7, J3.4, #64)', () => {
+  const ligne = (
+    id: string,
+    day: DayKey,
+    amount: number,
+    category: ExpenseRow['category'],
+  ): ExpenseRow => ({
+    id,
+    day,
+    amount,
+    category,
+    note: '',
+    created_at: `${day}T12:00`,
+    updated_at: `${day}T12:00`,
+  });
+  const decembre = at('2026-12-01', '09:00');
+
+  it('scénario 17 : Q1 à Q3 du domaine et le détail par catégorie, du mois seulement', () => {
+    const s = etat('2026-11-02', [
+      depenser('2026-11-03', 42000),
+      depenser('2026-11-20', 10000),
+      ouvrir(decembre),
+    ]);
+    const lignes = [
+      ligne('e-2026-11-03-42000', '2026-11-03', 42000, 'essentiel'),
+      ligne('e-2026-11-20-10000', '2026-11-20', 10000, 'culture'),
+      // Une dépense de décembre n'entre pas dans le bilan de novembre.
+      ligne('e-dec', '2026-12-01', 900, 'envies'),
+    ];
+    expect(vueBilanMois(s, lignes)).toEqual({
+      mois: '2026-11',
+      chiffres: {
+        month: '2026-11',
+        q1: 90000,
+        q2: 30000,
+        q3: 52000,
+        realSavings: 38000,
+        goalReached: true,
+      },
+      parCategorie: [
+        { categorie: 'essentiel', total: 42000 },
+        { categorie: 'culture', total: 10000 },
+      ],
+    });
+  });
+
+  it('rien à faire avant le 1er du mois suivant', () => {
+    const s = etat('2026-11-02', [ouvrir(at('2026-11-30', '20:00'))]);
+    expect(vueBilanMois(s, [])).toBeNull();
+  });
+
+  it('nomme les pièces que la validation a ouvertes, avec la fête de leur mois', () => {
+    let s = etat('2026-11-02', [ouvrir(decembre)]);
+    expect(piecesOuvertesParBilan(s, '2026-11', catalog)).toEqual([]);
+    s = process(
+      s,
+      { type: 'validate_month', month: '2026-11', resolution: '' },
+      decembre,
+      catalog,
+    ).state;
+    expect(piecesOuvertesParBilan(s, '2026-11', catalog)).toEqual([
+      { mois: '2026-12', fete: 'Ōmisoka, le réveillon' },
+    ]);
+  });
+
+  it('les pièces des mois sautés s’ouvrent aussi, dans l’ordre des mois', () => {
+    const avril = at('2027-04-01', '09:00');
+    let s = etat('2026-11-02', [ouvrir(avril)]);
+    expect(s.monthToReview).toBe('2027-03');
+    s = process(
+      s,
+      { type: 'validate_month', month: '2027-03', resolution: '' },
+      avril,
+      catalog,
+    ).state;
+    expect(piecesOuvertesParBilan(s, '2027-03', catalog).map((p) => p.mois)).toEqual([
+      '2027-02',
+      '2027-03',
+      '2027-04',
+    ]);
+  });
+
+  it('en décembre, le bilan n’ouvre aucune pièce', () => {
+    const janvier = at('2027-01-04', '09:00');
+    let s = etat('2026-11-02', [
+      ouvrir(decembre),
+      [{ type: 'validate_month', month: '2026-11', resolution: '' }, decembre],
+      ouvrir(janvier),
+    ]);
+    expect(s.monthToReview).toBe('2026-12');
+    s = process(
+      s,
+      { type: 'validate_month', month: '2026-12', resolution: '' },
+      janvier,
+      catalog,
+    ).state;
+    expect(piecesOuvertesParBilan(s, '2026-12', catalog)).toEqual([]);
   });
 });

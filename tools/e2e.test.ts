@@ -385,7 +385,12 @@ describe('script de l’émulateur (#52)', () => {
       if (rappel)
         writeFileSync(join(dossier, 'e2e', 'heure', 'rappel-toucher.yaml'), 'appId: app.kakeibo\n');
       if (parcoursJ2)
-        for (const nom of ['journee-type.yaml', 'rattrapage.yaml', 'bilans-prets.yaml'])
+        for (const nom of [
+          'journee-type.yaml',
+          'rattrapage.yaml',
+          'bilans-prets.yaml',
+          'bilan-mois.yaml',
+        ])
           writeFileSync(join(dossier, 'e2e', 'heure', nom), 'appId: app.kakeibo\n');
     }
     const journal = join(dossier, 'journal.txt');
@@ -561,6 +566,20 @@ describe('script de l’émulateur (#52)', () => {
     expect(lignes[bilans - 1]).toBe('adb shell date 110409002026.00');
   });
 
+  it('bilan du mois : appli effacée, mercredi 4 novembre 2026 à 9:00, après les bilans prêts (#64)', () => {
+    const { code, journal } = jouer(true, true, true, true);
+    expect(code).toBe(0);
+    const lignes = journal.split('\n');
+    const position = (debut: string) => lignes.findIndex((l) => l.startsWith(debut));
+    const bilans = position('maestro test e2e/heure/bilans-prets.yaml');
+    const mois = position('maestro test e2e/heure/bilan-mois.yaml');
+    const automatique = position('adb shell settings put global auto_time 1');
+    expect(bilans).toBeGreaterThanOrEqual(0);
+    expect([bilans, mois, automatique]).toEqual([bilans, mois, automatique].sort((a, b) => a - b));
+    expect(lignes[mois - 2]).toBe('adb shell pm clear app.kakeibo');
+    expect(lignes[mois - 1]).toBe('adb shell date 110409002026.00');
+  });
+
   it('échoue si le parcours « journée type » ou « rattrapage » échoue, et joue l’autre (#49)', () => {
     for (const [echoue, autre] of [
       ['journee-type.yaml', 'rattrapage.yaml'],
@@ -606,6 +625,64 @@ describe('parcours Maestro « bilans prêts » (J3.1, #61)', () => {
       "- tapOn: '\\+1 semaine'",
       `- assertVisible: '${motif(fr.accueil.bandeauBilanSemaines)}'`,
       '- takeScreenshot: captures/bilans-recapitulatif',
+    ]);
+  });
+});
+
+describe('parcours Maestro « bilan du mois » (J3.4, #64)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'heure', 'bilan-mois.yaml'), 'utf8');
+  const motif = (texte: string) => texte.replace(/\./g, '\\.').replace(/\u00a0/g, '.');
+  const b = fr.bilanMois;
+
+  it('calcule les textes attendus avec ceux de l’appli', () => {
+    expect(fr.bilan.titreMois('2026-11')).toBe('Bilan de novembre');
+    expect(b.ligne(b.q1, 60000)).toMatch(/^Ce que j’avais.: 600.€$/);
+    expect(b.ligne(b.q2, 0)).toMatch(/^Ce que je voulais mettre de côté.: 0.€$/);
+    expect(b.ligne(b.q3, 67500)).toMatch(/^Ce que j’ai dépensé.: 675.€$/);
+    expect(b.ligne('Essentiel', 65000)).toMatch(/^Essentiel.: 650.€$/);
+    expect(b.ligne('Culture', 2500)).toMatch(/^Culture.: 25.€$/);
+    expect(b.ligne(b.epargne, -7500)).toMatch(/^Ce que j’ai vraiment épargné.: −75.€$/);
+    expect(b.objectifManque).toMatch(/^Ton épargne n’a pas atteint ton objectif ce mois-ci\..*$/);
+    expect(b.q4Libelle).toMatch(/^Comment puis-je faire mieux.*Texte libre.*$/);
+    expect(b.compteur(17)).toBe('17/140');
+    expect(b.enregistre('2026-11')).toBe('Bilan de novembre enregistré.');
+    expect(fr.messages.nouvellePiece('2026-12', 'Ōmisoka, le réveillon')).toMatch(
+      /^La pièce de décembre s’ouvre.: c’est le mois d’Ōmisoka, le réveillon\.$/,
+    );
+    expect(fr.accueil.depassement(57500)).toMatch(/^Tu as dépassé de 575.€ cette semaine$/);
+    expect(fr.accueil.date('2026-12-04')).toMatch(/^vendredi.4.décembre$/);
+    expect(fr.dev.plusUnMois).toBe('+1 mois');
+  });
+
+  it('note deux dépenses en novembre, avance d’un mois et ouvre E7', () => {
+    dansLOrdre(parcours, [
+      `- tapOn: 'Poser un budget de démonstration.*'`,
+      "- inputText: '650'",
+      `- tapOn: '${fr.depense.categorieLibelle('Essentiel')}'`,
+      "- inputText: '25'",
+      `- tapOn: '${fr.depense.categorieLibelle('Culture')}'`,
+      "- tapOn: '\\+1 mois'",
+      "- openLink: 'kakeibo://bilan-mois'",
+      `visible: '${fr.bilan.titreMois('2026-11')}'`,
+    ]);
+  });
+
+  it('chiffre les trois questions par catégorie, puis la résolution, la validation et le retour', () => {
+    dansLOrdre(parcours, [
+      "- assertVisible: 'Ce que j’avais.: 600.€'",
+      "- assertVisible: 'Ce que j’ai dépensé.: 675.€'",
+      "- assertVisible: 'Essentiel.: 650.€'",
+      "- assertVisible: 'Culture.: 25.€'",
+      "- assertVisible: 'Ce que j’ai vraiment épargné.: −75.€'",
+      '- takeScreenshot: captures/bilan-mois-questions',
+      "- inputText: 'Cuisiner le soir.'",
+      "- assertVisible: '17/140'",
+      '- takeScreenshot: captures/bilan-mois-resolution',
+      `- tapOn: '${b.valider}'`,
+      `visible: '${motif(b.enregistre('2026-11'))}'`,
+      '- takeScreenshot: captures/bilan-mois-valide',
+      `- tapOn: '${fr.bilan.retourLibelle}'`,
+      `- assertNotVisible: '${motif(fr.accueil.bandeauBilanMois('2026-11'))}'`,
     ]);
   });
 });
