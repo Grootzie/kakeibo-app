@@ -293,7 +293,7 @@ describe('le budget du nouveau mois (J3.5, #65)', () => {
         income: 215550,
         fixed_costs: 100000,
         savings_goal: 30000,
-        effective_from: '2026-12-01',
+        effective_from: '2026-12-02', // en vigueur dès le lendemain
       }),
     ]);
     expect(store.getState().etat?.budgets).toHaveLength(2);

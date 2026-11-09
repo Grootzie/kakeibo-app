@@ -111,7 +111,8 @@ describe('budget à confirmer après le bilan du mois', () => {
         income: euros(2100),
         fixedCosts: euros(1100),
         savingsGoal: euros(300),
-        effectiveFrom: '2026-12-01',
+        // En vigueur dès le lendemain : jamais au lundi 00:00 de la semaine où on la confirme.
+        effectiveFrom: '2026-12-02',
       },
     ]);
     // Le bilan de novembre reste chiffré avec la version de novembre.
@@ -190,6 +191,47 @@ describe('budget à confirmer après le bilan du mois', () => {
       confirmer({ income: euros(2100), fixedCosts: euros(1100), savingsGoal: euros(300) }, 'b-fev'),
       at('2027-02-03', '08:05'),
     );
-    expect(s.budgets[1]).toMatchObject({ month: '2027-02', effectiveFrom: '2027-02-03' });
+    expect(s.budgets[1]).toMatchObject({ month: '2027-02', effectiveFrom: '2027-02-04' });
+  });
+
+  test('confirmé un lundi 1er, le budget ne change pas l’enveloppe de la semaine en cours', () => {
+    // Le 1er février 2027 est un lundi : le lundi 00:00 de la semaine est déjà passé.
+    let s = createAppState({ installDay: INSTALL, at: at(INSTALL), budgets: [novembre] }, catalog);
+    s = ok(s, { type: 'open' }, at('2027-02-01'));
+    s = ok(s, { type: 'validate_month', month: '2027-01', resolution: '' }, at('2027-02-01'));
+    const avant = weekEnvelope('2027-W05', s.budgets, INSTALL);
+    expect(avant).toBe(15000); // 7 × 600 € / 28
+    s = ok(
+      s,
+      // Budget de février : 2 155 € − 1 100 € − 300 € = 755 €.
+      confirmer({ income: euros(2155), fixedCosts: euros(1100), savingsGoal: euros(300) }, 'b-fev'),
+      at('2027-02-01', '08:01'),
+    );
+    expect(s.budgets[1]).toMatchObject({ month: '2027-02', effectiveFrom: '2027-02-02' });
+    expect(weekEnvelope('2027-W05', s.budgets, INSTALL)).toBe(avant);
+    // Semaine du 8 février : 7 × 755 € / 28 = 188,75 €.
+    expect(weekEnvelope('2027-W06', s.budgets, INSTALL)).toBe(18875);
+  });
+
+  test('confirmer deux fois le même jour part du budget déjà confirmé', () => {
+    const change = { income: euros(2155), fixedCosts: euros(1100), savingsGoal: euros(300) };
+    let s = ok(apresBilan(), confirmer(change), at('2026-12-01', '08:01'));
+    // Le pré-remplissage montre le budget qui vient d'être confirmé, pas l'ancien.
+    expect(budgetToConfirm(s, at('2026-12-01', '08:02'))).toEqual({ month: '2026-12', ...change });
+    // Reconfirmer les mêmes montants n'ajoute rien.
+    s = ok(s, confirmer(change, 'b-dec-2'), at('2026-12-01', '08:02'));
+    expect(s.budgets.map((b) => b.id)).toEqual(['b-nov', 'b-dec']);
+    // Revenir aux montants de novembre ajoute une version, la dernière confirmée l'emporte.
+    s = ok(
+      s,
+      confirmer(
+        { income: euros(2000), fixedCosts: euros(1100), savingsGoal: euros(300) },
+        'b-dec-3',
+      ),
+      at('2026-12-01', '08:03'),
+    );
+    expect(s.budgets.map((b) => b.id)).toEqual(['b-nov', 'b-dec', 'b-dec-3']);
+    expect(budgetInForce('2026-12', s.budgets, '2026-12-07')?.id).toBe('b-dec-3');
+    expect(budgetToConfirm(s, at('2026-12-01', '08:04'))).toMatchObject({ income: euros(2000) });
   });
 });

@@ -403,7 +403,7 @@ describe('store de l’état', () => {
           income: 215500,
           fixed_costs: 110000,
           savings_goal: 30000,
-          effective_from: '2026-12-01',
+          effective_from: '2026-12-02', // en vigueur dès le lendemain
         },
       ]);
       const relu = (await rouvrir()).getState().etat!;

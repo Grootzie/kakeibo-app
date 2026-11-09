@@ -2,7 +2,7 @@
 // Pur : l'heure courante et le catalogue sont passés en paramètre ; l'état reçu n'est jamais modifié.
 import { type MonthReview, isValidResolution, monthReviewOf, monthToReview } from './bilanMois';
 import { type BudgetVersion, type Cents, type Expense, budgetInForce, budgetOf } from './budget';
-import { type MonthKey, type WeekId, weekDays } from './calendrier';
+import { type MonthKey, type WeekId, addDays, previousMonth, weekDays } from './calendrier';
 import {
   type RepairEvent,
   applyCrack,
@@ -187,12 +187,6 @@ function derive(state: AppState, now: LocalDateTime): AppState {
   };
 }
 
-/** Mois civil précédent : '2026-12' -> '2026-11', '2027-01' -> '2026-12'. */
-function previousMonth(month: MonthKey): MonthKey {
-  const [a, m] = month.split('-').map(Number);
-  return m === 1 ? `${a - 1}-12` : `${a}-${String(m - 1).padStart(2, '0')}`;
-}
-
 export interface BudgetToConfirm {
   /** Le nouveau mois : celui du jour courant. */
   month: MonthKey;
@@ -202,20 +196,28 @@ export interface BudgetToConfirm {
 }
 
 /**
- * Budget du nouveau mois à confirmer (E7) : pré-rempli avec la version en vigueur aujourd'hui
- * (celle du mois, sinon reconduite), à zéro sans aucune version. Null tant que le bilan du mois
- * précédent n'est pas validé.
+ * Budget du nouveau mois à confirmer (E7) : pré-rempli avec la version qui s'appliquera demain
+ * (celle du mois, y compris une version confirmée aujourd'hui, sinon reconduite), à zéro sans
+ * aucune version. Null tant que le bilan du mois précédent n'est pas validé.
  */
 export function budgetToConfirm(state: AppState, now: LocalDateTime): BudgetToConfirm | null {
   const month = now.day.slice(0, 7);
   if (!state.reviews.some((r) => r.month === previousMonth(month))) return null;
-  const v = budgetInForce(month, state.budgets, now.day);
+  const v = budgetInForce(month, state.budgets, confirmedBudgetStart(now));
   return {
     month,
     income: v?.income ?? 0,
     fixedCosts: v?.fixedCosts ?? 0,
     savingsGoal: v?.savingsGoal ?? 0,
   };
+}
+
+/**
+ * Premier jour d'une version confirmée maintenant : le lendemain. L'enveloppe retient la version
+ * en vigueur le lundi 00:00 ; confirmée un lundi, elle ne doit pas changer la semaine en cours.
+ */
+function confirmedBudgetStart(now: LocalDateTime): DayKey {
+  return addDays(now.day, 1);
 }
 
 const isValidCents = (n: Cents): boolean => Number.isSafeInteger(n) && n >= 0;
@@ -296,7 +298,7 @@ function record(
         income,
         fixedCosts,
         savingsGoal,
-        effectiveFrom: now.day,
+        effectiveFrom: confirmedBudgetStart(now),
       };
       if (![income, fixedCosts, savingsGoal].every(isValidCents) || budgetOf(version) <= 0) {
         return { state, refusal: 'invalid_budget' };

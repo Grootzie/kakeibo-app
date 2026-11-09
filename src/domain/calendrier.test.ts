@@ -4,6 +4,7 @@ import {
   addDays,
   countedDays,
   dayOfWeek,
+  previousMonth,
   slotsInMonth,
   weekDays,
   weekMonth,
@@ -96,6 +97,12 @@ describe('calendrier', () => {
 
     test('la semaine du 30 novembre appartient à décembre (jeudi 3)', () => {
       expect(weekMonth(weekOf('2026-11-30'))).toBe('2026-12');
+    });
+
+    test('mois civil précédent, y compris en changeant d’année', () => {
+      expect(previousMonth('2026-12')).toBe('2026-11');
+      expect(previousMonth('2026-10')).toBe('2026-09');
+      expect(previousMonth('2027-01')).toBe('2026-12');
     });
   });
 

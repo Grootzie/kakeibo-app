@@ -93,8 +93,17 @@ appId: app.kakeibo
 - assertVisible: 'Budget du mois.: 600.€'
 - assertNotVisible: 'La pièce de décembre s’ouvre.*'
 - takeScreenshot: captures/bilan-mois-budget
-# Revenus de décembre : 1 355 € au lieu de 1 200 €, soit 755 € de budget du mois.
+# Revenus à 600 € : budget du mois à 0 €, le bouton reste inactif et le dit sans reproche.
 - tapOn: 'Revenus, en euros'
+- eraseText: 10
+- inputText: '600'
+- assertVisible: 'Budget du mois.: 0.€'
+- assertVisible: 'Ton budget du mois doit être supérieur à 0.€\.'
+- takeScreenshot: captures/bilan-mois-budget-nul
+- tapOn: 'Confirmer mon budget'
+- assertVisible: 'Ton budget de décembre'
+- assertNotVisible: 'La pièce de décembre s’ouvre.*'
+# Revenus de décembre : 1 355 € au lieu de 1 200 €, soit 755 € de budget du mois.
 - eraseText: 10
 - inputText: '1355'
 - assertVisible: 'Budget du mois.: 755.€'

@@ -1,7 +1,7 @@
 // Sélecteurs de l'accueil (E2). Purs : l'état et l'heure leur sont passés.
 import type { ExpenseRow } from '../data/repositories';
 import { type Cents, weekEnvelope, weekSpent } from '../domain/budget';
-import { addDays, weekDays, weekOf } from '../domain/calendrier';
+import { addDays, previousMonth, weekDays, weekOf } from '../domain/calendrier';
 import { expenseDays } from '../domain/depense';
 import {
   type ClosureContext,
@@ -123,12 +123,6 @@ export function budgetAConfirmer(etat: AppState, now: LocalDateTime): BudgetToCo
   return budgetToConfirm(etat, now);
 }
 
-/** Mois civil précédent : '2026-12' -> '2026-11', '2027-01' -> '2026-12'. */
-function moisPrecedent(mois: MonthKey): MonthKey {
-  const [a, m] = mois.split('-').map(Number);
-  return m === 1 ? `${a - 1}-12` : `${a}-${String(m - 1).padStart(2, '0')}`;
-}
-
 /**
  * Résolution du mois en cours : la Q4 du bilan du mois précédent, affichée tout le mois (E7).
  * Null si ce bilan n'est pas fait ou si sa Q4 est restée vide.
@@ -138,7 +132,7 @@ export function resolutionDuMois(
   now: LocalDateTime,
 ): { mois: MonthKey; resolution: string } | null {
   const mois = now.day.slice(0, 7);
-  const bilan = etat.reviews.find((r) => r.month === moisPrecedent(mois));
+  const bilan = etat.reviews.find((r) => r.month === previousMonth(mois));
   const resolution = bilan?.resolution.trim() ?? '';
   return resolution === '' ? null : { mois, resolution };
 }

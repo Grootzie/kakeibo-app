@@ -697,6 +697,8 @@ describe('parcours Maestro « bilan du mois » : budget du nouveau mois et réso
     expect(b.budgetTitre('2026-12')).toBe('Ton budget de décembre');
     expect(b.budgetDuMois(60000)).toMatch(/^Budget du mois.: 600.€$/);
     expect(b.budgetDuMois(75500)).toMatch(/^Budget du mois.: 755.€$/);
+    expect(b.budgetDuMois(0)).toMatch(/^Budget du mois.: 0.€$/);
+    expect(b.budgetNul).toMatch(/^Ton budget du mois doit être supérieur à 0.€\.$/);
     expect(b.champLibelle(b.revenus)).toBe('Revenus, en euros');
     expect(b.confirmerBudget).toBe('Confirmer mon budget');
     expect(fr.accueil.reste(13613, 'dimanche')).toMatch(/^Il te reste 136,13.€ jusqu’à dimanche$/);
@@ -721,6 +723,10 @@ describe('parcours Maestro « bilan du mois » : budget du nouveau mois et réso
       "- assertVisible: 'Budget du mois.: 600.€'",
       '- takeScreenshot: captures/bilan-mois-budget',
       "- tapOn: 'Revenus, en euros'",
+      "- inputText: '600'",
+      "- assertVisible: 'Budget du mois.: 0.€'",
+      `- assertVisible: '${motif(b.budgetNul)}'`,
+      '- takeScreenshot: captures/bilan-mois-budget-nul',
       "- inputText: '1355'",
       "- assertVisible: 'Budget du mois.: 755.€'",
       `- tapOn: '${b.confirmerBudget}'`,
