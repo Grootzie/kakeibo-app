@@ -38,7 +38,7 @@ function levelOf(days: number): DustLevel {
 }
 
 /** La dernière semaine scellée (par numéro ISO) est incomplète : plancher de niveau 1. */
-function hasFloor(weeks: DustWeek[]): boolean {
+export function dustFloor(weeks: DustWeek[]): boolean {
   const derniere = weeks.reduce<DustWeek | null>(
     (max, w) => (max === null || w.week > max.week ? w : max),
     null,
@@ -57,5 +57,5 @@ export function dustLevel(
   installDay: DayKey,
 ): DustLevel {
   const niveau = levelOf(dustDays(today, closures, installDay));
-  return hasFloor(weeks) && niveau < 1 ? 1 : niveau;
+  return dustFloor(weeks) && niveau < 1 ? 1 : niveau;
 }

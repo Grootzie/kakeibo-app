@@ -263,6 +263,39 @@ export const fr = {
       `Pas de capsule cette semaine, et ${avecArticle(objet)} ${accord(objet, 's’est fêlé', 's’est fêlée')}. Rien n’est perdu${NBSP}: 7 jours de clôture d’affilée, et ${accord(objet, 'il sera réparé', 'elle sera réparée')} à l’or.`,
   },
 
+  /**
+   * Récapitulatif après une longue absence (E6, #63) : un seul écran pour les semaines manquées.
+   * Textes absents de « Textes et ton », proposés au propriétaire dans la demande de fusion.
+   */
+  recapitulatif: {
+    titre: 'Tes dernières semaines',
+    intro: 'Voici ce que tes dernières semaines ont donné.',
+    /** Lundi 'AAAA-MM-JJ' -> « Semaine du 2 novembre ». */
+    semaine: (lundi: string) => {
+      const [, m, j] = lundi.split('-').map(Number);
+      return `Semaine du ${j === 1 ? '1er' : j}${NBSP}${MOIS[m - 1]}`;
+    },
+    tampons: (tampons: number, jours: number) =>
+      `${tampons} tampon${tampons > 1 ? 's' : ''} sur ${jours}`,
+    dansEnveloppe: 'Dans ton enveloppe',
+    horsEnveloppe: 'Au-delà de ton enveloppe',
+    objetGagne: (nom: string) => `Objet gagné${NBSP}: ${nom}`,
+    poussiere: 'Pas de capsule, un peu de poussière',
+    objetFele: (nom: string) => `Objet fêlé${NBSP}: ${nom}`,
+    /** Une semaine lue d'un seul tenant par le lecteur d'écran. */
+    ligneLibelle: (morceaux: readonly string[]) => `${morceaux.join('. ')}.`,
+    maisonTitre: 'Ta maison',
+    maisonPropre: 'Ta maison est propre.',
+    /** « Réparation : x jours sur 7 » (Fêlure et réparation), avec le nom de l'objet. */
+    reparationEnCours: (nom: string, jours: number) =>
+      `Réparation${NBSP}: ${jours} jour${jours > 1 ? 's' : ''} sur 7 (${nom})`,
+    reparationEnsuite: (nom: string) => `À réparer ensuite${NBSP}: ${nom}`,
+    reparationAucune: 'Aucun objet à réparer.',
+    conclusion: `Rien n’est perdu${NBSP}: une clôture ce soir, et tout repart.`,
+    continuer: 'Continuer',
+    refus: 'Ton récapitulatif n’a pas pu être enregistré. Réessaie dans un instant.',
+  },
+
   /** Bilan du mois (E7) : les quatre questions, puis la validation. */
   bilanMois: {
     q1: 'Ce que j’avais',
