@@ -1,6 +1,6 @@
 # Spécifications · appli kakeibo (V1)
 
-> Copie du [document de spécifications](https://claude.ai/artifact/71tMXdJNxRnPD14BioaLJb), révision 837, exportée le 5 novembre 2026. Si les deux diffèrent, le document en ligne fait foi : le propriétaire fait ré-exporter cette copie quand il le change.
+> Copie du [document de spécifications](https://claude.ai/artifact/71tMXdJNxRnPD14BioaLJb), révision 847, exportée le 12 novembre 2026. Si les deux diffèrent, le document en ligne fait foi : le propriétaire fait ré-exporter cette copie quand il le change.
 
 ## Résumé
 
@@ -18,7 +18,7 @@ Ces principes passent avant tout le reste : une fonctionnalité qui en contredit
 
 1. **Prise de conscience, pas comptabilité.** L'utilisateur note lui-même chaque dépense. Ni import bancaire, ni scan de tickets, ni saisie automatique.
 2. **Un mois : une pièce.** Une nouvelle année : un reset de toutes les pièces et de tous les objets (mais historisés).
-3. **Récompens****er l'honnêteté plus que la vertu.** La récompense principale vient de la régularité, pas du fait de peu dépenser. Dépasser son budget coûte peu (une fêlure réparable), pour que mentir ne rapporte rien.
+3. **Récompenser l'honnêteté plus que la vertu.** La récompense principale vient de la régularité, pas du fait de peu dépenser. Dépasser son budget coûte peu (une fêlure réparable), pour que mentir ne rapporte rien.
 4. **Aucune spirale de punition.** Rien ne se perd définitivement et aucun message ne culpabilise. Une punition trop dure fait fuir l'utilisateur au moment où il en a le plus besoin (l'effet autruche).
 5. **Rapide.** Noter une dépense prend moins de 5 secondes depuis l'accueil ; clôturer sa journée, une touche.
 6. **Privé par construction.** Les données restent sur le téléphone : aucun compte, aucun serveur, aucun traceur tiers.
@@ -78,7 +78,7 @@ L'utilisateur arrive ensuite sur l'accueil, avec la pièce du mois et ses 3 obje
 
 - On y arrive par la notification du soir, par le bouton de l'accueil ou par un jour à rattraper.
 - L'écran liste les dépenses du jour avec le total par catégorie, et propose « Ajouter une dépense oubliée ».
-- Un seul bouton de validation : « J'ai tout noté » s'il y a au moins une dépense, « Rien dépensé aujourd'hui » sinon. Le tampon se pose avec une animation, puis retour à l'accueil.
+- Un seul bouton de validation : « J'ai tout noté » s'il y a au moins une dépense, « Rien dépensé aujourd'hui » sinon. Le tampon se pose avec une animation, un jeton tombe dans la machine, puis retour à l'accueil.
 - Une clôture ne s'annule pas. On peut encore ajouter une dépense oubliée à un jour clôturé tant que sa semaine est ouverte.
 
 ### E5 · Rattraper un jour
@@ -91,7 +91,7 @@ Il s'ouvre à la première ouverture de l'appli après le scellement de la semai
 
 1. Les tampons de la semaine (par exemple 7 sur 7).
 2. Le dépensé face à l'enveloppe.
-3. Le résultat, selon les règles : la capsule gashapon et l'objet de la semaine, ou la poussière ; parfois un objet qui se fêle.
+3. Le résultat, selon les règles : si la semaine a tous ses jetons, l'utilisateur tire la tirette (bouton « Tirer la tirette »), la capsule tombe et s'ouvre sur l'objet de la semaine ; sinon la poussière ; parfois un objet qui se fêle.
 4. L'objet apparaît dans la maison, avec une phrase de conclusion.
 
 Après une longue absence, un seul écran récapitule les semaines manquées.
@@ -185,7 +185,7 @@ Une semaine sans tampon ni dépense ne donne rien et ne fêle rien : l'absence n
 
 - Chaque objet du catalogue appartient à une pièce et à un emplacement. Chaque pièce a 3 objets de base et 5 emplacements d'objets à gagner.
 - Un mois, une pièce : douze pièces, de janvier à décembre. À l'installation, la pièce du mois de la semaine en cours s'ouvre avec ses 3 objets de base ; celle du mois suivant se débloque quand le bilan du mois est validé.
-- **Objet de la semaine, format gashapon :** une capsule tombe de la machine et s'ouvre sur l'objet. Pas de hasard : c'est le prochain objet non obtenu de la pièce du mois, dans l'ordre du catalogue. Une semaine appartient au mois qui contient son jeudi.
+- **Objet de la semaine, format gashapon :** chaque jour clôturé fait tomber un jeton dans la machine ; les jetons d'une semaine sont ses tampons, ils ne se gardent pas d'une semaine à l'autre et ne s'obtiennent jamais contre de l'argent ni une publicité. Si la semaine a tous ses jetons (T = N), l'utilisateur tire la tirette au bilan : une capsule tombe de la machine et s'ouvre sur l'objet. Pas de hasard : c'est le prochain objet non obtenu de la pièce du mois, dans l'ordre du catalogue. Une semaine appartient au mois qui contient son jeudi.
 - **Mois de 5 semaines :** selon l'année, un mois compte 4 ou 5 semaines. Le 5e emplacement n'apparaît que les années où le mois compte 5 semaines. Chaque semaine incomplète laisse un emplacement vide jusqu'à la fin de l'année.
 - **Pièce pas encore débloquée :** si le bilan du mois précédent n'est pas validé, l'objet gagné attend, puis entre dans sa pièce dès le déblocage. Valider un bilan débloque aussi les pièces des mois sautés depuis le précédent bilan validé (ou depuis l'installation), avec leurs objets en attente.
 - **Nouvelle année :** le lundi de la semaine 1 (norme ISO 8601), la maison repart de la pièce de janvier et de ses objets de base. La maison de l'année écoulée rejoint l'album telle quelle : objets, emplacements vides, fêlures et réparations. La file de réparation repart à zéro. La pièce de janvier s'ouvre sans attendre le bilan de décembre, qui ne débloque rien.
@@ -387,7 +387,7 @@ Décidé : la V1 est en style estampe (C), vue de face ; B et D pourront devenir
 - **Poussière :** un voile pour le niveau 1 ; voile, toile d'araignée et assombrissement de 15 % pour le niveau 2.
 - **Animations :** tampon qui se pose (0,4 s), apparition d'un objet (0,3 s), fêlure (0,2 s avec vibration), réparation à l'or (1 s). Toutes respectent le réglage « Réduire les animations ».
 - **Couleurs des catégories :** les mêmes que le carnet imprimable (Essentiel #2F4B7C, Envies #B4432D, Culture #52733A, Imprévus #97701F), ajustables au style si le contraste reste conforme. Chaque catégorie a aussi une icône et un nom : la couleur ne porte jamais seule l'information.
-- **Capsule gashapon :** la machine, une capsule aux couleurs de chaque mois et son ouverture (1,5 s) : la capsule tombe, s'ouvre en deux, l'objet en sort et rejoint son emplacement.
+- **Capsule gashapon :** la machine avec sa tirette, le jeton et sa chute dans la fente (0,4 s, avec le tampon), une capsule aux couleurs de chaque mois et son ouverture (1,5 s) : la tirette tourne, la capsule tombe, s'ouvre en deux, l'objet en sort et rejoint son emplacement.
 - **Album :** une vignette par maison passée ; chaque pièce s'y affiche en grand, telle qu'elle était à la fin de l'année.
 - **Fiche d'objet :** l'objet en grand sur fond de papier, son nom en français et en japonais (kanji et transcription), son explication et son histoire dans la maison.
 
@@ -430,7 +430,7 @@ L'appli tutoie, parle court et ne culpabilise jamais : elle explique toujours, c
 - Phrases courtes, ton bienveillant. Ni points d'exclamation en série, ni emoji.
 - Montants au format français : « 63 € » avec une espace insécable, virgule décimale.
 - Espaces insécables avant ? ! : ; et à l'intérieur des guillemets « ».
-- Vocabulaire fixe : noter, clôturer, tampon, enveloppe, fêlé, réparé à l'or, bilan, résolution, capsule, album.
+- Vocabulaire fixe : noter, clôturer, tampon, enveloppe, fêlé, réparé à l'or, bilan, résolution, capsule, jeton, tirette, album.
 - Tous les textes passent par src/i18n/fr.ts : aucun texte en dur dans les écrans.
 - Les noms d'objets viennent du catalogue avec leur article et leur genre, pour accorder les phrases : « La lanterne s'est fêlée », « Le daruma est réparé à l'or ».
 
@@ -440,9 +440,9 @@ L'appli tutoie, parle court et ne culpabilise jamais : elle explique toujours, c
 | Accueil, reste | « Il te reste 63 € jusqu'à dimanche » |
 | Accueil, dépassement | « Tu as dépassé de 12 € cette semaine » |
 | Clôture | « J'ai tout noté » · « Rien dépensé aujourd'hui » |
-| Bilan, tous les tampons, dans le budget | « Tous tes tampons, et dans ton enveloppe : une capsule tombe de la machine. » |
+| Bilan, tous les tampons, dans le budget | « Tous tes tampons, et dans ton enveloppe : tes jetons sont prêts, tire la tirette. » |
 | Ouverture de la capsule | « Un daruma entre dans ta maison. » |
-| Bilan, tous les tampons, hors budget | « Tu as tout noté, c'est l'essentiel : ta capsule est là. La lanterne s'est fêlée ; 7 jours de clôture d'affilée, et elle sera réparée à l'or. » |
+| Bilan, tous les tampons, hors budget | « Tu as tout noté, c'est l'essentiel : tes jetons sont prêts, tire la tirette. La lanterne s'est fêlée ; 7 jours de clôture d'affilée, et elle sera réparée à l'or. » |
 | Bilan, tampons manquants, dans le budget | « Il manque des tampons cette semaine, alors pas de capsule. Un peu de poussière s'est posée ; une semaine complète, et elle s'envole. » |
 | Bilan, tampons manquants, hors budget | « Pas de capsule cette semaine, et la lanterne s'est fêlée. Rien n'est perdu : 7 jours de clôture d'affilée, et elle sera réparée à l'or. » |
 | Poussière, jours sans clôture | « La maison prend la poussière. Une clôture suffit à l'aérer. » |
@@ -463,8 +463,8 @@ Chaque carte s'affiche une seule fois, au moment indiqué, puis reste dans Compr
 | Bienvenue, les catégories | « Chaque dépense va dans l'une des quatre catégories : Essentiel, Envies, Culture, Imprévus. Semaine après semaine, tu verras où va ton argent. » |
 | Bienvenue, mon mois | « Ton budget, c'est ce qui reste une fois payées tes charges fixes et mise de côté ton épargne. Il se partage en enveloppes, une par semaine. » |
 | Première dépense | « Noter soi-même chaque dépense, c'est le cœur du kakeibo : ce petit geste suffit pour y penser à deux fois. » |
-| Premier tampon | « Chaque soir, tu clôtures ta journée : tu confirmes avoir tout noté, et un tampon se pose. Au Japon, les enfants font tamponner une carte chaque matin des vacances d'été, à la gymnastique de la radio (rajio taisō). » |
-| Première capsule | « Tous tes tampons de la semaine : une capsule tombe, comme dans les gashapon, ces distributeurs de petits jouets qu'on trouve partout au Japon. Ici, pas de hasard : chaque semaine complète apporte l'objet suivant de la pièce du mois. » |
+| Premier tampon | « Chaque soir, tu clôtures ta journée : tu confirmes avoir tout noté, un tampon se pose et un jeton tombe dans la machine. Au Japon, les enfants font tamponner une carte chaque matin des vacances d'été, à la gymnastique de la radio (rajio taisō). » |
+| Première capsule | « Avec tous tes jetons de la semaine, tu tires la tirette, comme dans les gashapon, ces distributeurs de petits jouets qu'on trouve partout au Japon. Ici, pas de hasard : chaque semaine complète apporte l'objet suivant de la pièce du mois. » |
 | Premier jour à rattraper | « Tu as oublié de clôturer un soir ? Tu peux rattraper ce jour jusqu'au lundi midi qui suit sa semaine. » |
 | Première poussière | « Quand des jours restent sans tampon, la poussière se pose. Elle n'abîme jamais rien et s'envole avec une semaine complète. » |
 | Première fêlure | « Au Japon, on répare les bols cassés avec une laque saupoudrée d'or : c'est le kintsugi, l'art de montrer ses réparations plutôt que de les cacher. Ici, 7 jours de clôture d'affilée réparent l'objet à l'or, et il ne se fêlera plus. » |
@@ -616,6 +616,7 @@ Une décision t'attend (la publicité) ; pour les autres, les agents appliquent 
 | Saisie manuelle, sans lien bancaire | — | Validé | — |
 | Clôture, tampons, poussière, fêlure et réparation | — | Validé | — |
 | Tous les tampons pour l'objet de la semaine | — | Validé | — |
+| Objets rares tirés au hasard | Non en V1, à revoir après la bêta selon la régularité des testeurs | Validé | J3 |
 
 ### Nom de l'appli
 
