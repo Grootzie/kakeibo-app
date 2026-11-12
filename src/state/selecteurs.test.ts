@@ -18,6 +18,7 @@ import {
   vueAccueil,
   vueBilanMois,
   vueCloture,
+  vueBilanSemaine,
   vueRecapitulatif,
 } from './selecteurs';
 
@@ -583,5 +584,116 @@ describe('récapitulatif après une longue absence (E6, J3.3, #63)', () => {
       joursSansCloture: false,
       semaineIncomplete: true,
     });
+  });
+});
+
+describe('bilan d’une semaine (E6, J3.2, #62)', () => {
+  const jours45 = ['02', '03', '04', '05', '06', '07', '08'].map((j) => `2026-11-${j}`);
+  /** Semaine 45 : `depense` le mardi 3, chaque jour clôturé le soir sauf `sauf`. */
+  const semaine45 = (depense: number, sauf: DayKey[] = []) =>
+    etat('2026-11-02', [
+      ...(depense > 0 ? [depenser('2026-11-03', depense)] : []),
+      ...jours45.filter((j) => !sauf.includes(j)).map((j) => fermer(j)),
+      ouvrir(at('2026-11-10', '09:00')),
+    ]);
+  const rateau = {
+    id: 'rateau-porte-bonheur-kumade',
+    nom: 'râteau porte-bonheur kumade',
+    article: 'le',
+    genre: 'm',
+  };
+  const echelle = { id: 'echelle', nom: 'échelle', article: "l'", genre: 'f' };
+
+  it('tous les tampons, dans le budget : l’objet sort de sa capsule (scénario 1)', () => {
+    expect(vueBilanSemaine(semaine45(12000), catalog)).toEqual({
+      semaine: '2026-W45',
+      lundi: '2026-11-02',
+      tampons: 7,
+      jours: 7,
+      enveloppe: 14000,
+      depense: 12000,
+      dansLeBudget: true,
+      complete: true,
+      objet: rateau,
+      enAttente: null,
+      fele: null,
+    });
+  });
+
+  it('tous les tampons, hors budget : l’objet sort et l’échelle se fêle (scénario 2)', () => {
+    expect(vueBilanSemaine(semaine45(15000), catalog)).toMatchObject({
+      complete: true,
+      dansLeBudget: false,
+      objet: rateau,
+      fele: echelle,
+    });
+  });
+
+  it('tampons manquants, dans le budget : ni objet ni fêlure (scénario 3)', () => {
+    expect(vueBilanSemaine(semaine45(10000, ['2026-11-04']), catalog)).toMatchObject({
+      tampons: 6,
+      jours: 7,
+      complete: false,
+      dansLeBudget: true,
+      objet: null,
+      fele: null,
+    });
+  });
+
+  it('tampons manquants, hors budget : pas d’objet, l’échelle se fêle (scénario 4)', () => {
+    expect(vueBilanSemaine(semaine45(15000, ['2026-11-04']), catalog)).toMatchObject({
+      complete: false,
+      objet: null,
+      fele: echelle,
+    });
+  });
+
+  it('une semaine sans tampon ni dépense ne donne ni objet ni fêlure', () => {
+    expect(vueBilanSemaine(semaine45(0, jours45), catalog)).toMatchObject({
+      tampons: 0,
+      depense: 0,
+      complete: false,
+      objet: null,
+      fele: null,
+    });
+  });
+
+  it('compte les jours décomptés la semaine de l’installation (scénario 7)', () => {
+    const s = etat('2026-11-05', [
+      depenser('2026-11-05', 7000),
+      ...['05', '06', '07', '08'].map((j) => fermer(`2026-11-${j}`)),
+      ouvrir(at('2026-11-09', '09:00')),
+    ]);
+    expect(vueBilanSemaine(s, catalog)).toMatchObject({
+      tampons: 4,
+      jours: 4,
+      enveloppe: 8000,
+      objet: rateau,
+    });
+  });
+
+  it('dit l’objet en attente de sa pièce (scénario 18)', () => {
+    const jours: DayKey[] = [];
+    for (let j = 23; j <= 30; j++) jours.push(`2026-11-${j}`);
+    for (let j = 1; j <= 6; j++) jours.push(`2026-12-0${j}`);
+    let s = etat(
+      '2026-11-23',
+      jours.slice(0, 7).map((j) => fermer(j)),
+    );
+    s = process(s, { type: 'week_reviews_seen' }, at('2026-11-29', '21:01'), catalog).state;
+    for (const j of jours.slice(7))
+      s = process(s, { type: 'close_day', day: j }, at(j), catalog).state;
+    expect(vueBilanSemaine(s, catalog)).toMatchObject({
+      semaine: '2026-W49',
+      objet: { id: 'mortier-et-maillet-a-mochi', article: 'le' },
+      enAttente: { moisPiece: '2026-12', moisBilan: '2026-11' },
+    });
+  });
+
+  it('rien quand aucune semaine n’attend, ou quand c’est le récapitulatif', () => {
+    expect(vueBilanSemaine(etat('2026-11-02', []), catalog)).toBeNull();
+    const s = etat('2026-11-02', [ouvrir(at('2026-11-18', '09:00'))]);
+    expect(bilansAAfficher(s).semaines?.kind).toBe('recap');
+    expect(vueBilanSemaine(s, catalog)).toBeNull();
   });
 });

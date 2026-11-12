@@ -25,7 +25,7 @@ export function HorlogeDev() {
   // En attendant E1 (J5) : la demande d'autorisation du rappel du soir.
   const autoriserRappel = async () =>
     setRappel(await kakeibo.getState().demanderAutorisationRappel());
-  // En attendant E6 (J3.2), qui marquera lui-même les bilans de semaine vus.
+  // Raccourci des parcours : E6 (J3.2) marque lui-même les bilans de semaine vus.
   const marquerBilansVus = async () => {
     await kakeibo.getState().marquerBilansVus();
     setBilansVus(true);

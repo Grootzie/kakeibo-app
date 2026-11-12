@@ -47,25 +47,38 @@ appId: app.kakeibo
     timeout: 10000
 - tapOn: 'Fermer l’explication .*Premier tampon.*'
 - assertVisible: 'Journée clôturée'
-# 2. Trois semaines sans ouvrir le bilan : mercredi 25 novembre. Une carte de première fois
-#    peut s'ouvrir au-dessus du panneau : on le retrouve avant chaque appui.
+# 2. Trois semaines sans faire le bilan : mercredi 25 novembre. Chaque semaine scellée ouvre son
+#    bilan de lui-même (E6, J3.2) : on revient à l'accueil sans le faire. Une carte de première
+#    fois peut s'ouvrir au-dessus du panneau : on le retrouve avant chaque appui.
 - scrollUntilVisible:
     element:
       text: '\+1 semaine'
     direction: DOWN
 - tapOn: '\+1 semaine'
+- extendedWaitUntil:
+    visible: 'Temps 1 sur 4'
+    timeout: 10000
+- tapOn: 'Retour à l’accueil'
 - assertVisible: 'Décalage.: 7 jours'
 - scrollUntilVisible:
     element:
       text: '\+1 semaine'
     direction: DOWN
 - tapOn: '\+1 semaine'
+- extendedWaitUntil:
+    visible: 'Tes dernières semaines'
+    timeout: 10000
+- tapOn: 'Retour à l’accueil'
 - assertVisible: 'Décalage.: 14 jours'
 - scrollUntilVisible:
     element:
       text: '\+1 semaine'
     direction: DOWN
 - tapOn: '\+1 semaine'
+- extendedWaitUntil:
+    visible: 'Tes dernières semaines'
+    timeout: 10000
+- tapOn: 'Retour à l’accueil'
 - assertVisible: 'Décalage.: 21 jours'
 - scrollUntilVisible:
     element:

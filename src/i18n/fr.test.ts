@@ -196,3 +196,86 @@ describe('récapitulatif après une longue absence (E6, #63)', () => {
     expect(r.conclusion).toBe(`Rien n’est perdu${N}: une clôture ce soir, et tout repart.`);
   });
 });
+
+describe('bilan de la semaine (E6, #62)', () => {
+  const N = ' ';
+  const lanterne = { nom: 'lanterne', article: 'la', genre: 'f' } as const;
+  const daruma = { nom: 'daruma', article: 'le', genre: 'm' } as const;
+  const echelle = { nom: 'échelle', article: "l'", genre: 'f' } as const;
+  const etageres = { nom: 'étagères', article: 'les', genre: 'f' } as const;
+  const kakis = { nom: 'kakis séchés', article: 'les', genre: 'm' } as const;
+
+  it('reprend mot pour mot les quatre textes du résultat (spec, révision 847)', () => {
+    expect(fr.bilan.toutTamponsDansBudget).toBe(
+      `Tous tes tampons, et dans ton enveloppe${N}: tes jetons sont prêts, tire la tirette.`,
+    );
+    expect(fr.bilan.toutTamponsHorsBudget(lanterne)).toBe(
+      `Tu as tout noté, c’est l’essentiel${N}: tes jetons sont prêts, tire la tirette. La lanterne s’est fêlée${N}; 7 jours de clôture d’affilée, et elle sera réparée à l’or.`,
+    );
+    expect(fr.bilan.manqueDansBudget).toBe(
+      `Il manque des tampons cette semaine, alors pas de capsule. Un peu de poussière s’est posée${N}; une semaine complète, et elle s’envole.`,
+    );
+    expect(fr.bilan.manqueHorsBudget(lanterne)).toBe(
+      `Pas de capsule cette semaine, et la lanterne s’est fêlée. Rien n’est perdu${N}: 7 jours de clôture d’affilée, et elle sera réparée à l’or.`,
+    );
+  });
+
+  it('sans objet à fêler, la phrase de la fêlure tombe (scénario 13)', () => {
+    expect(fr.bilan.toutTamponsHorsBudget(null)).toBe(
+      `Tu as tout noté, c’est l’essentiel${N}: tes jetons sont prêts, tire la tirette.`,
+    );
+  });
+
+  it('ouvre la capsule sur l’objet, avec l’article indéfini et l’accord', () => {
+    expect(fr.messages.ouvertureCapsule(daruma)).toBe('Un daruma entre dans ta maison.');
+    expect(fr.messages.ouvertureCapsule(lanterne)).toBe('Une lanterne entre dans ta maison.');
+    expect(fr.messages.ouvertureCapsule(echelle)).toBe('Une échelle entre dans ta maison.');
+    expect(fr.messages.ouvertureCapsule(kakis)).toBe('Des kakis séchés entrent dans ta maison.');
+  });
+
+  it('accorde la fêlure et la réparation en genre et en nombre, avec l’élision', () => {
+    expect(fr.messages.fele(echelle)).toBe('L’échelle s’est fêlée.');
+    expect(fr.messages.fele(etageres)).toBe('Les étagères se sont fêlées.');
+    expect(fr.messages.fele(kakis)).toBe('Les kakis séchés se sont fêlés.');
+    expect(fr.bilan.manqueHorsBudget(etageres)).toBe(
+      `Pas de capsule cette semaine, et les étagères se sont fêlées. Rien n’est perdu${N}: 7 jours de clôture d’affilée, et elles seront réparées à l’or.`,
+    );
+    expect(fr.bilan.toutTamponsHorsBudget(kakis)).toContain(
+      `Les kakis séchés se sont fêlés${N}; 7 jours de clôture d’affilée, et ils seront réparés à l’or.`,
+    );
+    expect(fr.messages.repare(etageres)).toBe('Les étagères sont réparées à l’or.');
+    expect(fr.messages.reparation(lanterne)).toBe(
+      'Réparée à l’or, la lanterne garde la trace de cette semaine-là.',
+    );
+    expect(fr.messages.reparation(kakis)).toBe(
+      'Réparés à l’or, les kakis séchés gardent la trace de cette semaine-là.',
+    );
+  });
+
+  it('dit l’objet en attente de sa pièce', () => {
+    expect(fr.messages.objetEnAttente('2026-12', '2026-11')).toBe(
+      `Ton objet attend la pièce de décembre${N}: elle s’ouvrira avec le bilan de novembre.`,
+    );
+  });
+
+  it('nomme les quatre temps, les tampons et le dépensé', () => {
+    const b = fr.bilanSemaine;
+    expect(b.temps(1)).toBe('Temps 1 sur 4');
+    expect(b.tamponsSur(7, 7)).toBe('7 sur 7');
+    expect(b.tamponsSur(4, 4)).toBe('4 sur 4');
+    expect(b.depense(12000, 14000)).toBe(`Dépensé${N}: 120${N}€ sur 140${N}€`);
+    expect(b.tirer).toBe('Tirer la tirette');
+    expect(b.nomObjet(echelle)).toBe('L’échelle');
+  });
+
+  it('garde le vocabulaire fixe, jeton et tirette compris', () => {
+    expect(fr.vocabulaire.jeton).toBe('Jeton');
+    expect(fr.vocabulaire.tirette).toBe('Tirette');
+  });
+
+  it('constate et encourage, sans reproche', () => {
+    collectStrings(fr.bilanSemaine).forEach((t) =>
+      expect(t).not.toMatch(/dommage|hélas|malheureusement|trop|échec|oublié|raté|absen/i),
+    );
+  });
+});

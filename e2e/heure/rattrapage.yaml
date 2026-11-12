@@ -78,12 +78,17 @@ appId: app.kakeibo
     visible: 'Journée clôturée'
     timeout: 10000
 - assertVisible: 'Tu peux encore rattraper jeudi.5.novembre\.'
-# Mardi 10 novembre à 9:00 : le lundi 12:00 est passé, la semaine de jeudi est scellée.
+# Mardi 10 novembre à 9:00 : le lundi 12:00 est passé, la semaine de jeudi est scellée. Son
+# bilan (E6, J3.2) s'ouvre de lui-même ; on revient à l'accueil sans le faire.
 - scrollUntilVisible:
     element:
       text: '\+1 jour'
     direction: DOWN
 - tapOn: '\+1 jour'
+- extendedWaitUntil:
+    visible: 'Temps 1 sur 4'
+    timeout: 10000
+- tapOn: 'Retour à l’accueil'
 - assertVisible: 'Décalage.: 6 jours'
 - scrollUntilVisible:
     element:

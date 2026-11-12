@@ -79,665 +79,855 @@
       "room": "room-01",
       "rank": 1,
       "source": "base",
-      "name": "porte coulissante"
+      "name": "porte coulissante",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "meuble-a-chaussures",
       "room": "room-01",
       "rank": 2,
       "source": "base",
-      "name": "meuble à chaussures"
+      "name": "meuble à chaussures",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "porte-parapluies",
       "room": "room-01",
       "rank": 3,
       "source": "base",
-      "name": "porte-parapluies"
+      "name": "porte-parapluies",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "kadomatsu",
       "room": "room-01",
       "rank": 1,
       "source": "weekly",
-      "name": "kadomatsu"
+      "name": "kadomatsu",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "shimekazari",
       "room": "room-01",
       "rank": 2,
       "source": "weekly",
-      "name": "shimekazari"
+      "name": "shimekazari",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "kagami-mochi",
       "room": "room-01",
       "rank": 3,
       "source": "weekly",
-      "name": "kagami-mochi"
+      "name": "kagami-mochi",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "daruma",
       "room": "room-01",
       "rank": 4,
       "source": "weekly",
-      "name": "daruma"
+      "name": "daruma",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "raquette-hagoita",
       "room": "room-01",
       "rank": 5,
       "source": "weekly",
-      "name": "raquette hagoita"
+      "name": "raquette hagoita",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "kotatsu",
       "room": "room-02",
       "rank": 1,
       "source": "base",
-      "name": "kotatsu"
+      "name": "kotatsu",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "coussins-zabuton",
       "room": "room-02",
       "rank": 2,
       "source": "base",
-      "name": "coussins zabuton"
+      "name": "coussins zabuton",
+      "article": "les",
+      "gender": "m"
     },
     {
       "id": "commode-tansu",
       "room": "room-02",
       "rank": 3,
       "source": "base",
-      "name": "commode tansu"
+      "name": "commode tansu",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "haricots-grilles-dans-leur-boite",
       "room": "room-02",
       "rank": 1,
       "source": "weekly",
-      "name": "haricots grillés dans leur boîte"
+      "name": "haricots grillés dans leur boîte",
+      "article": "les",
+      "gender": "m"
     },
     {
       "id": "masque-d-oni",
       "room": "room-02",
       "rank": 2,
       "source": "weekly",
-      "name": "masque d’oni"
+      "name": "masque d’oni",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "masque-d-otafuku",
       "room": "room-02",
       "rank": 3,
       "source": "weekly",
-      "name": "masque d’Otafuku"
+      "name": "masque d’Otafuku",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "branche-de-prunier-en-fleur",
       "room": "room-02",
       "rank": 4,
       "source": "weekly",
-      "name": "branche de prunier en fleur"
+      "name": "branche de prunier en fleur",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "tatamis",
       "room": "room-03",
       "rank": 1,
       "source": "base",
-      "name": "tatamis"
+      "name": "tatamis",
+      "article": "les",
+      "gender": "m"
     },
     {
       "id": "shoji",
       "room": "room-03",
       "rank": 2,
       "source": "base",
-      "name": "shōji"
+      "name": "shōji",
+      "article": "les",
+      "gender": "m"
     },
     {
       "id": "table-basse",
       "room": "room-03",
       "rank": 3,
       "source": "base",
-      "name": "table basse"
+      "name": "table basse",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "poupees-de-l-empereur-et-de-l-imperatrice",
       "room": "room-03",
       "rank": 1,
       "source": "weekly",
-      "name": "poupées de l’empereur et de l’impératrice"
+      "name": "poupées de l’empereur et de l’impératrice",
+      "article": "les",
+      "gender": "f"
     },
     {
       "id": "lampes-bonbori",
       "room": "room-03",
       "rank": 2,
       "source": "weekly",
-      "name": "lampes bonbori"
+      "name": "lampes bonbori",
+      "article": "les",
+      "gender": "f"
     },
     {
       "id": "gateaux-hishi-mochi",
       "room": "room-03",
       "rank": 3,
       "source": "weekly",
-      "name": "gâteaux hishi-mochi"
+      "name": "gâteaux hishi-mochi",
+      "article": "les",
+      "gender": "m"
     },
     {
       "id": "branche-de-pecher-en-fleur",
       "room": "room-03",
       "rank": 4,
       "source": "weekly",
-      "name": "branche de pêcher en fleur"
+      "name": "branche de pêcher en fleur",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "paravent-dore",
       "room": "room-03",
       "rank": 5,
       "source": "weekly",
-      "name": "paravent doré"
+      "name": "paravent doré",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "gravier-ratisse",
       "room": "room-04",
       "rank": 1,
       "source": "base",
-      "name": "gravier ratissé"
+      "name": "gravier ratissé",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "palissade-de-bambou",
       "room": "room-04",
       "rank": 2,
       "source": "base",
-      "name": "palissade de bambou"
+      "name": "palissade de bambou",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "pas-japonais",
       "room": "room-04",
       "rank": 3,
       "source": "base",
-      "name": "pas japonais"
+      "name": "pas japonais",
+      "article": "les",
+      "gender": "m"
     },
     {
       "id": "cerisier",
       "room": "room-04",
       "rank": 1,
       "source": "weekly",
-      "name": "cerisier"
+      "name": "cerisier",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "lanterne-de-pierre",
       "room": "room-04",
       "rank": 2,
       "source": "weekly",
-      "name": "lanterne de pierre"
+      "name": "lanterne de pierre",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "brochettes-de-dango-tricolores",
       "room": "room-04",
       "rank": 3,
       "source": "weekly",
-      "name": "brochettes de dango tricolores"
+      "name": "brochettes de dango tricolores",
+      "article": "les",
+      "gender": "f"
     },
     {
       "id": "coupelles-de-sake",
       "room": "room-04",
       "rank": 4,
       "source": "weekly",
-      "name": "coupelles de saké"
+      "name": "coupelles de saké",
+      "article": "les",
+      "gender": "f"
     },
     {
       "id": "lanternes-de-papier",
       "room": "room-04",
       "rank": 5,
       "source": "weekly",
-      "name": "lanternes de papier"
+      "name": "lanternes de papier",
+      "article": "les",
+      "gender": "f"
     },
     {
       "id": "baignoire-en-hinoki",
       "room": "room-05",
       "rank": 1,
       "source": "base",
-      "name": "baignoire en hinoki"
+      "name": "baignoire en hinoki",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "seau-et-tabouret-en-bois",
       "room": "room-05",
       "rank": 2,
       "source": "base",
-      "name": "seau et tabouret en bois"
+      "name": "seau et tabouret en bois",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "panier-a-vetements",
       "room": "room-05",
       "rank": 3,
       "source": "base",
-      "name": "panier à vêtements"
+      "name": "panier à vêtements",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "feuilles-d-iris-du-bain-shobu-yu",
       "room": "room-05",
       "rank": 1,
       "source": "weekly",
-      "name": "feuilles d’iris du bain shōbu-yu"
+      "name": "feuilles d’iris du bain shōbu-yu",
+      "article": "les",
+      "gender": "f"
     },
     {
       "id": "casque-de-samourai-en-papier-plie",
       "room": "room-05",
       "rank": 2,
       "source": "weekly",
-      "name": "casque de samouraï en papier plié"
+      "name": "casque de samouraï en papier plié",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "petites-carpes-koinobori",
       "room": "room-05",
       "rank": 3,
       "source": "weekly",
-      "name": "petites carpes koinobori"
+      "name": "petites carpes koinobori",
+      "article": "les",
+      "gender": "f"
     },
     {
       "id": "serviette-tenugui",
       "room": "room-05",
       "rank": 4,
       "source": "weekly",
-      "name": "serviette tenugui"
+      "name": "serviette tenugui",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "pistolet-a-eau-en-bambou",
       "room": "room-05",
       "rank": 5,
       "source": "weekly",
-      "name": "pistolet à eau en bambou"
+      "name": "pistolet à eau en bambou",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "fourneau-kamado",
       "room": "room-06",
       "rank": 1,
       "source": "base",
-      "name": "fourneau kamado"
+      "name": "fourneau kamado",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "plan-de-travail",
       "room": "room-06",
       "rank": 2,
       "source": "base",
-      "name": "plan de travail"
+      "name": "plan de travail",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "etagere-a-bols",
       "room": "room-06",
       "rank": 3,
       "source": "base",
-      "name": "étagère à bols"
+      "name": "étagère à bols",
+      "article": "l'",
+      "gender": "f"
     },
     {
       "id": "bocal-d-umeshu",
       "room": "room-06",
       "rank": 1,
       "source": "weekly",
-      "name": "bocal d’umeshu"
+      "name": "bocal d’umeshu",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "teru-teru-bozu",
       "room": "room-06",
       "rank": 2,
       "source": "weekly",
-      "name": "teru teru bōzu"
+      "name": "teru teru bōzu",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "hortensias",
       "room": "room-06",
       "rank": 3,
       "source": "weekly",
-      "name": "hortensias"
+      "name": "hortensias",
+      "article": "les",
+      "gender": "m"
     },
     {
       "id": "grenouille-porte-bonheur",
       "room": "room-06",
       "rank": 4,
       "source": "weekly",
-      "name": "grenouille porte-bonheur"
+      "name": "grenouille porte-bonheur",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "ombrelle-en-papier-huile",
       "room": "room-06",
       "rank": 5,
       "source": "weekly",
-      "name": "ombrelle en papier huilé"
+      "name": "ombrelle en papier huilé",
+      "article": "l'",
+      "gender": "f"
     },
     {
       "id": "bureau-bas",
       "room": "room-07",
       "rank": 1,
       "source": "base",
-      "name": "bureau bas"
+      "name": "bureau bas",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "bibliotheque",
       "room": "room-07",
       "rank": 2,
       "source": "base",
-      "name": "bibliothèque"
+      "name": "bibliothèque",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "lampe-andon",
       "room": "room-07",
       "rank": 3,
       "source": "base",
-      "name": "lampe andon"
+      "name": "lampe andon",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "bambou-aux-v-ux-tanzaku",
       "room": "room-07",
       "rank": 1,
       "source": "weekly",
-      "name": "bambou aux vœux tanzaku"
+      "name": "bambou aux vœux tanzaku",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "carillon-a-vent-furin",
       "room": "room-07",
       "rank": 2,
       "source": "weekly",
-      "name": "carillon à vent fūrin"
+      "name": "carillon à vent fūrin",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "necessaire-de-calligraphie",
       "room": "room-07",
       "rank": 3,
       "source": "weekly",
-      "name": "nécessaire de calligraphie"
+      "name": "nécessaire de calligraphie",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "volubilis-en-pot",
       "room": "room-07",
       "rank": 4,
       "source": "weekly",
-      "name": "volubilis en pot"
+      "name": "volubilis en pot",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "eventail-uchiwa",
       "room": "room-07",
       "rank": 5,
       "source": "weekly",
-      "name": "éventail uchiwa"
+      "name": "éventail uchiwa",
+      "article": "l'",
+      "gender": "m"
     },
     {
       "id": "plancher-de-la-veranda",
       "room": "room-08",
       "rank": 1,
       "source": "base",
-      "name": "plancher de la véranda"
+      "name": "plancher de la véranda",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "store-en-bambou",
       "room": "room-08",
       "rank": 2,
       "source": "base",
-      "name": "store en bambou"
+      "name": "store en bambou",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "pierre-de-seuil",
       "room": "room-08",
       "rank": 3,
       "source": "base",
-      "name": "pierre de seuil"
+      "name": "pierre de seuil",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "porte-encens-kayari-buta",
       "room": "room-08",
       "rank": 1,
       "source": "weekly",
-      "name": "porte-encens kayari-buta"
+      "name": "porte-encens kayari-buta",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "pasteque",
       "room": "room-08",
       "rank": 2,
       "source": "weekly",
-      "name": "pastèque"
+      "name": "pastèque",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "cheval-et-vache-d-obon",
       "room": "room-08",
       "rank": 3,
       "source": "weekly",
-      "name": "cheval et vache d’Obon"
+      "name": "cheval et vache d’Obon",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "lanterne-d-obon",
       "room": "room-08",
       "rank": 4,
       "source": "weekly",
-      "name": "lanterne d’Obon"
+      "name": "lanterne d’Obon",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "cierges-magiques-senko-hanabi",
       "room": "room-08",
       "rank": 5,
       "source": "weekly",
-      "name": "cierges magiques senkō-hanabi"
+      "name": "cierges magiques senkō-hanabi",
+      "article": "les",
+      "gender": "m"
     },
     {
       "id": "alcove-tokonoma",
       "room": "room-09",
       "rank": 1,
       "source": "base",
-      "name": "alcôve tokonoma"
+      "name": "alcôve tokonoma",
+      "article": "l'",
+      "gender": "f"
     },
     {
       "id": "brasero-et-bouilloire",
       "room": "room-09",
       "rank": 2,
       "source": "base",
-      "name": "brasero et bouilloire"
+      "name": "brasero et bouilloire",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "petite-porte-nijiriguchi",
       "room": "room-09",
       "rank": 3,
       "source": "base",
-      "name": "petite porte nijiriguchi"
+      "name": "petite porte nijiriguchi",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "dango-de-tsukimi",
       "room": "room-09",
       "rank": 1,
       "source": "weekly",
-      "name": "dango de Tsukimi"
+      "name": "dango de Tsukimi",
+      "article": "les",
+      "gender": "m"
     },
     {
       "id": "eulalie-en-vase",
       "room": "room-09",
       "rank": 2,
       "source": "weekly",
-      "name": "eulalie en vase"
+      "name": "eulalie en vase",
+      "article": "l'",
+      "gender": "f"
     },
     {
       "id": "lapin-de-la-lune",
       "room": "room-09",
       "rank": 3,
       "source": "weekly",
-      "name": "lapin de la lune"
+      "name": "lapin de la lune",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "bol-a-the",
       "room": "room-09",
       "rank": 4,
       "source": "weekly",
-      "name": "bol à thé"
+      "name": "bol à thé",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "rouleau-a-la-lune",
       "room": "room-09",
       "rank": 5,
       "source": "weekly",
-      "name": "rouleau à la lune"
+      "name": "rouleau à la lune",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "foyer-irori",
       "room": "room-10",
       "rank": 1,
       "source": "base",
-      "name": "foyer irori"
+      "name": "foyer irori",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "cremaillere-jizai-kagi",
       "room": "room-10",
       "rank": 2,
       "source": "base",
-      "name": "crémaillère jizai-kagi"
+      "name": "crémaillère jizai-kagi",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "nattes-de-paille",
       "room": "room-10",
       "rank": 3,
       "source": "base",
-      "name": "nattes de paille"
+      "name": "nattes de paille",
+      "article": "les",
+      "gender": "f"
     },
     {
       "id": "kakis-seches",
       "room": "room-10",
       "rank": 1,
       "source": "weekly",
-      "name": "kakis séchés"
+      "name": "kakis séchés",
+      "article": "les",
+      "gender": "m"
     },
     {
       "id": "panier-de-chataignes",
       "room": "room-10",
       "rank": 2,
       "source": "weekly",
-      "name": "panier de châtaignes"
+      "name": "panier de châtaignes",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "bouilloire-en-fonte",
       "room": "room-10",
       "rank": 3,
       "source": "weekly",
-      "name": "bouilloire en fonte"
+      "name": "bouilloire en fonte",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "branche-d-erable-rouge",
       "room": "room-10",
       "rank": 4,
       "source": "weekly",
-      "name": "branche d’érable rouge"
+      "name": "branche d’érable rouge",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "sac-de-riz-nouveau",
       "room": "room-10",
       "rank": 5,
       "source": "weekly",
-      "name": "sac de riz nouveau"
+      "name": "sac de riz nouveau",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "etageres",
       "room": "room-11",
       "rank": 1,
       "source": "base",
-      "name": "étagères"
+      "name": "étagères",
+      "article": "les",
+      "gender": "f"
     },
     {
       "id": "coffre-nagamochi",
       "room": "room-11",
       "rank": 2,
       "source": "base",
-      "name": "coffre nagamochi"
+      "name": "coffre nagamochi",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "echelle",
       "room": "room-11",
       "rank": 3,
       "source": "base",
-      "name": "échelle"
+      "name": "échelle",
+      "article": "l'",
+      "gender": "f"
     },
     {
       "id": "rateau-porte-bonheur-kumade",
       "room": "room-11",
       "rank": 1,
       "source": "weekly",
-      "name": "râteau porte-bonheur kumade"
+      "name": "râteau porte-bonheur kumade",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "chat-porte-bonheur",
       "room": "room-11",
       "rank": 2,
       "source": "weekly",
-      "name": "chat porte-bonheur"
+      "name": "chat porte-bonheur",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "boulier-soroban",
       "room": "room-11",
       "rank": 3,
       "source": "weekly",
-      "name": "boulier soroban"
+      "name": "boulier soroban",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "sucres-d-orge-chitose-ame",
       "room": "room-11",
       "rank": 4,
       "source": "weekly",
-      "name": "sucres d’orge chitose-ame"
+      "name": "sucres d’orge chitose-ame",
+      "article": "les",
+      "gender": "m"
     },
     {
       "id": "maillet-de-la-fortune",
       "room": "room-11",
       "rank": 5,
       "source": "weekly",
-      "name": "maillet de la fortune"
+      "name": "maillet de la fortune",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "jarre-a-eau",
       "room": "room-12",
       "rank": 1,
       "source": "base",
-      "name": "jarre à eau"
+      "name": "jarre à eau",
+      "article": "la",
+      "gender": "f"
     },
     {
       "id": "banc-de-bois",
       "room": "room-12",
       "rank": 2,
       "source": "base",
-      "name": "banc de bois"
+      "name": "banc de bois",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "sandales-de-paille",
       "room": "room-12",
       "rank": 3,
       "source": "base",
-      "name": "sandales de paille"
+      "name": "sandales de paille",
+      "article": "les",
+      "gender": "f"
     },
     {
       "id": "mortier-et-maillet-a-mochi",
       "room": "room-12",
       "rank": 1,
       "source": "weekly",
-      "name": "mortier et maillet à mochi"
+      "name": "mortier et maillet à mochi",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "balai-du-grand-menage",
       "room": "room-12",
       "rank": 2,
       "source": "weekly",
-      "name": "balai du grand ménage"
+      "name": "balai du grand ménage",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "soba-du-reveillon",
       "room": "room-12",
       "rank": 3,
       "source": "weekly",
-      "name": "soba du réveillon"
+      "name": "soba du réveillon",
+      "article": "les",
+      "gender": "f"
     },
     {
       "id": "panier-de-yuzu",
       "room": "room-12",
       "rank": 4,
       "source": "weekly",
-      "name": "panier de yuzu"
+      "name": "panier de yuzu",
+      "article": "le",
+      "gender": "m"
     },
     {
       "id": "boites-a-osechi",
       "room": "room-12",
       "rank": 5,
       "source": "weekly",
-      "name": "boîtes à osechi"
+      "name": "boîtes à osechi",
+      "article": "les",
+      "gender": "f"
     }
   ]
 }
