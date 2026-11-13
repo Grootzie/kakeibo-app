@@ -1,5 +1,6 @@
 // Clôturer ma journée (E4) : dépenses du jour et total par catégorie, « Ajouter une dépense
-// oubliée » (E3 sur ce jour), un seul bouton de validation, puis le tampon et retour à l'accueil.
+// oubliée » (E3 sur ce jour), un seul bouton de validation, puis le tampon, le jeton qui tombe
+// dans la machine (J3.8) et retour à l'accueil.
 // Pour un jour passé, c'est « Rattraper un jour » (E5) : le même écran, avec un titre explicite,
 // qui ne s'ouvre que tant que le jour est rattrapable (jusqu'au lundi 12:00 qui suit sa semaine).
 // Ne parle qu'au store, qui seul appelle le domaine et les dépôts.
@@ -18,6 +19,7 @@ import { MessageAnnuler } from '../depense/MessageAnnuler';
 import { CarteExplication } from '../explication/CarteExplication';
 import { useCarteExplication } from '../explication/useCarteExplication';
 import { theme } from '../theme';
+import { Jeton } from './Jeton';
 import { Tampon, useMoinsAnimations } from './Tampon';
 
 /** Temps pendant lequel le tampon reste à l'écran avant le retour à l'accueil. */
@@ -114,7 +116,7 @@ export function EcranCloture({ store, jour, onTerminer }: PropsEcranCloture) {
       setRefus(refusal);
       return;
     }
-    AccessibilityInfo.announceForAccessibility(fr.cloture.tamponPose(vue.jour));
+    AccessibilityInfo.announceForAccessibility(fr.cloture.tamponEtJeton(vue.jour));
     setPose(true);
   };
 
@@ -298,9 +300,11 @@ export function EcranCloture({ store, jour, onTerminer }: PropsEcranCloture) {
             left: 0,
             alignItems: 'center',
             justifyContent: 'center',
+            gap: 32,
           }}
         >
           <Tampon jour={vue.jour} reduit={reduit} />
+          <Jeton reduit={reduit} />
         </View>
       )}
 

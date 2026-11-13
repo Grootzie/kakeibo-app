@@ -1,7 +1,7 @@
 # Parcours « Clôturer ma journée » (E4, #45) : depuis l'accueil, « Rien dépensé aujourd'hui »
 # sans dépense, une dépense oubliée notée sur ce jour fait passer le bouton à « J'ai tout noté »,
-# le tampon se pose, puis retour à l'accueil, où la case est clôturée et le bouton
-# « Journée clôturée ». Une clôture ne s'annule pas : le parcours finit en effaçant les données
+# le tampon se pose et un jeton tombe dans la machine (J3.8, #74), puis retour à l'accueil, où
+# la case est clôturée et le bouton « Journée clôturée ». Une clôture ne s'annule pas : le parcours finit en effaçant les données
 # de l'appli, pour que les autres parcours retrouvent une journée à clôturer.
 appId: app.kakeibo
 ---
@@ -23,6 +23,7 @@ appId: app.kakeibo
 - assertVisible: 'J’ai tout noté'
 - takeScreenshot: captures/cloturer-tout-note
 - tapOn: 'J’ai tout noté'
+- assertVisible: 'Machine à capsules.: un jeton tombe dans la fente\.'
 - takeScreenshot: captures/tampon
 - extendedWaitUntil:
     visible: 'Journée clôturée'
