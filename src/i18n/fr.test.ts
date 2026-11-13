@@ -150,6 +150,23 @@ describe('bilan du mois (E7, #64)', () => {
   });
 });
 
+describe('jeton du soir (J3.8, #74)', () => {
+  it('« Premier tampon » parle du jeton, avec le texte de la révision 847 (J3.8, #74)', () => {
+    expect(fr.explications.premierTampon).toBe(
+      'Chaque soir, tu clôtures ta journée\u00a0: tu confirmes avoir tout noté, un tampon se pose et un jeton tombe dans la machine. Au Japon, les enfants font tamponner une carte chaque matin des vacances d’été, à la gymnastique de la radio (rajio taisō).',
+    );
+  });
+
+  it('annonce le tampon et le jeton d’une seule phrase au lecteur d’écran (J3.8, #74)', () => {
+    expect(fr.cloture.tamponEtJeton('2026-11-04')).toBe(
+      'Tampon posé sur mercredi 4\u00a0novembre. Un jeton tombe dans la machine.',
+    );
+    expect(fr.cloture.machineLibelle).toBe(
+      'Machine à capsules\u00a0: un jeton tombe dans la fente.',
+    );
+  });
+});
+
 describe('récapitulatif après une longue absence (E6, #63)', () => {
   const N = '\u00a0';
   const r = fr.recapitulatif;
