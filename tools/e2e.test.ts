@@ -80,6 +80,20 @@ describe('parcours Maestro « Clôturer ma journée » (#45)', () => {
     expect(fr.accueil.caseLibelle('2026-11-06', 'cloturee')).toMatch(/^.*, clôturé$/);
   });
 
+  it('voit le jeton tomber dans la machine avec le tampon, avant la capture (J3.8, #74)', () => {
+    const jeton = "- assertVisible: 'Machine à capsules.: un jeton tombe dans la fente\\.'";
+    expect(fr.cloture.machineLibelle).toMatch(
+      /^Machine à capsules.: un jeton tombe dans la fente\.$/,
+    );
+    expect(parcours).toContain(jeton);
+    expect(parcours.indexOf(`- tapOn: '${fr.cloture.toutNote}'`)).toBeLessThan(
+      parcours.indexOf(jeton),
+    );
+    expect(parcours.indexOf(jeton)).toBeLessThan(
+      parcours.indexOf('- takeScreenshot: captures/tampon'),
+    );
+  });
+
   it('ne ferme pas le clavier et prend les quatre captures', () => {
     expect(parcours).not.toMatch(/^- hideKeyboard/m);
     for (const nom of ['cloturer-rien-depense', 'cloturer-tout-note', 'tampon', 'journee-cloturee'])

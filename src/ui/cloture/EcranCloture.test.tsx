@@ -12,6 +12,7 @@ import { fr } from '../../i18n/fr';
 import { createClock } from '../../state/clock';
 import { type KakeiboStore, createKakeiboStore } from '../../state/store';
 import { DUREE_TAMPON_MS, EcranCloture } from './EcranCloture';
+import { DUREE_CHUTE_JETON_MS } from './Jeton';
 import { DUREE_CHUTE_MS, DUREE_FONDU_MS } from './Tampon';
 
 const VENDREDI = '2026-11-06';
@@ -156,7 +157,7 @@ describe('le tampon', () => {
     expect(screen.getByTestId('tampon')).toBeOnTheScreen();
     expect(screen.getByText(fr.cloture.tampon)).toBeOnTheScreen();
     expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
-      'Tampon posé sur vendredi 6 novembre.',
+      'Tampon posé sur vendredi 6 novembre. Un jeton tombe dans la machine.',
     );
     await act(() => jest.advanceTimersByTime(DUREE_TAMPON_MS - 1));
     expect(onTerminer).not.toHaveBeenCalled();
@@ -187,6 +188,66 @@ describe('le tampon', () => {
     // Déjà posé : ni agrandi ni tourné davantage, seul un court fondu le fait apparaître.
     expect(style.transform).toEqual([{ scale: 1 }, { rotate: '-8deg' }]);
     expect(timing.mock.calls.map(([, config]) => config.duration)).toEqual([DUREE_FONDU_MS]);
+  });
+});
+
+describe('le jeton (J3.8, #74)', () => {
+  it('rien avant la clôture : ni machine ni jeton', async () => {
+    await monter();
+    expect(screen.queryByTestId('machine')).toBeNull();
+    expect(screen.queryByTestId('jeton')).toBeNull();
+  });
+
+  it('tombe dans la fente de la machine en 0,4 s, en même temps que le tampon', async () => {
+    const timing = jest.spyOn(Animated, 'timing');
+    await monter();
+    await fireEvent.press(bouton(fr.cloture.rienDepense));
+    expect(screen.getByTestId('machine')).toBeOnTheScreen();
+    expect(screen.getByLabelText(fr.cloture.machineLibelle)).toBeOnTheScreen();
+    // Au départ, le jeton est au-dessus de la fente.
+    const depart = StyleSheet.flatten(screen.getByTestId('jeton').props.style);
+    expect(depart.transform).toEqual([{ translateY: -96 }]);
+    expect(DUREE_CHUTE_JETON_MS).toBe(400);
+    const durees = timing.mock.calls.map(([, config]) => config.duration ?? 0);
+    expect(durees).toContain(DUREE_CHUTE_JETON_MS);
+    expect(durees).toContain(DUREE_CHUTE_MS);
+    // Les deux partent ensemble, au même appui, et finissent avant le retour à l'accueil.
+    expect(Math.max(...durees)).toBeLessThan(DUREE_TAMPON_MS);
+  });
+
+  it('finit sa chute dans la fente', async () => {
+    const timing = jest.spyOn(Animated, 'timing');
+    await monter();
+    await fireEvent.press(bouton(fr.cloture.rienDepense));
+    const chute = timing.mock.calls.find(([, config]) => config.duration === DUREE_CHUTE_JETON_MS);
+    expect(chute?.[1].toValue).toBe(1);
+    // Chute à 1, le jeton est sur la fente : c'est là qu'il s'affiche sans animation (test suivant).
+    expect(chute?.[1].useNativeDriver).toBe(true);
+  });
+
+  it('s’affiche directement dans la fente, sans chute, si l’utilisateur a demandé moins d’animations', async () => {
+    moinsAnimations = true;
+    const timing = jest.spyOn(Animated, 'timing');
+    await monter();
+    await fireEvent.press(bouton(fr.cloture.rienDepense));
+    const style = StyleSheet.flatten(screen.getByTestId('jeton').props.style);
+    expect(style.transform).toEqual([{ translateY: 0 }]);
+    expect(timing.mock.calls.map(([, config]) => config.duration)).not.toContain(
+      DUREE_CHUTE_JETON_MS,
+    );
+    expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
+      fr.cloture.tamponEtJeton('2026-11-06'),
+    );
+  });
+
+  it('un seul jeton par clôture : un deuxième appui ne fait rien', async () => {
+    const { repos } = await monter();
+    await fireEvent.press(bouton(fr.cloture.rienDepense));
+    expect(screen.getAllByTestId('jeton')).toHaveLength(1);
+    expect(bouton(fr.cloture.journeeCloturee)).toBeDisabled();
+    await fireEvent.press(bouton(fr.cloture.journeeCloturee));
+    expect(screen.getAllByTestId('jeton')).toHaveLength(1);
+    expect(await repos.dayClosures.all()).toHaveLength(1);
   });
 });
 
@@ -251,6 +312,8 @@ describe('refus du domaine', () => {
     await fireEvent.press(bouton(fr.cloture.rienDepense));
     expect(screen.getByText(fr.cloture.refus.week_sealed)).toBeOnTheScreen();
     expect(screen.queryByTestId('tampon')).toBeNull();
+    expect(screen.queryByTestId('jeton')).toBeNull();
+    expect(screen.queryByTestId('machine')).toBeNull();
     expect(await repos.dayClosures.all()).toEqual([]);
     await act(() => jest.advanceTimersByTime(DUREE_TAMPON_MS));
     expect(onTerminer).not.toHaveBeenCalled();
@@ -287,7 +350,7 @@ describe('rattraper un jour (E5, #46)', () => {
     await fireEvent.press(await screen.findByRole('button', { name: fr.cloture.rienDepense }));
     expect(screen.getByTestId('tampon')).toBeOnTheScreen();
     expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
-      'Tampon posé sur mercredi 4 novembre.',
+      'Tampon posé sur mercredi 4 novembre. Un jeton tombe dans la machine.',
     );
     expect(await repos.dayClosures.all()).toMatchObject([{ day: MERCREDI, kind: 'no_spend' }]);
     expect(

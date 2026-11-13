@@ -230,6 +230,11 @@ export const fr = {
     /** Inscription du tampon, en attendant les visuels. */
     tampon: 'Clôturé',
     tamponPose: (jour: string) => `Tampon posé sur ${jourEtDate(jour)}.`,
+    /** Annonce du lecteur d'écran à la clôture : le tampon, puis le jeton (J3.8). */
+    tamponEtJeton: (jour: string) =>
+      `Tampon posé sur ${jourEtDate(jour)}. Un jeton tombe dans la machine.`,
+    /** Machine à capsules de la clôture, en attendant les visuels. */
+    machineLibelle: `Machine à capsules${NBSP}: un jeton tombe dans la fente.`,
     /** Refus du domaine, expliqués sans reproche. */
     refus: {
       already_closed: `Ce jour est déjà clôturé${NBSP}: son tampon est posé.`,
@@ -342,8 +347,7 @@ export const fr = {
       'Ton budget, c’est ce qui reste une fois payées tes charges fixes et mise de côté ton épargne. Il se partage en enveloppes, une par semaine.',
     premiereDepense:
       'Noter soi-même chaque dépense, c’est le cœur du kakeibo : ce petit geste suffit pour y penser à deux fois.',
-    premierTampon:
-      'Chaque soir, tu clôtures ta journée : tu confirmes avoir tout noté, et un tampon se pose. Au Japon, les enfants font tamponner une carte chaque matin des vacances d’été, à la gymnastique de la radio (rajio taisō).',
+    premierTampon: `Chaque soir, tu clôtures ta journée${NBSP}: tu confirmes avoir tout noté, un tampon se pose et un jeton tombe dans la machine. Au Japon, les enfants font tamponner une carte chaque matin des vacances d’été, à la gymnastique de la radio (rajio taisō).`,
     premiereCapsule:
       'Tous tes tampons de la semaine : une capsule tombe, comme dans les gashapon, ces distributeurs de petits jouets qu’on trouve partout au Japon. Ici, pas de hasard : chaque semaine complète apporte l’objet suivant de la pièce du mois.',
     premierJourARattraper:
