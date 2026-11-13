@@ -118,6 +118,19 @@ describe('parcours Maestro « Rattraper un jour » (#46)', () => {
     expect(installer).not.toMatch(/tapOn/);
   });
 
+  it('E5 fait tomber le jeton dans la machine, avec une capture, avant le retour (J3.8, #74)', () => {
+    const jeton = "- assertVisible: 'Machine à capsules.: un jeton tombe dans la fente\\.'";
+    const toucher = parcours.indexOf(`- tapOn: '${fr.cloture.rienDepense}'`);
+    expect(toucher).toBeGreaterThan(-1);
+    expect(parcours.indexOf(jeton)).toBeGreaterThan(toucher);
+    expect(parcours.indexOf('- takeScreenshot: captures/rattraper-jeton')).toBeGreaterThan(
+      parcours.indexOf(jeton),
+    );
+    expect(parcours.indexOf('- takeScreenshot: captures/rattraper-jeton')).toBeLessThan(
+      parcours.indexOf(`visible: '${fr.accueil.caseLibelle('2026-11-04', 'cloturee')}'`),
+    );
+  });
+
   it('le lendemain, la case est à rattraper, le bandeau ouvre E5, le tampon se pose', () => {
     expect(parcours).toContain(
       `- assertVisible: '${fr.accueil.caseLibelle('2026-11-04', 'rattrapable')}'`,

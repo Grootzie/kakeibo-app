@@ -1,8 +1,8 @@
 # Rattraper un jour (E5, #46), étape 2 : jeudi 5 novembre 2026 au soir, le mercredi n'a pas
 # de tampon. La case est « à rattraper » ; le bandeau ouvre E5, « Rattraper mercredi 4 novembre » ;
 # la carte « Premier jour à rattraper » s'affiche une fois ;
-# « Rien dépensé aujourd'hui » pose le tampon et ramène à l'accueil, où la case est clôturée et
-# le bandeau a disparu. Le parcours finit en effaçant les données de l'appli.
+# « Rien dépensé aujourd'hui » pose le tampon, fait tomber un jeton dans la machine (J3.8, #74)
+# et ramène à l'accueil, où la case est clôturée et le bandeau a disparu. Le parcours finit en effaçant les données de l'appli.
 appId: app.kakeibo
 ---
 - launchApp
@@ -23,6 +23,8 @@ appId: app.kakeibo
 - assertVisible: 'Rien dépensé aujourd’hui'
 - takeScreenshot: captures/rattraper-jour
 - tapOn: 'Rien dépensé aujourd’hui'
+- assertVisible: 'Machine à capsules.: un jeton tombe dans la fente\.'
+- takeScreenshot: captures/rattraper-jeton
 - extendedWaitUntil:
     visible: 'mercredi, clôturé'
     timeout: 10000
