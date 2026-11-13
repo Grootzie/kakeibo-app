@@ -1,6 +1,6 @@
 // Niveaux de poussière et plancher après une semaine incomplète (J1.5).
 // Contexte commun : installation le lundi 2 novembre 2026.
-import { dustDays, dustLevel, type DustWeek } from './poussiere';
+import { dustDays, dustFloor, dustLevel, type DustWeek } from './poussiere';
 
 const INSTALL = '2026-11-02';
 const sem = (week: string, complete: boolean): DustWeek => ({ week, complete });
@@ -130,5 +130,16 @@ describe('poussière', () => {
     ];
     expect(dustLevel('2026-12-01', closures, semaines, INSTALL)).toBe(2);
     expect(dustDays('2026-12-01', closures, INSTALL)).toBe(22);
+  });
+});
+
+describe('plancher après une semaine incomplète (récapitulatif, J3.3)', () => {
+  test('actif si la dernière semaine scellée est incomplète, quel que soit l’ordre reçu', () => {
+    expect(dustFloor([sem('2026-W46', false), sem('2026-W45', true)])).toBe(true);
+    expect(dustFloor([sem('2026-W46', true), sem('2026-W45', false)])).toBe(false);
+  });
+
+  test('inactif sans aucune semaine scellée', () => {
+    expect(dustFloor([])).toBe(false);
   });
 });

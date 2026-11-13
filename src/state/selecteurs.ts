@@ -3,6 +3,7 @@ import type { ExpenseRow } from '../data/repositories';
 import { type Cents, weekEnvelope, weekSpent } from '../domain/budget';
 import { addDays, previousMonth, weekDays, weekOf } from '../domain/calendrier';
 import { expenseDays } from '../domain/depense';
+import { type DustLevel, dustDays, dustFloor } from '../domain/poussiere';
 import {
   type ClosureContext,
   type DayKey,
@@ -112,6 +113,76 @@ export function bilansAAfficher(etat: AppState): BilansAAfficher {
     semaines: weekReviewScreen(etat),
     mois: etat.monthToReview,
     chiffresMois: etat.monthReview,
+  };
+}
+
+/** Une semaine du récapitulatif (E6, après une longue absence). */
+export interface LigneRecapitulatif {
+  semaine: WeekId;
+  /** Lundi de la semaine : « semaine du 2 novembre ». */
+  lundi: DayKey;
+  tampons: number;
+  /** Jours décomptés de la semaine. */
+  jours: number;
+  dansLeBudget: boolean;
+  /** Nom de l'objet sorti de sa capsule, tel que le catalogue le donne ; null : la poussière. */
+  objetGagne: string | null;
+  objetFele: string | null;
+}
+
+/** Ce que l'écran récapitulatif affiche : une ligne par semaine, puis la maison. */
+export interface VueRecapitulatif {
+  /** De la plus ancienne semaine à la plus récente. */
+  semaines: LigneRecapitulatif[];
+  poussiere: {
+    niveau: DustLevel;
+    /** Au moins deux jours sans clôture jusqu'à hier. */
+    joursSansCloture: boolean;
+    /** Plancher de niveau 1 jusqu'à la prochaine semaine complète. */
+    semaineIncomplete: boolean;
+  };
+  /** Objets fêlés pas encore réparés, dans l'ordre de la file ; seul le premier progresse. */
+  reparations: { objet: string; progression: number }[];
+}
+
+/**
+ * Récapitulatif des semaines manquées : seulement quand process prépare l'écran « récapitulatif »
+ * (plusieurs semaines scellées pas encore vues) ; null sinon.
+ */
+export function vueRecapitulatif(
+  etat: AppState,
+  now: LocalDateTime,
+  catalogue: Catalog,
+): VueRecapitulatif | null {
+  const ecran = weekReviewScreen(etat);
+  if (ecran === null || ecran.kind !== 'recap') return null;
+  const nom = (id: string | null): string | null =>
+    id === null ? null : (catalogue.items.find((i) => i.id === id)?.name ?? id);
+  const semaines = [...ecran.weeks].sort().flatMap((semaine) => {
+    const r = etat.results.find((x) => x.week === semaine);
+    if (r === undefined) return [];
+    return [
+      {
+        semaine,
+        lundi: weekDays(semaine)[0],
+        tampons: r.stamps,
+        jours: r.countedDays,
+        dansLeBudget: r.inBudget,
+        objetGagne: nom(r.gashaponItem),
+        objetFele: nom(r.crackedItem),
+      },
+    ];
+  });
+  return {
+    semaines,
+    poussiere: {
+      niveau: etat.dust,
+      joursSansCloture: dustDays(now.day, etat.closedDays, etat.installDay) >= 2,
+      semaineIncomplete: dustFloor(etat.results),
+    },
+    reparations: etat.repairs
+      .filter((e) => e.repairedOn === null)
+      .map((e) => ({ objet: nom(e.itemId) ?? e.itemId, progression: e.progress })),
   };
 }
 

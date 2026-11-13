@@ -404,6 +404,7 @@ describe('script de l’émulateur (#52)', () => {
           'rattrapage.yaml',
           'bilans-prets.yaml',
           'bilan-mois.yaml',
+          'recapitulatif.yaml',
         ])
           writeFileSync(join(dossier, 'e2e', 'heure', nom), 'appId: app.kakeibo\n');
     }
@@ -594,6 +595,20 @@ describe('script de l’émulateur (#52)', () => {
     expect(lignes[mois - 1]).toBe('adb shell date 110409002026.00');
   });
 
+  it('récapitulatif : appli effacée, mercredi 4 novembre 2026 à 9:00, après le bilan du mois (#63)', () => {
+    const { code, journal } = jouer(true, true, true, true);
+    expect(code).toBe(0);
+    const lignes = journal.split('\n');
+    const position = (debut: string) => lignes.findIndex((l) => l.startsWith(debut));
+    const mois = position('maestro test e2e/heure/bilan-mois.yaml');
+    const recap = position('maestro test e2e/heure/recapitulatif.yaml');
+    const automatique = position('adb shell settings put global auto_time 1');
+    expect(mois).toBeGreaterThanOrEqual(0);
+    expect([mois, recap, automatique]).toEqual([mois, recap, automatique].sort((a, b) => a - b));
+    expect(lignes[recap - 2]).toBe('adb shell pm clear app.kakeibo');
+    expect(lignes[recap - 1]).toBe('adb shell date 110409002026.00');
+  });
+
   it('échoue si le parcours « journée type » ou « rattrapage » échoue, et joue l’autre (#49)', () => {
     for (const [echoue, autre] of [
       ['journee-type.yaml', 'rattrapage.yaml'],
@@ -763,5 +778,71 @@ describe('parcours Maestro « bilan du mois » : budget du nouveau mois et réso
       "visible: 'Il te reste 170,48.€ jusqu’à dimanche'",
       '- takeScreenshot: captures/accueil-budget-decembre',
     ]);
+  });
+});
+
+describe('parcours Maestro « récapitulatif » (J3.3, #63)', () => {
+  const parcours = readFileSync(
+    join(__dirname, '..', 'e2e', 'heure', 'recapitulatif.yaml'),
+    'utf8',
+  );
+  const r = fr.recapitulatif;
+  /** Texte de l'appli en motif Maestro : points et parenthèses échappés, insécables en « . ». */
+  const motif = (texte: string) => texte.replace(/[.()]/g, (c) => `\\${c}`).replace(/\u00a0/g, '.');
+
+  it('150 € pour 100 €, seul mercredi clôturé, puis trois semaines plus tard', () => {
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    dansLOrdre(parcours, [
+      "- tapOn: 'Poser un budget de démonstration.*'",
+      "- inputText: '150'",
+      `- tapOn: '${fr.depense.categorieLibelle('Envies')}'`,
+      `- tapOn: '${fr.accueil.cloturerJournee}'`,
+      `- tapOn: '${fr.cloture.toutNote}'`,
+      "- assertVisible: 'Décalage.: 7 jours'",
+      "- assertVisible: 'Décalage.: 14 jours'",
+      "- assertVisible: 'Décalage.: 21 jours'",
+      "visible: 'mercredi.25.novembre'",
+      `- assertVisible: '${motif(fr.accueil.bandeauBilanSemaines)}'`,
+      '- takeScreenshot: captures/recapitulatif-bandeau',
+    ]);
+    expect(fr.accueil.depassement(5000)).toMatch(/^Tu as dépassé de 50.€ cette semaine$/);
+  });
+
+  it('un seul écran, une ligne par semaine de la plus ancienne à la plus récente', () => {
+    const ligne = (morceaux: string[]) => `- assertVisible: '${motif(r.ligneLibelle(morceaux))}'`;
+    dansLOrdre(parcours, [
+      `- tapOn: '${motif(fr.accueil.bandeauBilanSemaines)}'`,
+      `- assertVisible: '${r.titre}'`,
+      ligne([
+        r.semaine('2026-11-02'),
+        r.tampons(1, 5),
+        r.horsEnveloppe,
+        r.poussiere,
+        r.objetFele('échelle'),
+      ]),
+      ligne([r.semaine('2026-11-09'), r.tampons(0, 7), r.dansEnveloppe, r.poussiere]),
+      ligne([r.semaine('2026-11-16'), r.tampons(0, 7), r.dansEnveloppe, r.poussiere]),
+      '- takeScreenshot: captures/recapitulatif-semaines',
+    ]);
+  });
+
+  it('puis la poussière, la file de réparation et la conclusion ; « Continuer » marque tout vu', () => {
+    dansLOrdre(parcours, [
+      '- takeScreenshot: captures/recapitulatif-semaines',
+      `- assertVisible: '${r.maisonTitre}'`,
+      `- assertVisible: '${motif(fr.messages.poussiereJours)}'`,
+      `- assertVisible: '${motif(fr.messages.poussiereSemaineIncomplete)}'`,
+      `- assertVisible: '${motif(r.reparationEnCours('échelle', 0))}'`,
+      `- assertVisible: '${motif(r.conclusion)}'`,
+      '- takeScreenshot: captures/recapitulatif-maison',
+      `- tapOn: '${r.continuer}'`,
+      `- assertNotVisible: '${motif(fr.accueil.bandeauBilanSemaines)}'`,
+      `- assertVisible: '${motif(fr.accueil.bandeauRattraper('2026-11-23'))}'`,
+      '- takeScreenshot: captures/recapitulatif-fin',
+    ]);
+  });
+
+  it('efface les données à la fin', () => {
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
   });
 });

@@ -1,0 +1,109 @@
+# Récapitulatif après une longue absence (E6, J3.3, #63) : installée le mercredi 4 novembre,
+# 150 € notés pour une enveloppe de 100 €, seul mercredi clôturé ; trois semaines plus tard, le
+# mercredi 25 novembre, les semaines 45, 46 et 47 attendent leur bilan. Un seul bandeau ouvre un
+# seul écran : une ligne par semaine, de la plus ancienne à la plus récente, puis la poussière et
+# la file de réparation. « Continuer » les marque toutes vues et ramène à l'accueil.
+# Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
+# du téléphone au mercredi 4 novembre 2026 à 9:00. L'horloge de test avance les semaines.
+# Budget de démonstration : 1 200 € de revenus, 600 € de charges fixes, 0 € d'épargne.
+appId: app.kakeibo
+---
+- launchApp
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 60000
+- longPressOn: 'mercredi.4.novembre'
+- extendedWaitUntil:
+    visible: 'Horloge de test'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Poser un budget de démonstration.*'
+    direction: DOWN
+- tapOn: 'Poser un budget de démonstration.*'
+- assertVisible: 'Budget de démonstration posé'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.4.novembre'
+    direction: UP
+# 1. Mercredi 4 novembre : 150 € en Envies, au-delà de l'enveloppe de 100 €, puis la clôture.
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Envies'
+- inputText: '150'
+# Pas de « hideKeyboard » : sur Android, Maestro envoie « Retour », qui ferme la feuille (Modal).
+- tapOn: 'Enregistrer en Envies'
+- extendedWaitUntil:
+    visible: 'Première dépense'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Première dépense.*'
+- extendedWaitUntil:
+    notVisible: 'Première dépense'
+    timeout: 10000
+- assertVisible: 'Tu as dépassé de 50.€ cette semaine'
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'J’ai tout noté'
+- extendedWaitUntil:
+    visible: 'Premier tampon'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Premier tampon.*'
+- assertVisible: 'Journée clôturée'
+# 2. Trois semaines sans ouvrir le bilan : mercredi 25 novembre. Une carte de première fois
+#    peut s'ouvrir au-dessus du panneau : on le retrouve avant chaque appui.
+- scrollUntilVisible:
+    element:
+      text: '\+1 semaine'
+    direction: DOWN
+- tapOn: '\+1 semaine'
+- assertVisible: 'Décalage.: 7 jours'
+- scrollUntilVisible:
+    element:
+      text: '\+1 semaine'
+    direction: DOWN
+- tapOn: '\+1 semaine'
+- assertVisible: 'Décalage.: 14 jours'
+- scrollUntilVisible:
+    element:
+      text: '\+1 semaine'
+    direction: DOWN
+- tapOn: '\+1 semaine'
+- assertVisible: 'Décalage.: 21 jours'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.25.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'mercredi.25.novembre'
+    timeout: 10000
+- tapOn:
+    text: 'Fermer l’explication .*Premier jour à rattraper.*'
+    optional: true
+- assertVisible: 'Le bilan de tes dernières semaines est prêt\.'
+- takeScreenshot: captures/recapitulatif-bandeau
+# 3. Le bandeau ouvre un seul écran : une ligne par semaine, la plus ancienne d'abord.
+- tapOn: 'Le bilan de tes dernières semaines est prêt\.'
+- assertVisible: 'Tes dernières semaines'
+- assertVisible: 'Semaine du 2.novembre\. 1 tampon sur 5\. Au-delà de ton enveloppe\. Pas de capsule, un peu de poussière\. Objet fêlé.: échelle\.'
+- assertVisible: 'Semaine du 9.novembre\. 0 tampon sur 7\. Dans ton enveloppe\. Pas de capsule, un peu de poussière\.'
+- assertVisible: 'Semaine du 16.novembre\. 0 tampon sur 7\. Dans ton enveloppe\. Pas de capsule, un peu de poussière\.'
+- takeScreenshot: captures/recapitulatif-semaines
+# 4. Puis la maison : poussière et file de réparation, et une conclusion qui encourage.
+- scrollUntilVisible:
+    element:
+      text: 'Continuer'
+    direction: DOWN
+- assertVisible: 'Ta maison'
+- assertVisible: 'La maison prend la poussière\. Une clôture suffit à l’aérer\.'
+- assertVisible: 'Un voile de poussière reste jusqu’à ta prochaine semaine complète\.'
+- assertVisible: 'Réparation.: 0 jour sur 7 \(échelle\)'
+- assertVisible: 'Rien n’est perdu.: une clôture ce soir, et tout repart\.'
+- takeScreenshot: captures/recapitulatif-maison
+# 5. « Continuer » : toutes les semaines sont vues, le bandeau suivant prend la place.
+- tapOn: 'Continuer'
+- extendedWaitUntil:
+    visible: 'mercredi.25.novembre'
+    timeout: 10000
+- assertNotVisible: 'Le bilan de tes dernières semaines est prêt\.'
+- assertVisible: 'Tu peux encore rattraper lundi 23.novembre\.'
+- takeScreenshot: captures/recapitulatif-fin
+- launchApp:
+    clearState: true
