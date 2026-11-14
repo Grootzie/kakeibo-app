@@ -1124,7 +1124,9 @@ function etapesSemaineComplete(depense: string, categorie: 'Envies' | 'Essentiel
     "- tapOn: '\\+1 jour'",
     "- assertVisible: 'Décalage.: 5 jours'",
     jour('2026-11-09'),
-    `- assertVisible: '${fr.accueil.caseLibelle('2026-11-08', 'rattrapable')}'`,
+    // Le lundi, la carte de tampons montre la nouvelle semaine : dimanche passe par le bandeau.
+    `- assertVisible: '${fr.accueil.caseLibelle('2026-11-09', 'a_cloturer')}'`,
+    "- assertVisible: 'Tu peux encore rattraper dimanche.8.novembre\\.'",
     `- tapOn: 'Fermer l’explication .*${t.first_catch_up}.*'`,
     "- tapOn: 'Tu peux encore rattraper dimanche.8.novembre\\.'",
     "visible: 'Rattraper dimanche.8.novembre'",

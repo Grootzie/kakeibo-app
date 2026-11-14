@@ -121,7 +121,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'lundi.9.novembre'
     timeout: 10000
-- assertVisible: 'dimanche, à rattraper'
+# La carte de tampons montre déjà la semaine du lundi 9 : dimanche se rattrape par le bandeau.
+- assertVisible: 'lundi, à clôturer aujourd’hui'
+- assertVisible: 'Tu peux encore rattraper dimanche.8.novembre\.'
 - extendedWaitUntil:
     visible: 'Premier jour à rattraper'
     timeout: 10000
