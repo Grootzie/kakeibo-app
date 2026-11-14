@@ -908,7 +908,12 @@ describe('parcours Maestro « bilan de la semaine » (J3.2, #62)', () => {
 
   it('une semaine complète dans le budget : quatre temps, la tirette et la capsule', () => {
     expect(parcours).toMatch(/appId: app\.kakeibo/);
-    expect(parcours.match(/^- tapOn: 'Rien dépensé aujourd’hui'$/gm)).toHaveLength(4);
+    // Jeudi à dimanche de la première semaine (la suite du parcours en clôture d'autres, #66).
+    const premiereSemaine = parcours.slice(
+      0,
+      parcours.indexOf('- takeScreenshot: captures/bilan-semaine-tampons'),
+    );
+    expect(premiereSemaine.match(/^- tapOn: 'Rien dépensé aujourd’hui'$/gm)).toHaveLength(4);
     dansLOrdre(parcours, [
       "- tapOn: 'Poser un budget de démonstration.*'",
       "- inputText: '30'",
@@ -961,5 +966,92 @@ describe('parcours Maestro « bilan de la semaine » (J3.2, #62)', () => {
 
   it('efface les données à la fin', () => {
     expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+});
+
+describe('parcours Maestro : réparation annoncée et cartes de première fois de J3 (#66)', () => {
+  const lire = (nom: string) => readFileSync(join(__dirname, '..', 'e2e', 'heure', nom), 'utf8');
+  const semaine = lire('bilan-semaine.yaml');
+  const mois = lire('bilan-mois.yaml');
+  const motif = (texte: string) => texte.replace(/\./g, '\\.').replace(/\u00a0/g, '.');
+  const t = fr.carteExplication.titres;
+  const fermer = (titre: string) => `- tapOn: 'Fermer l’explication .*${titre}.*'`;
+  const rateau = { nom: 'râteau porte-bonheur kumade', article: 'le', genre: 'm' } as const;
+
+  it('calcule les textes attendus avec ceux de l’appli', () => {
+    expect(fr.carteExplication.fermerLibelle(t.first_capsule)).toMatch(
+      /^Fermer l’explication .*Première capsule.*$/,
+    );
+    expect(fr.explications.premiereCapsule).toMatch(
+      /^Avec tous tes jetons de la semaine, tu tires la tirette.*$/,
+    );
+    expect(fr.explications.premierePoussiere).toMatch(
+      /^Quand des jours restent sans tampon, la poussière se pose\..*$/,
+    );
+    expect(fr.explications.premiereFelure).toMatch(/^Au Japon, on répare les bols cassés.*$/);
+    expect(fr.explications.premierBilanDuMois).toMatch(
+      /^Chaque fin de mois, le kakeibo pose quatre questions.*$/,
+    );
+    expect(fr.explications.nouvellePiece).toMatch(
+      /^Chaque mois ouvre une pièce de la maison, décorée pour sa fête ou sa saison\..*$/,
+    );
+    expect(fr.accueil.date('2026-11-22')).toMatch(/^dimanche.22.novembre$/);
+    expect(fr.cloture.titreRattrapage('2026-11-16')).toMatch(/^Rattraper lundi 16.novembre$/);
+  });
+
+  it('bilan de la semaine : « Première capsule » avant la tirette, puis poussière et fêlure', () => {
+    dansLOrdre(semaine, [
+      `- assertVisible: '${motif(fr.bilan.toutTamponsDansBudget)}'`,
+      `- assertVisible: '${t.first_capsule}'`,
+      '- takeScreenshot: captures/carte-premiere-capsule',
+      fermer(t.first_capsule),
+      '- takeScreenshot: captures/bilan-semaine-tirette',
+      "- tapOn: 'Tirer la tirette.*'",
+      `- assertVisible: '${t.first_dust}'`,
+      '- takeScreenshot: captures/carte-premiere-poussiere',
+      fermer(t.first_dust),
+      `visible: '${t.first_crack}'`,
+      '- takeScreenshot: captures/carte-premiere-felure',
+      fermer(t.first_crack),
+      `- assertVisible: '${motif(fr.bilan.manqueHorsBudget(rateau))}'`,
+    ]);
+  });
+
+  it('puis 7 jours de clôture d’affilée : la clôture du dimanche annonce la réparation', () => {
+    const apres = semaine.slice(semaine.indexOf('- takeScreenshot: captures/bilan-semaine-felure'));
+    expect(apres.match(/^- tapOn: 'Rien dépensé aujourd’hui'$/gm)).toHaveLength(7);
+    dansLOrdre(apres, [
+      `visible: '${motif(fr.cloture.titreRattrapage('2026-11-16'))}'`,
+      "visible: 'mardi.17.novembre'",
+      "visible: 'samedi.21.novembre'",
+      "visible: 'dimanche.22.novembre'",
+      `- tapOn: '${fr.cloture.rienDepense}'`,
+      `visible: '${motif(fr.messages.reparation(rateau))}'`,
+      `- assertVisible: '${t.first_repair}'`,
+      `- assertVisible: '${motif(fr.explications.premiereReparation)}'`,
+      '- takeScreenshot: captures/reparation-carte',
+      fermer(t.first_repair),
+      `- assertVisible: '${motif(fr.messages.repare(rateau))}'`,
+      '- takeScreenshot: captures/reparation-annonce',
+      `- tapOn: '${fr.cloture.continuerLibelle}'`,
+      `visible: '${fr.bilanSemaine.temps(1)}'`,
+    ]);
+    expect(semaine.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+
+  it('bilan du mois : « Premier bilan du mois » à l’ouverture, « Nouvelle pièce » à la fin', () => {
+    dansLOrdre(mois, [
+      `visible: '${fr.bilan.titreMois('2026-11')}'`,
+      `visible: '${t.first_month_review}'`,
+      '- takeScreenshot: captures/carte-premier-bilan-du-mois',
+      fermer(t.first_month_review),
+      "- assertVisible: 'Ce que j’avais.: 600.€'",
+      `- tapOn: '${fr.bilanMois.confirmerBudget}'`,
+      `visible: '${motif(fr.messages.nouvellePiece('2026-12', 'Ōmisoka, le réveillon'))}'`,
+      `- assertVisible: '${t.new_room}'`,
+      '- takeScreenshot: captures/carte-nouvelle-piece',
+      fermer(t.new_room),
+      '- takeScreenshot: captures/bilan-mois-valide',
+    ]);
   });
 });

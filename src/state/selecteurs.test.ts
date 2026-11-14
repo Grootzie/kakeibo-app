@@ -13,6 +13,7 @@ import {
   estRattrapable,
   joursDepense,
   jourARattraper,
+  objetsReparesEntre,
   piecesOuvertesParBilan,
   resolutionDuMois,
   vueAccueil,
@@ -695,5 +696,89 @@ describe('bilan d’une semaine (E6, J3.2, #62)', () => {
     const s = etat('2026-11-02', [ouvrir(at('2026-11-18', '09:00'))]);
     expect(bilansAAfficher(s).semaines?.kind).toBe('recap');
     expect(vueBilanSemaine(s, catalog)).toBeNull();
+  });
+});
+
+describe('objets réparés par une clôture (#66)', () => {
+  const jours = (du: number, au: number): DayKey[] =>
+    Array.from({ length: au - du + 1 }, (_, i) => `2026-11-${String(du + i).padStart(2, '0')}`);
+  /** Scénario 10 : semaine 45 complète, 150 € : le 3e objet de base de novembre se fêle. */
+  const felee = (): AppState =>
+    etat('2026-11-02', [depenser('2026-11-02', 15000), ...jours(2, 8).map((d) => fermer(d))]);
+
+  it('rien tant que la série n’a pas 7 jours', () => {
+    let s = felee();
+    for (const d of jours(9, 14)) {
+      const avant = s;
+      s = process(s, { type: 'close_day', day: d }, at(d), catalog).state;
+      expect(objetsReparesEntre(avant, s, catalog)).toEqual([]);
+    }
+  });
+
+  it('la clôture du dimanche 15 répare l’objet : il est nommé avec son article et son genre', () => {
+    let s = felee();
+    for (const d of jours(9, 14))
+      s = process(s, { type: 'close_day', day: d }, at(d), catalog).state;
+    const avant = s;
+    s = process(s, { type: 'close_day', day: '2026-11-15' }, at('2026-11-15'), catalog).state;
+    expect(objetsReparesEntre(avant, s, catalog)).toEqual([
+      { id: 'echelle', nom: 'échelle', article: "l'", genre: 'f' },
+    ]);
+    // Une ouverture qui suit ne répare rien de plus.
+    const apres = process(s, { type: 'open' }, at('2026-11-16', '08:00'), catalog).state;
+    expect(objetsReparesEntre(s, apres, catalog)).toEqual([]);
+  });
+
+  it('une clôture de rattrapage peut compléter la série (scénario 11)', () => {
+    let s = felee();
+    // Mercredi 11 oublié, rattrapé le jeudi 12 au matin : la série du 9 au 15 se complète le 15.
+    for (const d of [
+      '2026-11-09',
+      '2026-11-10',
+      '2026-11-12',
+      '2026-11-13',
+      '2026-11-14',
+      '2026-11-15',
+    ])
+      s = process(s, { type: 'close_day', day: d }, at(d), catalog).state;
+    const avant = s;
+    s = process(
+      s,
+      { type: 'close_day', day: '2026-11-11' },
+      at('2026-11-16', '09:00'),
+      catalog,
+    ).state;
+    expect(objetsReparesEntre(avant, s, catalog).map((o) => o.id)).toEqual(['echelle']);
+  });
+
+  it('sans état d’avant, rien n’est annoncé', () => {
+    expect(objetsReparesEntre(null, felee(), catalog)).toEqual([]);
+  });
+});
+
+describe('explication de la pièce qui s’ouvre (#66)', () => {
+  it('suit la fête quand le catalogue la donne', () => {
+    const avecExplication: Catalog = {
+      ...catalog,
+      rooms: catalog.rooms.map((r) =>
+        r.month === 12 ? { ...r, explanation: 'La doma est la salle en terre battue.' } : r,
+      ),
+    };
+    const decembre = at('2026-12-01', '09:00');
+    let s = etat('2026-11-02', [ouvrir(decembre)]);
+    s = process(
+      s,
+      { type: 'validate_month', month: '2026-11', resolution: '' },
+      decembre,
+      avecExplication,
+    ).state;
+    expect(piecesOuvertesParBilan(s, '2026-11', avecExplication)).toEqual([
+      {
+        mois: '2026-12',
+        fete: 'Ōmisoka, le réveillon',
+        explication: 'La doma est la salle en terre battue.',
+      },
+    ]);
+    expect(piecesOuvertesParBilan(s, '2026-11', catalog)[0]).not.toHaveProperty('explication');
   });
 });

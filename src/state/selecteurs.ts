@@ -199,6 +199,25 @@ function objetNomme(catalogue: Catalog, id: ItemId | null): ObjetNomme | null {
   return { id, nom: item.name, article: item.article, genre: item.gender };
 }
 
+/**
+ * Objets réparés à l'or entre deux états (#66) : ceux qui passent à « réparé » pendant un
+ * traitement, en pratique la clôture qui complète leur série de 7 jours. Vide sans état d'avant.
+ */
+export function objetsReparesEntre(
+  avant: AppState | null,
+  apres: AppState,
+  catalogue: Catalog,
+): ObjetNomme[] {
+  if (avant === null) return [];
+  return apres.house.owned.flatMap((o) => {
+    if (o.state !== 'repaired') return [];
+    const ancien = avant.house.owned.find((x) => x.year === o.year && x.itemId === o.itemId);
+    if (ancien === undefined || ancien.state === 'repaired') return [];
+    const nomme = objetNomme(catalogue, o.itemId);
+    return nomme === null ? [] : [nomme];
+  });
+}
+
 /** Ce que le bilan d'une semaine (E6) affiche, en quatre temps. */
 export interface VueBilanSemaine {
   semaine: WeekId;
@@ -351,7 +370,7 @@ export function piecesOuvertesParBilan(
   etat: AppState,
   mois: MonthKey,
   catalogue: Catalog,
-): { mois: MonthKey; fete: string }[] {
+): { mois: MonthKey; fete: string; explication?: string }[] {
   const bilan = etat.reviews.find((r) => r.month === mois);
   if (bilan === undefined) return [];
   const annee = Number(mois.slice(0, 4));
@@ -365,6 +384,8 @@ export function piecesOuvertesParBilan(
     .map((salle) => ({
       mois: `${mois.slice(0, 4)}-${String(salle.month).padStart(2, '0')}`,
       fete: salle.feast,
+      // Explication de la pièce, rédigée avec le catalogue (Produit) ; absente tant qu'elle manque.
+      ...(salle.explanation === undefined ? {} : { explication: salle.explanation }),
     }));
 }
 

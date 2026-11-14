@@ -269,6 +269,9 @@ export const fr = {
     /** Annonce du lecteur d'écran à la clôture : le tampon, puis le jeton (J3.8). */
     tamponEtJeton: (jour: string) =>
       `Tampon posé sur ${jourEtDate(jour)}. Un jeton tombe dans la machine.`,
+    /** Après l'annonce d'une réparation, l'écran attend qu'on continue. */
+    continuer: 'Continuer',
+    continuerLibelle: 'Continuer et revenir à l’accueil',
     /** Machine à capsules de la clôture, en attendant les visuels. */
     machineLibelle: `Machine à capsules${NBSP}: un jeton tombe dans la fente.`,
     /** Refus du domaine, expliqués sans reproche. */
@@ -415,6 +418,7 @@ export const fr = {
     fele: (objet: NomObjet) => `${debut(objet)} ${sEstFele(objet)}.`,
     repare: (objet: NomObjet) =>
       `${debut(objet)} ${accord(objet, 'est réparé', 'est réparée', 'sont réparés', 'sont réparées')} à l’or.`,
+    /** Annoncée à la clôture qui complète la réparation (#66). */
     reparation: (objet: NomObjet) =>
       `${accord(objet, 'Réparé', 'Réparée', 'Réparés', 'Réparées')} à l’or, ${avecArticle(objet)} ${accord(objet, 'garde', 'garde', 'gardent', 'gardent')} la trace de cette semaine-là.`,
     poussiereJours: 'La maison prend la poussière. Une clôture suffit à l’aérer.',
@@ -438,6 +442,12 @@ export const fr = {
       first_expense: 'Première dépense',
       first_stamp: 'Premier tampon',
       first_catch_up: 'Premier jour à rattraper',
+      first_capsule: 'Première capsule',
+      first_dust: 'Première poussière',
+      first_crack: 'Première fêlure',
+      first_repair: 'Première réparation',
+      first_month_review: 'Premier bilan du mois',
+      new_room: 'Nouvelle pièce',
     },
     fermer: 'Fermer',
     fermerLibelle: (titre: string) => `Fermer l’explication «${NBSP}${titre}${NBSP}»`,
@@ -453,8 +463,8 @@ export const fr = {
     premiereDepense:
       'Noter soi-même chaque dépense, c’est le cœur du kakeibo : ce petit geste suffit pour y penser à deux fois.',
     premierTampon: `Chaque soir, tu clôtures ta journée${NBSP}: tu confirmes avoir tout noté, un tampon se pose et un jeton tombe dans la machine. Au Japon, les enfants font tamponner une carte chaque matin des vacances d’été, à la gymnastique de la radio (rajio taisō).`,
-    premiereCapsule:
-      'Tous tes tampons de la semaine : une capsule tombe, comme dans les gashapon, ces distributeurs de petits jouets qu’on trouve partout au Japon. Ici, pas de hasard : chaque semaine complète apporte l’objet suivant de la pièce du mois.',
+    /** Texte de la révision 847 : la tirette (#66). */
+    premiereCapsule: `Avec tous tes jetons de la semaine, tu tires la tirette, comme dans les gashapon, ces distributeurs de petits jouets qu’on trouve partout au Japon. Ici, pas de hasard${NBSP}: chaque semaine complète apporte l’objet suivant de la pièce du mois.`,
     premierJourARattraper:
       'Tu as oublié de clôturer un soir ? Tu peux rattraper ce jour jusqu’au lundi midi qui suit sa semaine.',
     premierePoussiere:

@@ -167,6 +167,44 @@ describe('jeton du soir (J3.8, #74)', () => {
   });
 });
 
+describe('cartes de première fois de J3 (#66)', () => {
+  const N = '\u00a0';
+
+  it('« Première capsule » reprend le texte de la révision 847 (tirette)', () => {
+    expect(fr.explications.premiereCapsule).toBe(
+      `Avec tous tes jetons de la semaine, tu tires la tirette, comme dans les gashapon, ces distributeurs de petits jouets qu’on trouve partout au Japon. Ici, pas de hasard${N}: chaque semaine complète apporte l’objet suivant de la pièce du mois.`,
+    );
+  });
+
+  it('nomme chaque carte comme la spec', () => {
+    expect(fr.carteExplication.titres).toMatchObject({
+      first_capsule: 'Première capsule',
+      first_dust: 'Première poussière',
+      first_crack: 'Première fêlure',
+      first_repair: 'Première réparation',
+      first_month_review: 'Premier bilan du mois',
+      new_room: 'Nouvelle pièce',
+    });
+  });
+
+  it('textes des autres cartes, tels que la spec les donne', () => {
+    expect(fr.explications.premierePoussiere).toBe(
+      'Quand des jours restent sans tampon, la poussière se pose. Elle n’abîme jamais rien et s’envole avec une semaine complète.',
+    );
+    expect(fr.explications.premiereReparation).toBe(
+      `Le voilà réparé à l’or, plus précieux qu’avant${N}: il garde la trace de cette semaine-là.`,
+    );
+    expect(fr.explications.nouvellePiece).toBe(
+      'Chaque mois ouvre une pièce de la maison, décorée pour sa fête ou sa saison. Ses objets se gagnent semaine après semaine.',
+    );
+  });
+
+  it('après la réparation annoncée, l’écran de clôture attend qu’on continue', () => {
+    expect(fr.cloture.continuer).toBe('Continuer');
+    expect(fr.cloture.continuerLibelle).toBe('Continuer et revenir à l’accueil');
+  });
+});
+
 describe('récapitulatif après une longue absence (E6, #63)', () => {
   const N = '\u00a0';
   const r = fr.recapitulatif;

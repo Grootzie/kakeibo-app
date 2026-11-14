@@ -6,6 +6,7 @@ import type { LocalDateTime } from '../domain/scellement';
 import { type AppState, createAppState } from '../domain/traitement';
 import {
   EXPLICATIONS_J2,
+  EXPLICATIONS_J3,
   explicationAAfficher,
   lireExplicationsVues,
   ecrireExplicationsVues,
@@ -67,6 +68,53 @@ describe('moment de chaque carte', () => {
     const e = etat({ installDay: '2026-11-08' });
     expect(explicationAAfficher(e, at('2026-11-09', '11:59'), [])).toBe('first_catch_up');
     expect(explicationAAfficher(e, at('2026-11-09', '12:00'), [])).toBeNull();
+  });
+});
+
+describe('cartes de J3 (#66) : leur moment vient de l’écran', () => {
+  const e = etat({
+    closedDays: ['2026-11-02'],
+    expenses: [{ id: 'd1', day: '2026-11-02', amount: 1 }],
+  });
+  const now = at('2026-11-09');
+
+  test('six cartes, dans l’ordre où elles passent', () => {
+    expect([...EXPLICATIONS_J3]).toEqual([
+      'first_capsule',
+      'first_dust',
+      'first_crack',
+      'first_repair',
+      'first_month_review',
+      'new_room',
+    ]);
+  });
+
+  test('sans moment donné par l’écran, aucune carte de J3', () => {
+    expect(explicationAAfficher(e, now, [], EXPLICATIONS_J3)).toBeNull();
+    expect(explicationAAfficher(e, now, [], EXPLICATIONS_J3, { first_dust: false })).toBeNull();
+  });
+
+  test('l’écran dit quel moment est venu ; la première de la liste passe d’abord', () => {
+    expect(explicationAAfficher(e, now, [], EXPLICATIONS_J3, { first_crack: true })).toBe(
+      'first_crack',
+    );
+    const deux = { first_crack: true, first_capsule: true };
+    expect(explicationAAfficher(e, now, [], EXPLICATIONS_J3, deux)).toBe('first_capsule');
+    expect(explicationAAfficher(e, now, ['first_capsule'], EXPLICATIONS_J3, deux)).toBe(
+      'first_crack',
+    );
+    expect(
+      explicationAAfficher(e, now, ['first_capsule', 'first_crack'], EXPLICATIONS_J3, deux),
+    ).toBeNull();
+  });
+
+  test('l’accueil ne propose que les cartes de J2', () => {
+    expect(explicationAAfficher(e, now, [], undefined, { first_repair: true })).toBe(
+      'first_expense',
+    );
+    expect(
+      explicationAAfficher(e, now, [...EXPLICATIONS_J2], undefined, { first_repair: true }),
+    ).toBeNull();
   });
 });
 

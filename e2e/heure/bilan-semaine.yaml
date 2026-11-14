@@ -3,7 +3,9 @@
 # semaine : le bilan s'ouvre de lui-même, en quatre temps (5 sur 5, 30 € sur 100 €, la tirette,
 # la capsule s'ouvre sur le râteau porte-bonheur kumade, puis l'objet seul et la conclusion).
 # Puis la semaine 46 : 150 € notés pour 140 €, aucun tampon ; le mardi 17, son bilan dit la
-# poussière et la fêlure du râteau, sans capsule.
+# poussière et la fêlure du râteau, sans capsule. Enfin, du lundi 16 (rattrapé) au dimanche 22,
+# 7 jours de clôture d'affilée : la clôture du dimanche annonce le râteau réparé à l'or (#66).
+# Les cartes de première fois de J3 s'affichent en route : capsule, poussière, fêlure, réparation.
 # Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
 # du téléphone au mercredi 4 novembre 2026 à 9:00. L'horloge de test avance les jours.
 # Budget de démonstration : 1 200 € de revenus, 600 € de charges fixes, 0 € d'épargne.
@@ -137,6 +139,14 @@ appId: app.kakeibo
 - assertVisible: 'Temps 3 sur 4'
 - assertVisible: 'Tous tes tampons, et dans ton enveloppe.: tes jetons sont prêts, tire la tirette\.'
 - assertNotVisible: 'Passer au temps suivant'
+# La première fois, la carte « Première capsule » (#66), avant la tirette.
+- assertVisible: 'Première capsule'
+- assertVisible: 'Avec tous tes jetons de la semaine, tu tires la tirette.*'
+- takeScreenshot: captures/carte-premiere-capsule
+- tapOn: 'Fermer l’explication .*Première capsule.*'
+- extendedWaitUntil:
+    notVisible: 'Première capsule'
+    timeout: 10000
 - takeScreenshot: captures/bilan-semaine-tirette
 - tapOn: 'Tirer la tirette.*'
 - extendedWaitUntil:
@@ -210,7 +220,21 @@ appId: app.kakeibo
 - assertVisible: 'Dépensé.: 150.€ sur 140.€'
 - assertVisible: 'Au-delà de ton enveloppe'
 - tapOn: 'Passer au temps suivant'
-# 5. Temps 3 : la poussière et la fêlure, sans tirette ni capsule.
+# 5. Temps 3 : la poussière et la fêlure, sans tirette ni capsule. La première fois, la carte
+#    « Première poussière », puis « Première fêlure » (#66).
+- assertVisible: 'Première poussière'
+- assertVisible: 'Quand des jours restent sans tampon, la poussière se pose\..*'
+- takeScreenshot: captures/carte-premiere-poussiere
+- tapOn: 'Fermer l’explication .*Première poussière.*'
+- extendedWaitUntil:
+    visible: 'Première fêlure'
+    timeout: 10000
+- assertVisible: 'Au Japon, on répare les bols cassés.*'
+- takeScreenshot: captures/carte-premiere-felure
+- tapOn: 'Fermer l’explication .*Première fêlure.*'
+- extendedWaitUntil:
+    notVisible: 'Première fêlure'
+    timeout: 10000
 - assertVisible: 'Pas de capsule cette semaine, et le râteau porte-bonheur kumade s’est fêlé\. Rien n’est perdu.: 7 jours de clôture d’affilée, et il sera réparé à l’or\.'
 - assertNotVisible: 'Tirer la tirette.*'
 - assertVisible: 'Le râteau porte-bonheur kumade s’est fêlé\.'
@@ -226,5 +250,133 @@ appId: app.kakeibo
     visible: 'mardi.17.novembre'
     timeout: 10000
 - assertNotVisible: 'Le bilan de ta semaine est prêt\.'
+# 6. Réparation annoncée (#66) : le râteau, fêlé au bilan de la semaine 46, se répare après
+#    7 jours de clôture d'affilée à partir du lundi 16. Lundi 16 rattrapé ce mardi 17 (E5),
+#    puis chaque jour clôturé jusqu'au dimanche 22.
+- tapOn:
+    text: 'Fermer l’explication .*Premier jour à rattraper.*'
+    optional: true
+- assertVisible: 'Tu peux encore rattraper lundi 16.novembre\.'
+- tapOn: 'Tu peux encore rattraper lundi 16.novembre\.'
+- extendedWaitUntil:
+    visible: 'Rattraper lundi 16.novembre'
+    timeout: 10000
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'mardi.17.novembre'
+    timeout: 10000
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 14 jours'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.18.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'mercredi.18.novembre'
+    timeout: 10000
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 15 jours'
+- scrollUntilVisible:
+    element:
+      text: 'jeudi.19.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'jeudi.19.novembre'
+    timeout: 10000
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 16 jours'
+- scrollUntilVisible:
+    element:
+      text: 'vendredi.20.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'vendredi.20.novembre'
+    timeout: 10000
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 17 jours'
+- scrollUntilVisible:
+    element:
+      text: 'samedi.21.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'samedi.21.novembre'
+    timeout: 10000
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+# Dimanche 22 : la clôture complète la série du 16 au 22. Après le tampon et le jeton,
+# « Réparé à l’or, … » et, la première fois, la carte « Première réparation » ; l'écran attend
+# « Continuer » (emplacement A, décision du propriétaire).
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 18 jours'
+- scrollUntilVisible:
+    element:
+      text: 'dimanche.22.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'dimanche.22.novembre'
+    timeout: 10000
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Réparé à l’or, le râteau porte-bonheur kumade garde la trace de cette semaine-là\.'
+    timeout: 10000
+- assertVisible: 'Première réparation'
+- assertVisible: 'Le voilà réparé à l’or, plus précieux qu’avant.: il garde la trace de cette semaine-là\.'
+- takeScreenshot: captures/reparation-carte
+- tapOn: 'Fermer l’explication .*Première réparation.*'
+- extendedWaitUntil:
+    notVisible: 'Première réparation'
+    timeout: 10000
+- assertVisible: 'Le râteau porte-bonheur kumade est réparé à l’or\.'
+- takeScreenshot: captures/reparation-annonce
+- tapOn: 'Continuer et revenir à l’accueil'
+# La semaine 47, complète, est scellée par cette clôture : son bilan s'ouvre de lui-même.
+- extendedWaitUntil:
+    visible: 'Temps 1 sur 4'
+    timeout: 10000
+- assertVisible: 'Semaine du 16.novembre'
 - launchApp:
     clearState: true

@@ -1,5 +1,5 @@
 // Dessin provisoire d'un objet, en attendant le lot de visuels : un cadre de papier avec
-// l'initiale de son nom, et une fêlure en travers si l'objet est fêlé. La maison arrive en J4 :
+// l'initiale de son nom, une fêlure en travers si l'objet est fêlé, une veine d'or s'il est réparé. La maison arrive en J4 :
 // d'ici là, le bilan montre l'objet seul.
 import { Text, View } from 'react-native';
 
@@ -12,11 +12,19 @@ export interface PropsObjetProvisoire {
   objet: NomObjet;
   taille: number;
   fele?: boolean;
+  /** Réparé à l'or : la fêlure devient une veine d'or (#66). */
+  repare?: boolean;
   /** Libellé lu par le lecteur d'écran ; sans libellé, le dessin n'est pas annoncé seul. */
   libelle?: string;
 }
 
-export function ObjetProvisoire({ objet, taille, fele = false, libelle }: PropsObjetProvisoire) {
+export function ObjetProvisoire({
+  objet,
+  taille,
+  fele = false,
+  repare = false,
+  libelle,
+}: PropsObjetProvisoire) {
   return (
     <View
       accessible={libelle !== undefined}
@@ -37,13 +45,14 @@ export function ObjetProvisoire({ objet, taille, fele = false, libelle }: PropsO
       <Text style={{ color: c.texte, fontSize: taille / 2.4, fontWeight: '700' }}>
         {objet.nom[0].toUpperCase()}
       </Text>
-      {fele && (
+      {(fele || repare) && (
         <View
+          testID={repare ? 'veine-or' : undefined}
           style={{
             position: 'absolute',
-            width: 3,
+            width: repare ? 5 : 3,
             height: taille * 1.2,
-            backgroundColor: c.principal,
+            backgroundColor: repare ? c.or : c.principal,
             transform: [{ rotate: '28deg' }],
           }}
         />
