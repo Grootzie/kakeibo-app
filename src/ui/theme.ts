@@ -25,6 +25,8 @@ export const theme = {
     discret: '#F3EFE9',
     /** Voile derrière une feuille qui monte du bas. */
     voile: 'rgba(31, 27, 22, 0.4)',
+    /** Veines d'or d'un objet réparé (dessin provisoire, #66). */
+    or: '#8A6516',
   },
   categories: {
     essentiel: { couleur: '#2F4B7C', icone: 'maison', signe: '\u2302' },

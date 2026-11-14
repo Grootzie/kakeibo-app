@@ -72,6 +72,16 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Bilan de novembre'
     timeout: 10000
+# La première fois, la carte « Premier bilan du mois » (#66), au-dessus des questions.
+- extendedWaitUntil:
+    visible: 'Premier bilan du mois'
+    timeout: 10000
+- assertVisible: 'Chaque fin de mois, le kakeibo pose quatre questions.*'
+- takeScreenshot: captures/carte-premier-bilan-du-mois
+- tapOn: 'Fermer l’explication .*Premier bilan du mois.*'
+- extendedWaitUntil:
+    notVisible: 'Premier bilan du mois'
+    timeout: 10000
 - assertVisible: 'Ce que j’avais.: 600.€'
 - assertVisible: 'Ce que je voulais mettre de côté.: 0.€'
 - assertVisible: 'Ce que j’ai dépensé.: 675.€'
@@ -142,6 +152,14 @@ appId: app.kakeibo
 - assertVisible: 'Bilan de novembre enregistré\.'
 - assertNotVisible: 'Valider mon bilan'
 - assertNotVisible: 'Confirmer mon budget'
+# La première fois, la carte « Nouvelle pièce » (#66) suit la pièce qui s'ouvre.
+- assertVisible: 'Nouvelle pièce'
+- assertVisible: 'Chaque mois ouvre une pièce de la maison, décorée pour sa fête ou sa saison\..*'
+- takeScreenshot: captures/carte-nouvelle-piece
+- tapOn: 'Fermer l’explication .*Nouvelle pièce.*'
+- extendedWaitUntil:
+    notVisible: 'Nouvelle pièce'
+    timeout: 10000
 - takeScreenshot: captures/bilan-mois-valide
 # 6. Retour à l'accueil : le bilan du mois n'y est plus proposé ; l'enveloppe de la semaine du
 # 30 novembre suit encore le budget en vigueur le lundi : 20 € + 6 × 600 € / 31 = 136,13 €.

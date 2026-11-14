@@ -67,11 +67,19 @@ export function EcranBilanSemaine({ store, onTerminer }: PropsEcranBilanSemaine)
       <EcranBilanUneSemaine
         key={vue.vue.semaine}
         vue={vue.vue}
+        store={store}
         reduit={reduit}
         onTerminer={marquerVus}
         onRetour={onTerminer}
       />
     );
   }
-  return <EcranRecapitulatif vue={vue.vue} onContinuer={marquerVus} onRetour={onTerminer} />;
+  return (
+    <EcranRecapitulatif
+      vue={vue.vue}
+      store={store}
+      onContinuer={marquerVus}
+      onRetour={onTerminer}
+    />
+  );
 }

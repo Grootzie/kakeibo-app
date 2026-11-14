@@ -1,6 +1,9 @@
 // Clôturer ma journée (E4) : dépenses du jour et total par catégorie, « Ajouter une dépense
 // oubliée » (E3 sur ce jour), un seul bouton de validation, puis le tampon, le jeton qui tombe
 // dans la machine (J3.8) et retour à l'accueil.
+// Si la clôture complète la réparation d'un objet, l'annonce « Réparée à l'or, … » suit le tampon
+// (emplacement A décidé par le propriétaire, #66), avec la carte « Première réparation » la
+// première fois, et l'écran attend « Continuer » avant de revenir à l'accueil.
 // Pour un jour passé, c'est « Rattraper un jour » (E5) : le même écran, avec un titre explicite,
 // qui ne s'ouvre que tant que le jour est rattrapable (jusqu'au lundi 12:00 qui suit sa semaine).
 // Ne parle qu'au store, qui seul appelle le domaine et les dépôts.
@@ -12,13 +15,19 @@ import { useStore } from 'zustand';
 import type { DayKey } from '../../domain/scellement';
 import type { Refusal } from '../../domain/traitement';
 import { fr } from '../../i18n/fr';
-import { joursDepense, vueCloture } from '../../state/selecteurs';
+import {
+  type ObjetNomme,
+  joursDepense,
+  objetsReparesEntre,
+  vueCloture,
+} from '../../state/selecteurs';
 import type { KakeiboStore } from '../../state/store';
 import { type DepenseSaisie, FeuilleDepense } from '../depense/FeuilleDepense';
 import { MessageAnnuler } from '../depense/MessageAnnuler';
-import { CarteExplication } from '../explication/CarteExplication';
+import { CarteDuMoment, CarteExplication } from '../explication/CarteExplication';
 import { useCarteExplication } from '../explication/useCarteExplication';
 import { theme } from '../theme';
+import { ObjetProvisoire } from '../bilan/ObjetProvisoire';
 import { Jeton } from './Jeton';
 import { Tampon, useMoinsAnimations } from './Tampon';
 
@@ -43,6 +52,8 @@ interface DepenseNotee {
 }
 
 const PROPOSEES = ['first_expense'] as const;
+const REPARATION = ['first_repair'] as const;
+const MOMENT_REPARATION = { first_repair: true } as const;
 
 type RefusCloture = keyof typeof fr.cloture.refus;
 const messageRefus = (r: Refusal): string =>
@@ -54,6 +65,9 @@ export function EcranCloture({ store, jour, onTerminer }: PropsEcranCloture) {
   const [refus, setRefus] = useState<Refusal | null>(null);
   const [envoi, setEnvoi] = useState(false);
   const [pose, setPose] = useState(false);
+  // Objets que cette clôture a réparés à l'or ; annoncés une fois le tampon posé.
+  const [reparees, setReparees] = useState<ObjetNomme[]>([]);
+  const [annonce, setAnnonce] = useState(false);
   // Sans jour donné, c'est aujourd'hui : rien à vérifier. Sinon, le store dit d'abord, à l'heure
   // actuelle, si ce jour s'ouvre encore ; sinon retour à l'accueil, sans rien montrer.
   const [acces, setAcces] = useState<'verification' | 'ouvert' | 'ferme'>(
@@ -62,6 +76,7 @@ export function EcranCloture({ store, jour, onTerminer }: PropsEcranCloture) {
   const etat = useStore(store, (s) => s.etat);
   const maintenant = useStore(store, (s) => s.maintenant);
   const lignes = useStore(store, (s) => s.depenses);
+  const catalogue = useStore(store, (s) => s.catalogue);
   const reduit = useMoinsAnimations();
   // Seule « Première dépense » peut naître ici (dépense oubliée) ; le premier tampon s'explique
   // à l'accueil, après l'animation du tampon.
@@ -99,23 +114,35 @@ export function EcranCloture({ store, jour, onTerminer }: PropsEcranCloture) {
     if (acces === 'ferme') onTerminer();
   }, [acces, onTerminer]);
 
-  // Le tampon posé reste un instant, puis retour à l'accueil.
+  // Le tampon posé reste un instant, puis retour à l'accueil ; ou l'annonce de la réparation.
   useEffect(() => {
     if (!pose) return;
-    const minuteur = setTimeout(onTerminer, DUREE_TAMPON_MS);
+    const minuteur = setTimeout(() => {
+      if (reparees.length === 0) {
+        onTerminer();
+        return;
+      }
+      AccessibilityInfo.announceForAccessibility(
+        reparees.map((o) => fr.messages.reparation(o)).join(' '),
+      );
+      setAnnonce(true);
+    }, DUREE_TAMPON_MS);
     return () => clearTimeout(minuteur);
-  }, [pose, onTerminer]);
+  }, [pose, reparees, onTerminer]);
 
   const cloturer = async () => {
     if (!vue || envoi || pose) return;
     setEnvoi(true);
     setRefus(null);
+    const avant = store.getState().etat;
     const refusal = await store.getState().cloturerJour(vue.jour);
     setEnvoi(false);
     if (refusal !== null) {
       setRefus(refusal);
       return;
     }
+    const apres = store.getState().etat;
+    setReparees(apres === null ? [] : objetsReparesEntre(avant, apres, catalogue));
     AccessibilityInfo.announceForAccessibility(fr.cloture.tamponEtJeton(vue.jour));
     setPose(true);
   };
@@ -289,7 +316,7 @@ export function EcranCloture({ store, jour, onTerminer }: PropsEcranCloture) {
         </Pressable>
       </ScrollView>
 
-      {pose && vue && (
+      {pose && vue && !annonce && (
         <View
           pointerEvents="none"
           style={{
@@ -305,6 +332,54 @@ export function EcranCloture({ store, jour, onTerminer }: PropsEcranCloture) {
         >
           <Tampon jour={vue.jour} reduit={reduit} />
           <Jeton reduit={reduit} />
+        </View>
+      )}
+
+      {annonce && (
+        <View
+          testID="annonce-reparation"
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            backgroundColor: c.fond,
+          }}
+        >
+          <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+            <ScrollView
+              contentContainerStyle={{
+                flexGrow: 1,
+                justifyContent: 'center',
+                padding: ESPACE,
+                gap: ESPACE,
+              }}
+            >
+              {reparees.map((o) => (
+                <View key={o.id} style={{ alignItems: 'center', gap: 12 }}>
+                  <ObjetProvisoire objet={o} taille={96} repare libelle={fr.messages.repare(o)} />
+                  <Text
+                    accessibilityRole="header"
+                    style={{ color: c.texte, fontSize: 18, fontWeight: '600', textAlign: 'center' }}
+                  >
+                    {fr.messages.reparation(o)}
+                  </Text>
+                </View>
+              ))}
+              <CarteDuMoment store={store} proposees={REPARATION} moments={MOMENT_REPARATION} />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={fr.cloture.continuerLibelle}
+                onPress={onTerminer}
+                style={{ ...bouton, backgroundColor: c.principal }}
+              >
+                <Text style={{ color: c.surPrincipal, fontSize: 17, fontWeight: '600' }}>
+                  {fr.cloture.continuer}
+                </Text>
+              </Pressable>
+            </ScrollView>
+          </SafeAreaView>
         </View>
       )}
 

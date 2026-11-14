@@ -3,12 +3,17 @@
 // la poussière ; parfois un objet qui se fêle), puis l'objet et une phrase de conclusion. On
 // passe d'un temps à l'autre d'une touche ; chaque temps est lu par le lecteur d'écran. Quitté
 // en route, le bilan se rouvre au même endroit ; « Terminer » le marque vu.
+// Au temps 3, la première fois : « Première capsule », « Première poussière », « Première
+// fêlure » (#66), une carte à la fois.
 import { type ReactNode, useEffect, useState } from 'react';
 import { AccessibilityInfo, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { fr } from '../../i18n/fr';
+import { EXPLICATIONS_J3, type MomentsEcran } from '../../state/explications';
 import type { VueBilanSemaine } from '../../state/selecteurs';
+import type { KakeiboStore } from '../../state/store';
+import { CarteDuMoment } from '../explication/CarteExplication';
 import { theme } from '../theme';
 import { Gashapon } from './Gashapon';
 import { ObjetProvisoire } from './ObjetProvisoire';
@@ -28,6 +33,8 @@ const NBSP = ' ';
 
 export interface PropsEcranBilanUneSemaine {
   vue: VueBilanSemaine;
+  /** Pour les cartes de première fois ; sans store, aucune carte. */
+  store?: KakeiboStore;
   /** Le téléphone demande moins d'animations. */
   reduit: boolean;
   /** Marque le bilan vu ; rend faux si l'enregistrement échoue. */
@@ -56,6 +63,15 @@ function texteOuverture(vue: VueBilanSemaine): string | null {
 }
 
 const titre = (t: string, texte: string) => `${t}${NBSP}: ${texte}`;
+
+/** Cartes de première fois du temps 3, selon le résultat de la semaine. */
+export function momentsResultat(vue: VueBilanSemaine): MomentsEcran {
+  return {
+    first_capsule: vue.objet !== null,
+    first_dust: !vue.complete,
+    first_crack: vue.fele !== null,
+  };
+}
 
 /** Ce que le lecteur d'écran lit en arrivant sur un temps. */
 function annonce(vue: VueBilanSemaine, temps: Temps): string {
@@ -188,12 +204,14 @@ function Poussiere() {
 
 function TempsResultat({
   vue,
+  store,
   etape,
   reduit,
   ouverte,
   onOuverte,
 }: {
   vue: VueBilanSemaine;
+  store?: KakeiboStore;
   etape: EtapeBilan;
   reduit: boolean;
   ouverte: boolean;
@@ -204,6 +222,9 @@ function TempsResultat({
     <View style={{ gap: 12 }}>
       <SousTitre>{b.resultatTitre}</SousTitre>
       <Text style={{ color: c.texte, fontSize: 17 }}>{texteResultat(vue)}</Text>
+      {store !== undefined && (
+        <CarteDuMoment store={store} proposees={EXPLICATIONS_J3} moments={momentsResultat(vue)} />
+      )}
       {vue.objet !== null ? (
         <Gashapon objet={vue.objet} tiree={etape.tiree} reduit={reduit} onOuverte={onOuverte} />
       ) : (
@@ -245,6 +266,7 @@ function TempsMaison({ vue }: { vue: VueBilanSemaine }) {
 
 export function EcranBilanUneSemaine({
   vue,
+  store,
   reduit,
   onTerminer,
   onRetour,
@@ -303,6 +325,7 @@ export function EcranBilanUneSemaine({
       contenu = (
         <TempsResultat
           vue={vue}
+          store={store}
           etape={etape}
           reduit={reduit}
           ouverte={ouverte}

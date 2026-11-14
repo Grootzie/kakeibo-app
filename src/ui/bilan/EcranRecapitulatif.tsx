@@ -2,12 +2,17 @@
 // à la place des bilans un par un. Une ligne par semaine, de la plus ancienne à la plus récente
 // (tampons, enveloppe, objet gagné ou poussière, objet fêlé), puis la poussière et la file de
 // réparation. Ton qui constate et encourage. « Continuer » marque toutes les semaines vues.
+// La première fois : « Première poussière » si une semaine manque de tampons, « Première fêlure »
+// si un objet s'est fêlé (#66). Pas de « Première capsule » : le récapitulatif n'a pas de tirette.
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { fr } from '../../i18n/fr';
+import type { MomentsEcran } from '../../state/explications';
 import type { LigneRecapitulatif, VueRecapitulatif } from '../../state/selecteurs';
+import type { KakeiboStore } from '../../state/store';
+import { CarteDuMoment } from '../explication/CarteExplication';
 import { theme } from '../theme';
 
 const c = theme.couleurs;
@@ -16,6 +21,8 @@ const ESPACE = 16;
 
 export interface PropsEcranRecapitulatif {
   vue: VueRecapitulatif;
+  /** Pour les cartes de première fois ; sans store, aucune carte. */
+  store?: KakeiboStore;
   /** Marque toutes les semaines vues ; rend faux si l'enregistrement échoue. */
   onContinuer(): Promise<boolean>;
   /** Retour à l'accueil sans rien marquer vu. */
@@ -84,7 +91,16 @@ function Maison({ vue }: { vue: VueRecapitulatif }) {
   );
 }
 
-export function EcranRecapitulatif({ vue, onContinuer, onRetour }: PropsEcranRecapitulatif) {
+const CARTES_RECAP = ['first_dust', 'first_crack'] as const;
+
+function momentsRecap(vue: VueRecapitulatif): MomentsEcran {
+  return {
+    first_dust: vue.semaines.some((l) => l.tampons !== l.jours),
+    first_crack: vue.semaines.some((l) => l.objetFele !== null),
+  };
+}
+
+export function EcranRecapitulatif({ vue, store, onContinuer, onRetour }: PropsEcranRecapitulatif) {
   const [envoi, setEnvoi] = useState(false);
   const [refus, setRefus] = useState(false);
 
@@ -126,6 +142,11 @@ export function EcranRecapitulatif({ vue, onContinuer, onRetour }: PropsEcranRec
         </View>
 
         <Text style={{ color: c.texte }}>{r.intro}</Text>
+
+        {/* En haut, pour être vue dès l'ouverture. */}
+        {store !== undefined && (
+          <CarteDuMoment store={store} proposees={CARTES_RECAP} moments={momentsRecap(vue)} />
+        )}
 
         <View style={{ gap: 8 }}>
           {vue.semaines.map((l) => (

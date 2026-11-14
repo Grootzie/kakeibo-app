@@ -7,6 +7,7 @@ import { useStore } from 'zustand';
 import {
   EXPLICATIONS_J2,
   type IdExplication,
+  type MomentsEcran,
   explicationAAfficher,
 } from '../../state/explications';
 import type { KakeiboStore } from '../../state/store';
@@ -16,6 +17,8 @@ export function useCarteExplication(
   proposees: readonly IdExplication[] = EXPLICATIONS_J2,
   /** Faux tant que l'écran n'est pas visible (un autre écran par-dessus) : aucune carte ne s'ouvre. */
   actif = true,
+  /** Moments que l'écran constate (cartes de J3 : bilan, clôture qui répare). */
+  moments: MomentsEcran = {},
 ): { carte: IdExplication | null; fermer: () => void } {
   const [carte, setCarte] = useState<IdExplication | null>(null);
   // Cartes déjà montrées par cet écran, avant même que le store les ait enregistrées.
@@ -24,6 +27,7 @@ export function useCarteExplication(
   const maintenant = useStore(store, (s) => s.maintenant);
   const vues = useStore(store, (s) => s.explicationsVues);
   const cle = proposees.join(',');
+  const cleMoments = JSON.stringify(moments);
 
   useEffect(() => {
     if (!actif || carte !== null || etat === null || maintenant === null) return;
@@ -32,12 +36,13 @@ export function useCarteExplication(
       maintenant,
       [...vues, ...montrees.current],
       cle.split(',') as IdExplication[],
+      JSON.parse(cleMoments) as MomentsEcran,
     );
     if (candidate === null) return;
     montrees.current.push(candidate);
     setCarte(candidate);
     void store.getState().marquerExplicationVue(candidate);
-  }, [actif, carte, etat, maintenant, vues, cle, store]);
+  }, [actif, carte, etat, maintenant, vues, cle, cleMoments, store]);
 
   const fermer = useCallback(() => setCarte(null), []);
   return { carte, fermer };

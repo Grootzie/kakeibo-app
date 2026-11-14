@@ -2,6 +2,8 @@
 // réelle, la quatrième en texte libre (140 caractères au plus), puis la validation, qui ouvre la
 // pièce du mois suivant (et celles des mois sautés) quel que soit le résultat ; puis la
 // confirmation du budget du nouveau mois, pré-rempli (J3.5), et la pièce qui s'ouvre.
+// La première fois (#66) : « Premier bilan du mois » avec les questions, puis « Nouvelle pièce »
+// quand une pièce s'ouvre, suivie de l'explication de la pièce du catalogue.
 // Ne parle qu'au store, qui seul appelle le domaine et les dépôts.
 import { useMemo, useState } from 'react';
 import { AccessibilityInfo, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -15,6 +17,7 @@ import type { BudgetToConfirm } from '../../domain/traitement';
 import { budgetAConfirmer, piecesOuvertesParBilan, vueBilanMois } from '../../state/selecteurs';
 import type { KakeiboStore, MontantsBudget } from '../../state/store';
 import { ecrireMontant, lireMontant } from '../depense/montant';
+import { CarteDuMoment } from '../explication/CarteExplication';
 import { theme } from '../theme';
 
 const c = theme.couleurs;
@@ -33,7 +36,14 @@ const couper = (texte: string): string =>
 interface BilanFait {
   mois: MonthKey;
   phrases: string[];
+  /** Explication de la première pièce ouverte, si le catalogue la donne. */
+  explication: string | undefined;
 }
+
+const CARTE_BILAN = ['first_month_review'] as const;
+const MOMENT_BILAN = { first_month_review: true } as const;
+const CARTE_PIECE = ['new_room'] as const;
+const MOMENT_PIECE = { new_room: true } as const;
 
 /** Bilan validé, budget du nouveau mois à confirmer. */
 interface BudgetEnCours {
@@ -231,14 +241,14 @@ export function EcranBilanMois({ store, onTerminer }: PropsEcranBilanMois) {
   /** Le bilan est fait : la pièce du mois suivant (et des mois sautés) s'ouvre. */
   const terminer = (mois: MonthKey) => {
     const apres = store.getState().etat;
-    const phrases = (apres === null ? [] : piecesOuvertesParBilan(apres, mois, catalogue)).map(
-      (p) => fr.messages.nouvellePiece(p.mois, p.fete),
-    );
+    const pieces = apres === null ? [] : piecesOuvertesParBilan(apres, mois, catalogue);
+    const phrases = pieces.map((p) => fr.messages.nouvellePiece(p.mois, p.fete));
     AccessibilityInfo.announceForAccessibility(
       [fr.bilanMois.enregistre(mois), ...phrases].join(' '),
     );
     setBudget(null);
-    setFait({ mois, phrases });
+    // Avec plusieurs pièces (mois sautés), la carte explique la dernière : celle du mois en cours.
+    setFait({ mois, phrases, explication: pieces.at(-1)?.explication });
   };
 
   const confirmerBudget: ConfirmerBudget = async (montants) => {
@@ -300,6 +310,14 @@ export function EcranBilanMois({ store, onTerminer }: PropsEcranBilanMois) {
                 {p}
               </Text>
             ))}
+            {fait.phrases.length > 0 && (
+              <CarteDuMoment
+                store={store}
+                proposees={CARTE_PIECE}
+                moments={MOMENT_PIECE}
+                complements={fait.explication === undefined ? {} : { new_room: fait.explication }}
+              />
+            )}
           </View>
         )}
 
@@ -318,6 +336,7 @@ export function EcranBilanMois({ store, onTerminer }: PropsEcranBilanMois) {
 
         {fait === null && budget === null && vue !== null && (
           <>
+            <CarteDuMoment store={store} proposees={CARTE_BILAN} moments={MOMENT_BILAN} />
             <View style={{ gap: 8 }}>
               {chiffres === null ? (
                 <Text style={{ color: c.texteDiscret }}>{fr.bilanMois.sansBudget}</Text>

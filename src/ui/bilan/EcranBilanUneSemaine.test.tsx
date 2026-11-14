@@ -341,9 +341,11 @@ describe('lecteur d’écran et reprise', () => {
       `${b.temps(2)}. ${b.enveloppeTitre}${N}: Dépensé${N}: 120${N}€ sur 140${N}€. ${fr.recapitulatif.dansEnveloppe}.`,
     );
     await suivant();
-    expect(annonces).toHaveBeenLastCalledWith(
-      `${b.temps(3)}. ${b.resultatTitre}${N}: ${fr.bilan.toutTamponsDansBudget}`,
-    );
+    // Le temps 3, puis la carte « Première capsule » qui s'affiche la première fois (#66).
+    expect(annonces.mock.calls.slice(-2)).toEqual([
+      [`${b.temps(3)}. ${b.resultatTitre}${N}: ${fr.bilan.toutTamponsDansBudget}`],
+      [`${fr.carteExplication.titres.first_capsule}. ${fr.explications.premiereCapsule}`],
+    ]);
     await tirer();
     expect(annonces).toHaveBeenLastCalledWith(fr.messages.ouvertureCapsule(rateau));
     await suivant();

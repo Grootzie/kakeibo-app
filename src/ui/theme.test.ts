@@ -45,6 +45,10 @@ describe('thème de l’accueil (#43)', () => {
     expect(contrastRatio(c.texte, c.discret)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(c.texteDiscret, c.discret)).toBeGreaterThanOrEqual(4.5);
   });
+  it('distingue les veines d’or du fond discret (3 pour un élément graphique, #66)', () => {
+    expect(contrastRatio(c.or, c.discret)).toBeGreaterThanOrEqual(3);
+  });
+
   it('n’utilise aucun rouge d’alerte pour la jauge', () => {
     expect(c.jauge).not.toBe(theme.categories.envies.couleur);
     const [r, g, b] = [1, 3, 5].map((i) => parseInt(c.jauge.slice(i, i + 2), 16));
