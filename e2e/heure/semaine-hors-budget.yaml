@@ -1,0 +1,203 @@
+# Semaine hors budget (critère de J3, #67) : les mêmes clôtures que la semaine parfaite, mais
+# 120 € notés pour une enveloppe de 100 €. Dimanche, oublié le soir, se rattrape le lundi 9 au
+# matin (passage au lundi par l'horloge de test) : cette clôture scelle la semaine. Au bilan,
+# tous les jetons : la tirette et la capsule (le râteau porte-bonheur kumade) ; et un objet de
+# base se fêle, l'échelle (le dernier du catalogue parmi les objets intacts, hors objet du même
+# bilan). Une capture par temps, puis retour à l'accueil sans bandeau de bilan.
+# Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
+# du téléphone au mercredi 4 novembre 2026 à 9:00. L'horloge de test avance les jours.
+# Budget de démonstration : 1 200 € de revenus, 600 € de charges fixes, 0 € d'épargne.
+appId: app.kakeibo
+---
+- launchApp
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 60000
+- longPressOn: 'mercredi.4.novembre'
+- extendedWaitUntil:
+    visible: 'Horloge de test'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Poser un budget de démonstration.*'
+    direction: DOWN
+- tapOn: 'Poser un budget de démonstration.*'
+- assertVisible: 'Budget de démonstration posé'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.4.novembre'
+    direction: UP
+# 1. Mercredi 4 novembre : 120 € en Essentiel, puis « J’ai tout noté ».
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Essentiel'
+- inputText: '120'
+# Pas de « hideKeyboard » : sur Android, Maestro envoie « Retour », qui ferme la feuille (Modal).
+- tapOn: 'Enregistrer en Essentiel'
+- extendedWaitUntil:
+    visible: 'Première dépense'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Première dépense.*'
+- extendedWaitUntil:
+    notVisible: 'Première dépense'
+    timeout: 10000
+- assertVisible: 'Tu as dépassé de 20.€ cette semaine'
+- takeScreenshot: captures/semaine-hors-budget-depense
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'J’ai tout noté'
+- extendedWaitUntil:
+    visible: 'Premier tampon'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Premier tampon.*'
+- assertVisible: 'Journée clôturée'
+# 2. Jeudi, vendredi et samedi : un jour de plus, « Rien dépensé aujourd’hui ».
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 1 jour'
+- scrollUntilVisible:
+    element:
+      text: 'jeudi.5.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'jeudi.5.novembre'
+    timeout: 10000
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 2 jours'
+- scrollUntilVisible:
+    element:
+      text: 'vendredi.6.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'vendredi.6.novembre'
+    timeout: 10000
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 3 jours'
+- scrollUntilVisible:
+    element:
+      text: 'samedi.7.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'samedi.7.novembre'
+    timeout: 10000
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+# 3. Dimanche passe sans clôture : lundi 9 novembre à 9:00, la semaine reste ouverte jusqu'à
+#    midi. Dimanche se rattrape (E5), et cette dernière clôture scelle la semaine.
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 4 jours'
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 5 jours'
+- scrollUntilVisible:
+    element:
+      text: 'lundi.9.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'lundi.9.novembre'
+    timeout: 10000
+# La carte de tampons montre déjà la semaine du lundi 9 : dimanche se rattrape par le bandeau.
+- assertVisible: 'lundi, à clôturer aujourd’hui'
+- assertVisible: 'Tu peux encore rattraper dimanche.8.novembre\.'
+- extendedWaitUntil:
+    visible: 'Premier jour à rattraper'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Premier jour à rattraper.*'
+- extendedWaitUntil:
+    notVisible: 'Premier jour à rattraper'
+    timeout: 10000
+- takeScreenshot: captures/semaine-hors-budget-lundi
+- tapOn: 'Tu peux encore rattraper dimanche.8.novembre\.'
+- extendedWaitUntil:
+    visible: 'Rattraper dimanche.8.novembre'
+    timeout: 10000
+- tapOn: 'Rien dépensé aujourd’hui'
+# 4. Retour à l'accueil : le bilan de la semaine s'ouvre de lui-même. Temps 1, les tampons.
+- extendedWaitUntil:
+    visible: 'Temps 1 sur 4'
+    timeout: 15000
+- assertVisible: 'Bilan de la semaine'
+- assertVisible: 'Semaine du 2.novembre'
+- assertVisible: '5 sur 5'
+- takeScreenshot: captures/semaine-hors-budget-1-tampons
+# Temps 2 : le dépensé face à l'enveloppe.
+- tapOn: 'Passer au temps suivant'
+- assertVisible: 'Temps 2 sur 4'
+- assertVisible: 'Dépensé.: 120.€ sur 100.€'
+- assertVisible: 'Au-delà de ton enveloppe'
+- takeScreenshot: captures/semaine-hors-budget-2-enveloppe
+# Temps 3 : tous les jetons, la tirette, et l'échelle fêlée. La première fois, les cartes
+# « Première capsule » puis « Première fêlure ».
+- tapOn: 'Passer au temps suivant'
+- assertVisible: 'Temps 3 sur 4'
+- assertVisible: 'Tu as tout noté, c’est l’essentiel.: tes jetons sont prêts, tire la tirette\. L’échelle s’est fêlée.; 7 jours de clôture d’affilée, et elle sera réparée à l’or\.'
+- extendedWaitUntil:
+    visible: 'Première capsule'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Première capsule.*'
+- extendedWaitUntil:
+    visible: 'Première fêlure'
+    timeout: 10000
+- assertVisible: 'Au Japon, on répare les bols cassés.*'
+- tapOn: 'Fermer l’explication .*Première fêlure.*'
+- extendedWaitUntil:
+    notVisible: 'Première fêlure'
+    timeout: 10000
+- assertVisible: 'L’échelle s’est fêlée\.'
+- assertNotVisible: 'Passer au temps suivant'
+- takeScreenshot: captures/semaine-hors-budget-3-tirette
+- scrollUntilVisible:
+    element:
+      text: 'Tirer la tirette.*'
+    direction: DOWN
+- tapOn: 'Tirer la tirette.*'
+- extendedWaitUntil:
+    visible: 'Un râteau porte-bonheur kumade entre dans ta maison\.'
+    timeout: 10000
+- assertVisible: 'L’échelle s’est fêlée\.'
+- takeScreenshot: captures/semaine-hors-budget-3-capsule
+# Temps 4 : l'objet gagné et la conclusion.
+- scrollUntilVisible:
+    element:
+      text: 'Passer au temps suivant'
+    direction: DOWN
+- tapOn: 'Passer au temps suivant'
+- assertVisible: 'Temps 4 sur 4'
+- assertVisible: 'Le râteau porte-bonheur kumade'
+- assertVisible: 'Une nouvelle semaine commence.: chaque soir, un jeton t’attend\.'
+- takeScreenshot: captures/semaine-hors-budget-4-objet
+# « Terminer » : le bilan est vu, retour à l'accueil du lundi, sans bandeau.
+- tapOn: 'Terminer le bilan.*'
+- extendedWaitUntil:
+    visible: 'lundi.9.novembre'
+    timeout: 10000
+- assertNotVisible: 'Le bilan de ta semaine est prêt\.'
+- assertNotVisible: 'Tu peux encore rattraper.*'
+- takeScreenshot: captures/semaine-hors-budget-accueil
+- launchApp:
+    clearState: true
