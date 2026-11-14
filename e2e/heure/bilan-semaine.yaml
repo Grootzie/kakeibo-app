@@ -1,0 +1,230 @@
+# Bilan de la semaine (E6, J3.2, #62) : installée le mercredi 4 novembre, 30 € notés pour une
+# enveloppe de 100 €, chaque jour clôturé jusqu'au dimanche 8. La dernière clôture scelle la
+# semaine : le bilan s'ouvre de lui-même, en quatre temps (5 sur 5, 30 € sur 100 €, la tirette,
+# la capsule s'ouvre sur le râteau porte-bonheur kumade, puis l'objet seul et la conclusion).
+# Puis la semaine 46 : 150 € notés pour 140 €, aucun tampon ; le mardi 17, son bilan dit la
+# poussière et la fêlure du râteau, sans capsule.
+# Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
+# du téléphone au mercredi 4 novembre 2026 à 9:00. L'horloge de test avance les jours.
+# Budget de démonstration : 1 200 € de revenus, 600 € de charges fixes, 0 € d'épargne.
+appId: app.kakeibo
+---
+- launchApp
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 60000
+- longPressOn: 'mercredi.4.novembre'
+- extendedWaitUntil:
+    visible: 'Horloge de test'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Poser un budget de démonstration.*'
+    direction: DOWN
+- tapOn: 'Poser un budget de démonstration.*'
+- assertVisible: 'Budget de démonstration posé'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.4.novembre'
+    direction: UP
+# 1. Mercredi 4 novembre : 30 € en Envies, puis la clôture.
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Envies'
+- inputText: '30'
+# Pas de « hideKeyboard » : sur Android, Maestro envoie « Retour », qui ferme la feuille (Modal).
+- tapOn: 'Enregistrer en Envies'
+- extendedWaitUntil:
+    visible: 'Première dépense'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Première dépense.*'
+- extendedWaitUntil:
+    notVisible: 'Première dépense'
+    timeout: 10000
+- assertVisible: 'Il te reste 70.€ jusqu’à dimanche'
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'J’ai tout noté'
+- extendedWaitUntil:
+    visible: 'Premier tampon'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Premier tampon.*'
+- assertVisible: 'Journée clôturée'
+# 2. Du jeudi au dimanche : un jour de plus, « Rien dépensé aujourd’hui ».
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 1 jour'
+- scrollUntilVisible:
+    element:
+      text: 'jeudi.5.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'jeudi.5.novembre'
+    timeout: 10000
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 2 jours'
+- scrollUntilVisible:
+    element:
+      text: 'vendredi.6.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'vendredi.6.novembre'
+    timeout: 10000
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 3 jours'
+- scrollUntilVisible:
+    element:
+      text: 'samedi.7.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'samedi.7.novembre'
+    timeout: 10000
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Journée clôturée'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 4 jours'
+- scrollUntilVisible:
+    element:
+      text: 'dimanche.8.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'dimanche.8.novembre'
+    timeout: 10000
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+# 3. La clôture du dimanche scelle la semaine : son bilan s'ouvre de lui-même. Temps 1.
+- extendedWaitUntil:
+    visible: 'Temps 1 sur 4'
+    timeout: 10000
+- assertVisible: 'Bilan de la semaine'
+- assertVisible: 'Semaine du 2.novembre'
+- assertVisible: '5 sur 5'
+- takeScreenshot: captures/bilan-semaine-tampons
+# Temps 2 : le dépensé face à l'enveloppe.
+- tapOn: 'Passer au temps suivant'
+- assertVisible: 'Temps 2 sur 4'
+- assertVisible: 'Dépensé.: 30.€ sur 100.€'
+- assertVisible: 'Dans ton enveloppe'
+- takeScreenshot: captures/bilan-semaine-enveloppe
+# Temps 3 : tous les jetons, la tirette.
+- tapOn: 'Passer au temps suivant'
+- assertVisible: 'Temps 3 sur 4'
+- assertVisible: 'Tous tes tampons, et dans ton enveloppe.: tes jetons sont prêts, tire la tirette\.'
+- assertNotVisible: 'Passer au temps suivant'
+- takeScreenshot: captures/bilan-semaine-tirette
+- tapOn: 'Tirer la tirette.*'
+- extendedWaitUntil:
+    visible: 'Un râteau porte-bonheur kumade entre dans ta maison\.'
+    timeout: 10000
+- takeScreenshot: captures/bilan-semaine-capsule
+# Temps 4 : l'objet seul (la maison arrive en J4) et la conclusion.
+- scrollUntilVisible:
+    element:
+      text: 'Passer au temps suivant'
+    direction: DOWN
+- tapOn: 'Passer au temps suivant'
+- assertVisible: 'Temps 4 sur 4'
+- assertVisible: 'Le râteau porte-bonheur kumade'
+- assertVisible: 'Une nouvelle semaine commence.: chaque soir, un jeton t’attend\.'
+- takeScreenshot: captures/bilan-semaine-objet
+# « Terminer » : le bilan est vu, retour à l'accueil sans bandeau.
+- tapOn: 'Terminer le bilan.*'
+- extendedWaitUntil:
+    visible: 'dimanche.8.novembre'
+    timeout: 10000
+- assertNotVisible: 'Le bilan de ta semaine est prêt\.'
+- assertVisible: 'Journée clôturée'
+# 4. Lundi 9 novembre : 150 € en Envies, au-delà de l'enveloppe de 140 €, et plus aucune clôture.
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 5 jours'
+- scrollUntilVisible:
+    element:
+      text: 'lundi.9.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'lundi.9.novembre'
+    timeout: 10000
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Envies'
+- inputText: '150'
+- tapOn: 'Enregistrer en Envies'
+- extendedWaitUntil:
+    visible: 'Tu as dépassé de 10.€ cette semaine'
+    timeout: 10000
+# Lundi 16 à 9:00 : la semaine 46 reste ouverte jusqu'à midi ; mardi 17, elle est scellée.
+- scrollUntilVisible:
+    element:
+      text: '\+1 semaine'
+    direction: DOWN
+- tapOn: '\+1 semaine'
+- assertVisible: 'Décalage.: 12 jours'
+- runFlow:
+    when:
+      visible: 'Premier jour à rattraper'
+    commands:
+      - tapOn: 'Fermer l’explication .*Premier jour à rattraper.*'
+      - extendedWaitUntil:
+          notVisible: 'Premier jour à rattraper'
+          timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- extendedWaitUntil:
+    visible: 'Temps 1 sur 4'
+    timeout: 10000
+- assertVisible: 'Semaine du 9.novembre'
+- assertVisible: '0 sur 7'
+- tapOn: 'Passer au temps suivant'
+- assertVisible: 'Dépensé.: 150.€ sur 140.€'
+- assertVisible: 'Au-delà de ton enveloppe'
+- tapOn: 'Passer au temps suivant'
+# 5. Temps 3 : la poussière et la fêlure, sans tirette ni capsule.
+- assertVisible: 'Pas de capsule cette semaine, et le râteau porte-bonheur kumade s’est fêlé\. Rien n’est perdu.: 7 jours de clôture d’affilée, et il sera réparé à l’or\.'
+- assertNotVisible: 'Tirer la tirette.*'
+- assertVisible: 'Le râteau porte-bonheur kumade s’est fêlé\.'
+- takeScreenshot: captures/bilan-semaine-felure
+- scrollUntilVisible:
+    element:
+      text: 'Passer au temps suivant'
+    direction: DOWN
+- tapOn: 'Passer au temps suivant'
+- assertVisible: 'Rien n’est perdu.: une clôture ce soir, et tout repart\.'
+- tapOn: 'Terminer le bilan.*'
+- extendedWaitUntil:
+    visible: 'mardi.17.novembre'
+    timeout: 10000
+- assertNotVisible: 'Le bilan de ta semaine est prêt\.'
+- launchApp:
+    clearState: true

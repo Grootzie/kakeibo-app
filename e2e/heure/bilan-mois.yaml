@@ -6,8 +6,8 @@
 # vus et les jours oubliés rattrapés ; l'enveloppe suit le nouveau budget la semaine suivante.
 # Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
 # du téléphone au mercredi 4 novembre 2026 à 9:00. L'horloge de test avance d'un mois.
-# Le bilan des semaines (E6) n'existe pas encore (J3.2) : il passe avant celui du mois sur
-# l'accueil, alors E7 s'ouvre ici par son lien (kakeibo://bilan-mois), et le réglage caché
+# Le bilan des semaines (E6, J3.2) passe avant celui du mois : il s'ouvre de lui-même et on en
+# revient sans le faire ; E7 s'ouvre ici par son lien (kakeibo://bilan-mois), et le réglage caché
 # marque les bilans de semaine vus.
 # Budget de démonstration : 1 200 € de revenus, 600 € de charges fixes, 0 € d'épargne.
 appId: app.kakeibo
@@ -56,6 +56,11 @@ appId: app.kakeibo
       text: '\+1 mois'
     direction: DOWN
 - tapOn: '\+1 mois'
+# Les semaines 45 à 48 sont scellées : leur récapitulatif (E6) s'ouvre de lui-même.
+- extendedWaitUntil:
+    visible: 'Tes dernières semaines'
+    timeout: 10000
+- tapOn: 'Retour à l’accueil'
 - scrollUntilVisible:
     element:
       text: 'vendredi.4.décembre'
@@ -154,7 +159,7 @@ appId: app.kakeibo
       - extendedWaitUntil:
           notVisible: 'Premier jour à rattraper'
           timeout: 10000
-# 7. Bilans de semaine vus (réglage caché, en attendant E6), puis les quatre jours oubliés
+# 7. Bilans de semaine vus (réglage caché, raccourci des parcours), puis les quatre jours oubliés
 # rattrapés depuis le bandeau : il ne reste que la résolution.
 # Le réglage caché est resté ouvert depuis l'étape 2 : l'appui long le refermerait.
 - runFlow:
@@ -213,6 +218,11 @@ appId: app.kakeibo
       text: '\+1 semaine'
     direction: DOWN
 - tapOn: '\+1 semaine'
+# La semaine 49 est scellée : son bilan (E6) s'ouvre de lui-même ; on revient à l'accueil.
+- extendedWaitUntil:
+    visible: 'Temps 1 sur 4'
+    timeout: 10000
+- tapOn: 'Retour à l’accueil'
 - scrollUntilVisible:
     element:
       text: 'vendredi.11.décembre'

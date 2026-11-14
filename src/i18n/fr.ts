@@ -8,7 +8,10 @@ const NBSP = ' ';
 
 export type Genre = 'm' | 'f';
 
-/** Nom d'objet tel que le donne le catalogue, avec article et genre. */
+/**
+ * Nom d'objet tel que le donne le catalogue, avec article et genre. L'article « les » dit le
+ * pluriel : « Les étagères se sont fêlées », « Des lanternes de papier entrent dans ta maison. »
+ */
 export interface NomObjet {
   readonly nom: string;
   readonly article: 'le' | 'la' | "l'" | 'les';
@@ -90,7 +93,10 @@ const ETATS_CASE = {
 } as const;
 
 function debut(objet: NomObjet): string {
-  const texte = avecArticle(objet);
+  return majuscule(avecArticle(objet));
+}
+
+function majuscule(texte: string): string {
   return `${texte[0].toUpperCase()}${texte.slice(1)}`;
 }
 
@@ -99,9 +105,37 @@ function avecArticle(objet: NomObjet): string {
   return `${article}${objet.nom}`;
 }
 
-function accord(objet: NomObjet, masculin: string, feminin: string): string {
+/** Article indéfini : « un daruma », « une échelle », « des étagères ». */
+function indefini(objet: NomObjet): string {
+  const article = objet.article === 'les' ? 'des' : objet.genre === 'f' ? 'une' : 'un';
+  return `${article} ${objet.nom}`;
+}
+
+/** Accord en genre et en nombre : masculin, féminin, puis leurs pluriels. */
+function accord(
+  objet: NomObjet,
+  masculin: string,
+  feminin: string,
+  masculinPluriel: string,
+  femininPluriel: string,
+): string {
+  if (objet.article === 'les') return objet.genre === 'f' ? femininPluriel : masculinPluriel;
   return objet.genre === 'f' ? feminin : masculin;
 }
+
+/** « s’est fêlé », « s’est fêlée », « se sont fêlés », « se sont fêlées ». */
+const sEstFele = (objet: NomObjet): string =>
+  accord(objet, 's’est fêlé', 's’est fêlée', 'se sont fêlés', 'se sont fêlées');
+
+/** « il sera réparé », « elle sera réparée », « ils seront réparés », « elles seront réparées ». */
+const seraRepare = (objet: NomObjet): string =>
+  accord(
+    objet,
+    'il sera réparé',
+    'elle sera réparée',
+    'ils seront réparés',
+    'elles seront réparées',
+  );
 
 export const fr = {
   app: {
@@ -124,7 +158,7 @@ export const fr = {
     autoriserRappelLibelle: `Autoriser le rappel du soir${NBSP}: demande l’autorisation des notifications`,
     rappelAutorise: 'Rappel du soir autorisé',
     rappelRefuse: `Notifications refusées${NBSP}: aucun rappel`,
-    /** En attendant E6 (J3.2), qui les marquera vus lui-même. */
+    /** Raccourci des parcours : E6 (J3.2) les marque vus lui-même, à la fin du bilan. */
     bilansVus: 'Marquer les bilans de semaine vus',
     bilansVusFait: 'Bilans de semaine marqués vus',
   },
@@ -142,6 +176,8 @@ export const fr = {
     bilan: 'Bilan',
     resolution: 'Résolution',
     capsule: 'Capsule',
+    jeton: 'Jeton',
+    tirette: 'Tirette',
     album: 'Album',
   },
 
@@ -252,20 +288,55 @@ export const fr = {
   ],
 
   bilan: {
-    /** E6 arrive avec J3.2 : en attendant, son titre et un retour. */
     titreSemaine: 'Bilan de la semaine',
     titreMois: (mois: string) => `Bilan ${duMois(mois)}`,
     titreMoisSans: 'Bilan du mois',
     retour: 'Retour',
     retourLibelle: 'Retour à l’accueil',
-    toutTamponsDansBudget:
-      'Tous tes tampons, et dans ton enveloppe : une capsule tombe de la machine.',
-    toutTamponsHorsBudget: (objet: NomObjet) =>
-      `Tu as tout noté, c’est l’essentiel${NBSP}: ta capsule est là. ${debut(objet)} ${accord(objet, 's’est fêlé', 's’est fêlée')}${NBSP}; 7 jours de clôture d’affilée, et ${accord(objet, 'il sera réparé', 'elle sera réparée')} à l’or.`,
-    manqueDansBudget:
-      'Il manque des tampons cette semaine, alors pas de capsule. Un peu de poussière s’est posée ; une semaine complète, et elle s’envole.',
+    /** Résultat d'une semaine (temps 3 de E6), textes de la spec, révision 847. */
+    toutTamponsDansBudget: `Tous tes tampons, et dans ton enveloppe${NBSP}: tes jetons sont prêts, tire la tirette.`,
+    /** Sans objet à fêler (tous fêlés ou réparés, scénario 13), la phrase de la fêlure tombe. */
+    toutTamponsHorsBudget: (objet: NomObjet | null) =>
+      `Tu as tout noté, c’est l’essentiel${NBSP}: tes jetons sont prêts, tire la tirette.${
+        objet === null
+          ? ''
+          : ` ${debut(objet)} ${sEstFele(objet)}${NBSP}; 7 jours de clôture d’affilée, et ${seraRepare(objet)} à l’or.`
+      }`,
+    manqueDansBudget: `Il manque des tampons cette semaine, alors pas de capsule. Un peu de poussière s’est posée${NBSP}; une semaine complète, et elle s’envole.`,
     manqueHorsBudget: (objet: NomObjet) =>
-      `Pas de capsule cette semaine, et ${avecArticle(objet)} ${accord(objet, 's’est fêlé', 's’est fêlée')}. Rien n’est perdu${NBSP}: 7 jours de clôture d’affilée, et ${accord(objet, 'il sera réparé', 'elle sera réparée')} à l’or.`,
+      `Pas de capsule cette semaine, et ${avecArticle(objet)} ${sEstFele(objet)}. Rien n’est perdu${NBSP}: 7 jours de clôture d’affilée, et ${seraRepare(objet)} à l’or.`,
+  },
+
+  /**
+   * Bilan d'une semaine (E6, #62), en quatre temps. Les textes du résultat sont dans `bilan` et
+   * `messages` (spec) ; les autres sont absents de « Textes et ton », proposés au propriétaire
+   * dans la demande de fusion.
+   */
+  bilanSemaine: {
+    /** « Temps 1 sur 4 », pour le lecteur d'écran et sous le titre. */
+    temps: (n: number) => `Temps ${n} sur 4`,
+    tamponsTitre: 'Tes tampons',
+    /** « 7 sur 7 », en grand. */
+    tamponsSur: (tampons: number, jours: number) => `${tampons} sur ${jours}`,
+    enveloppeTitre: 'Ton enveloppe',
+    depense: (depense: number, enveloppe: number) =>
+      `Dépensé${NBSP}: ${formatEuros(depense)} sur ${formatEuros(enveloppe)}`,
+    resultatTitre: 'Ta semaine',
+    machineLibelle: 'Machine à capsules',
+    tirer: 'Tirer la tirette',
+    tirerLibelle: `Tirer la tirette${NBSP}: la capsule tombe et s’ouvre sur l’objet de la semaine`,
+    poussiereLibelle: 'Un peu de poussière',
+    maisonTitre: 'Ta maison',
+    /** Dessin provisoire de l'objet, en attendant les visuels (et la maison, J4). */
+    objetLibelle: (objet: NomObjet) => `${debut(objet)}, dessin provisoire`,
+    nomObjet: (objet: NomObjet) => debut(objet),
+    conclusionObjet: `Une nouvelle semaine commence${NBSP}: chaque soir, un jeton t’attend.`,
+    conclusionSansObjet: `Rien n’est perdu${NBSP}: une clôture ce soir, et tout repart.`,
+    suivant: 'Suivant',
+    suivantLibelle: 'Passer au temps suivant',
+    terminer: 'Terminer',
+    terminerLibelle: 'Terminer le bilan et revenir à l’accueil',
+    refus: 'Ton bilan n’a pas pu être enregistré. Réessaie dans un instant.',
   },
 
   /**
@@ -338,13 +409,14 @@ export const fr = {
   },
 
   messages: {
-    ouvertureCapsule: (objet: NomObjet & { indefini: string }) =>
-      `${objet.indefini} ${objet.nom} entre dans ta maison.`,
-    fele: (objet: NomObjet) => `${debut(objet)} ${accord(objet, 's’est fêlé', 's’est fêlée')}.`,
+    /** « Un daruma entre dans ta maison. », « Des lanternes de papier entrent dans ta maison. » */
+    ouvertureCapsule: (objet: NomObjet) =>
+      `${majuscule(indefini(objet))} ${accord(objet, 'entre', 'entre', 'entrent', 'entrent')} dans ta maison.`,
+    fele: (objet: NomObjet) => `${debut(objet)} ${sEstFele(objet)}.`,
     repare: (objet: NomObjet) =>
-      `${debut(objet)} est ${accord(objet, 'réparé', 'réparée')} à l’or.`,
+      `${debut(objet)} ${accord(objet, 'est réparé', 'est réparée', 'sont réparés', 'sont réparées')} à l’or.`,
     reparation: (objet: NomObjet) =>
-      `${accord(objet, 'Réparé', 'Réparée')} à l’or, ${avecArticle(objet)} garde la trace de cette semaine-là.`,
+      `${accord(objet, 'Réparé', 'Réparée', 'Réparés', 'Réparées')} à l’or, ${avecArticle(objet)} ${accord(objet, 'garde', 'garde', 'gardent', 'gardent')} la trace de cette semaine-là.`,
     poussiereJours: 'La maison prend la poussière. Une clôture suffit à l’aérer.',
     poussiereSemaineIncomplete:
       'Un voile de poussière reste jusqu’à ta prochaine semaine complète.',

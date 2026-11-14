@@ -67,10 +67,10 @@ if [ -f e2e/heure/installer.yaml ]; then
     sleep 2
     maestro test e2e/heure/rappel-toucher.yaml --format junit --output captures/maestro-heure-4.xml || statut=1
   fi
-  # Parcours « journée type », « rattrapage » (#49), « bilans prêts » (#61), « bilan du mois » (#64)
-  # et « récapitulatif » (#63) : appli effacée, mercredi 4 novembre 2026 à 9:00 ; l'horloge de
+  # Parcours « journée type », « rattrapage » (#49), « bilans prêts » (#61), « bilan du mois » (#64),
+  # « récapitulatif » (#63) et « bilan de la semaine » (#62) : appli effacée, mercredi 4 novembre 2026 à 9:00 ; l'horloge de
   # test de l'APK de développement avance ensuite les jours.
-  for parcours in journee-type rattrapage bilans-prets bilan-mois recapitulatif; do
+  for parcours in journee-type rattrapage bilans-prets bilan-mois recapitulatif bilan-semaine; do
     if [ -f "e2e/heure/$parcours.yaml" ]; then
       adb shell pm clear app.kakeibo >/dev/null 2>&1 || true
       adb shell date 110409002026.00 || true

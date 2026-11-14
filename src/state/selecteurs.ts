@@ -1,7 +1,7 @@
 // Sélecteurs de l'accueil (E2). Purs : l'état et l'heure leur sont passés.
 import type { ExpenseRow } from '../data/repositories';
 import { type Cents, weekEnvelope, weekSpent } from '../domain/budget';
-import { addDays, previousMonth, weekDays, weekOf } from '../domain/calendrier';
+import { addDays, previousMonth, weekDays, weekMonth, weekOf } from '../domain/calendrier';
 import { expenseDays } from '../domain/depense';
 import { type DustLevel, dustDays, dustFloor } from '../domain/poussiere';
 import {
@@ -14,7 +14,8 @@ import {
 } from '../domain/scellement';
 import type { MonthReview } from '../domain/bilanMois';
 import type { MonthKey } from '../domain/calendrier';
-import type { Catalog } from '../domain/objets';
+import type { Catalog, ItemId } from '../domain/objets';
+import type { NomObjet } from '../i18n/fr';
 import {
   type AppState,
   type BudgetToConfirm,
@@ -183,6 +184,69 @@ export function vueRecapitulatif(
     reparations: etat.repairs
       .filter((e) => e.repairedOn === null)
       .map((e) => ({ objet: nom(e.itemId) ?? e.itemId, progression: e.progress })),
+  };
+}
+
+/** Objet du catalogue nommé avec son article et son genre, pour accorder les phrases. */
+export interface ObjetNomme extends NomObjet {
+  id: ItemId;
+}
+
+function objetNomme(catalogue: Catalog, id: ItemId | null): ObjetNomme | null {
+  if (id === null) return null;
+  const item = catalogue.items.find((i) => i.id === id);
+  if (item === undefined) return null;
+  return { id, nom: item.name, article: item.article, genre: item.gender };
+}
+
+/** Ce que le bilan d'une semaine (E6) affiche, en quatre temps. */
+export interface VueBilanSemaine {
+  semaine: WeekId;
+  /** Lundi de la semaine : « Semaine du 2 novembre ». */
+  lundi: DayKey;
+  /** Temps 1 : T sur N jours décomptés. */
+  tampons: number;
+  jours: number;
+  /** Temps 2 : le dépensé face à l'enveloppe, figés au scellement. */
+  enveloppe: Cents;
+  depense: Cents;
+  dansLeBudget: boolean;
+  /** T = N : la semaine a tous ses jetons, la tirette se tire. */
+  complete: boolean;
+  /** Temps 3 : l'objet sorti de sa capsule ; null : la poussière. */
+  objet: ObjetNomme | null;
+  /** L'objet attend sa pièce, pas encore débloquée : le bilan du mois qui l'ouvrira. */
+  enAttente: { moisPiece: MonthKey; moisBilan: MonthKey } | null;
+  fele: ObjetNomme | null;
+}
+
+/**
+ * Bilan d'une semaine : seulement quand process prépare l'écran « une semaine » (une seule
+ * semaine scellée pas encore vue) ; null sinon. Tout vient du résultat figé au scellement.
+ */
+export function vueBilanSemaine(etat: AppState, catalogue: Catalog): VueBilanSemaine | null {
+  const ecran = weekReviewScreen(etat);
+  if (ecran === null || ecran.kind !== 'week') return null;
+  const r = etat.results.find((x) => x.week === ecran.week);
+  if (r === undefined) return null;
+  const objet = objetNomme(catalogue, r.gashaponItem);
+  const possede = etat.house.owned.find((o) => o.itemId === r.gashaponItem && o.week === r.week);
+  const moisPiece = weekMonth(r.week);
+  return {
+    semaine: r.week,
+    lundi: weekDays(r.week)[0],
+    tampons: r.stamps,
+    jours: r.countedDays,
+    enveloppe: r.envelope,
+    depense: r.spent,
+    dansLeBudget: r.inBudget,
+    complete: r.complete,
+    objet,
+    enAttente:
+      objet !== null && possede !== undefined && possede.placedAt === null
+        ? { moisPiece, moisBilan: previousMonth(moisPiece) }
+        : null,
+    fele: objetNomme(catalogue, r.crackedItem),
   };
 }
 

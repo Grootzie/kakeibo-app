@@ -1,5 +1,5 @@
-// Place du bilan de la semaine (E6), en attendant J3.2 : un titre et un retour à l'accueil.
-// Rien n'y est marqué vu : le bandeau de l'accueil reste.
+// Écran de bilan sans rien à montrer (le bilan vient d'être vu, ou aucun n'attend) : un titre
+// et un retour à l'accueil. Rien n'y est marqué vu.
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

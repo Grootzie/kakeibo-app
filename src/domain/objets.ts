@@ -22,6 +22,9 @@ export interface CatalogItem {
   rank: number;
   source: 'base' | 'weekly';
   name: string;
+  /** Article du nom, pour accorder les phrases ; « les » dit le pluriel. */
+  article: 'le' | 'la' | "l'" | 'les';
+  gender: 'm' | 'f';
 }
 
 export interface Catalog {

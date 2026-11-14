@@ -377,6 +377,9 @@ describe('parcours Maestro « rattrapage » (J2, #49)', () => {
       `visible: '${fr.accueil.journeeCloturee}'`,
       "- assertVisible: 'Tu peux encore rattraper jeudi.5.novembre\\.'",
       "- tapOn: '\\+1 jour'",
+      // La semaine de jeudi est scellée : son bilan (E6, J3.2) s'ouvre ; on revient sans le faire.
+      `visible: '${fr.bilanSemaine.temps(1)}'`,
+      `- tapOn: '${fr.bilan.retourLibelle}'`,
       "visible: 'mardi.10.novembre'",
       "- assertNotVisible: 'Tu peux encore rattraper.*'",
       `- assertVisible: '${fr.accueil.caseLibelle('2026-11-09', 'cloturee')}'`,
@@ -418,6 +421,7 @@ describe('script de l’émulateur (#52)', () => {
           'bilans-prets.yaml',
           'bilan-mois.yaml',
           'recapitulatif.yaml',
+          'bilan-semaine.yaml',
         ])
           writeFileSync(join(dossier, 'e2e', 'heure', nom), 'appId: app.kakeibo\n');
     }
@@ -622,6 +626,22 @@ describe('script de l’émulateur (#52)', () => {
     expect(lignes[recap - 1]).toBe('adb shell date 110409002026.00');
   });
 
+  it('bilan de la semaine : appli effacée, mercredi 4 novembre 2026 à 9:00, après le récapitulatif (#62)', () => {
+    const { code, journal } = jouer(true, true, true, true);
+    expect(code).toBe(0);
+    const lignes = journal.split('\n');
+    const position = (debut: string) => lignes.findIndex((l) => l.startsWith(debut));
+    const recap = position('maestro test e2e/heure/recapitulatif.yaml');
+    const semaine = position('maestro test e2e/heure/bilan-semaine.yaml');
+    const automatique = position('adb shell settings put global auto_time 1');
+    expect(recap).toBeGreaterThanOrEqual(0);
+    expect([recap, semaine, automatique]).toEqual(
+      [recap, semaine, automatique].sort((a, b) => a - b),
+    );
+    expect(lignes[semaine - 2]).toBe('adb shell pm clear app.kakeibo');
+    expect(lignes[semaine - 1]).toBe('adb shell date 110409002026.00');
+  });
+
   it('échoue si le parcours « journée type » ou « rattrapage » échoue, et joue l’autre (#49)', () => {
     for (const [echoue, autre] of [
       ['journee-type.yaml', 'rattrapage.yaml'],
@@ -654,17 +674,22 @@ describe('parcours Maestro « bilans prêts » (J3.1, #61)', () => {
   const parcours = readFileSync(join(__dirname, '..', 'e2e', 'heure', 'bilans-prets.yaml'), 'utf8');
   const motif = (texte: string) => texte.replace(/\./g, '\\.');
 
-  it('la semaine scellée passe avant le jour à rattraper, le bandeau ouvre son écran et le récapitulatif suit', () => {
+  it('la semaine scellée ouvre son bilan, passe avant le jour à rattraper, le bandeau le rouvre et le récapitulatif suit', () => {
     dansLOrdre(parcours, [
       "- tapOn: '\\+1 semaine'",
+      `visible: '${fr.bilanSemaine.temps(1)}'`,
+      `- assertVisible: '${fr.bilan.titreSemaine}'`,
+      '- takeScreenshot: captures/bilans-ecran-semaine',
+      `- tapOn: '${fr.bilan.retourLibelle}'`,
       `- assertVisible: '${motif(fr.accueil.bandeauBilanSemaine)}'`,
       "- assertNotVisible: 'Tu peux encore rattraper.*'",
       '- takeScreenshot: captures/bilans-semaine-prete',
       `- tapOn: '${motif(fr.accueil.bandeauBilanSemaine)}'`,
       `- assertVisible: '${fr.bilan.titreSemaine}'`,
-      '- takeScreenshot: captures/bilans-ecran-semaine',
       `- tapOn: '${fr.bilan.retourLibelle}'`,
       "- tapOn: '\\+1 semaine'",
+      `visible: '${fr.recapitulatif.titre}'`,
+      `- tapOn: '${fr.bilan.retourLibelle}'`,
       `- assertVisible: '${motif(fr.accueil.bandeauBilanSemaines)}'`,
       '- takeScreenshot: captures/bilans-recapitulatif',
     ]);
@@ -852,6 +877,85 @@ describe('parcours Maestro « récapitulatif » (J3.3, #63)', () => {
       `- assertNotVisible: '${motif(fr.accueil.bandeauBilanSemaines)}'`,
       `- assertVisible: '${motif(fr.accueil.bandeauRattraper('2026-11-23'))}'`,
       '- takeScreenshot: captures/recapitulatif-fin',
+    ]);
+  });
+
+  it('efface les données à la fin', () => {
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+});
+
+describe('parcours Maestro « bilan de la semaine » (J3.2, #62)', () => {
+  const parcours = readFileSync(
+    join(__dirname, '..', 'e2e', 'heure', 'bilan-semaine.yaml'),
+    'utf8',
+  );
+  const b = fr.bilanSemaine;
+  /** Texte de l'appli en motif Maestro : points échappés, insécables en « . ». */
+  const motif = (texte: string) => texte.replace(/\./g, '\\.').replace(/\u00a0/g, '.');
+  const rateau = { nom: 'râteau porte-bonheur kumade', article: 'le', genre: 'm' } as const;
+
+  it('calcule les textes attendus avec ceux de l’appli', () => {
+    expect(fr.accueil.reste(7000, 'dimanche')).toMatch(/^Il te reste 70.€ jusqu’à dimanche$/);
+    expect(fr.accueil.depassement(1000)).toMatch(/^Tu as dépassé de 10.€ cette semaine$/);
+    expect(b.depense(3000, 10000)).toMatch(/^Dépensé.: 30.€ sur 100.€$/);
+    expect(b.depense(15000, 14000)).toMatch(/^Dépensé.: 150.€ sur 140.€$/);
+    expect(b.suivantLibelle).toBe('Passer au temps suivant');
+    expect(b.tirerLibelle).toMatch(/^Tirer la tirette.*$/);
+    expect(b.terminerLibelle).toMatch(/^Terminer le bilan.*$/);
+    expect(fr.recapitulatif.semaine('2026-11-02')).toMatch(/^Semaine du 2.novembre$/);
+  });
+
+  it('une semaine complète dans le budget : quatre temps, la tirette et la capsule', () => {
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    expect(parcours.match(/^- tapOn: 'Rien dépensé aujourd’hui'$/gm)).toHaveLength(4);
+    dansLOrdre(parcours, [
+      "- tapOn: 'Poser un budget de démonstration.*'",
+      "- inputText: '30'",
+      `- tapOn: '${fr.cloture.toutNote}'`,
+      "visible: 'dimanche.8.novembre'",
+      `- tapOn: '${fr.cloture.rienDepense}'`,
+      `visible: '${b.temps(1)}'`,
+      `- assertVisible: '${b.tamponsSur(5, 5)}'`,
+      '- takeScreenshot: captures/bilan-semaine-tampons',
+      `- tapOn: '${b.suivantLibelle}'`,
+      `- assertVisible: '${motif(b.depense(3000, 10000))}'`,
+      `- assertVisible: '${fr.recapitulatif.dansEnveloppe}'`,
+      '- takeScreenshot: captures/bilan-semaine-enveloppe',
+      `- tapOn: '${b.suivantLibelle}'`,
+      `- assertVisible: '${motif(fr.bilan.toutTamponsDansBudget)}'`,
+      `- assertNotVisible: '${b.suivantLibelle}'`,
+      '- takeScreenshot: captures/bilan-semaine-tirette',
+      "- tapOn: 'Tirer la tirette.*'",
+      `visible: '${motif(fr.messages.ouvertureCapsule(rateau))}'`,
+      '- takeScreenshot: captures/bilan-semaine-capsule',
+      `- tapOn: '${b.suivantLibelle}'`,
+      `- assertVisible: '${b.nomObjet(rateau)}'`,
+      `- assertVisible: '${motif(b.conclusionObjet)}'`,
+      '- takeScreenshot: captures/bilan-semaine-objet',
+      "- tapOn: 'Terminer le bilan.*'",
+      `- assertNotVisible: '${motif(fr.accueil.bandeauBilanSemaine)}'`,
+    ]);
+  });
+
+  it('puis une semaine sans tampon, hors budget : la poussière et la fêlure, sans tirette', () => {
+    const apres = parcours.slice(
+      parcours.indexOf('- takeScreenshot: captures/bilan-semaine-objet'),
+    );
+    dansLOrdre(apres, [
+      "- inputText: '150'",
+      "- tapOn: '\\+1 semaine'",
+      "- tapOn: '\\+1 jour'",
+      `visible: '${b.temps(1)}'`,
+      `- assertVisible: '${b.tamponsSur(0, 7)}'`,
+      `- assertVisible: '${motif(b.depense(15000, 14000))}'`,
+      `- assertVisible: '${fr.recapitulatif.horsEnveloppe}'`,
+      `- assertVisible: '${motif(fr.bilan.manqueHorsBudget(rateau))}'`,
+      "- assertNotVisible: 'Tirer la tirette.*'",
+      `- assertVisible: '${motif(fr.messages.fele(rateau))}'`,
+      '- takeScreenshot: captures/bilan-semaine-felure',
+      `- assertVisible: '${motif(b.conclusionSansObjet)}'`,
+      "- tapOn: 'Terminer le bilan.*'",
     ]);
   });
 

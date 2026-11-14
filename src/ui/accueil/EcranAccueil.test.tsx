@@ -142,8 +142,10 @@ describe('bandeau des bilans depuis l’accueil (J3.1, #61)', () => {
     await store.getState().ouvrir();
     const onBilanSemaine = jest.fn();
     await render(<EcranAccueil store={store} onBilanSemaine={onBilanSemaine} />);
-    await fireEvent.press(screen.getByRole('button', { name: fr.accueil.bandeauBilanSemaine }));
+    // E6 s'est ouvert de lui-même (J3.2) ; au retour, le bandeau le rouvre.
     expect(onBilanSemaine).toHaveBeenCalledTimes(1);
+    await fireEvent.press(screen.getByRole('button', { name: fr.accueil.bandeauBilanSemaine }));
+    expect(onBilanSemaine).toHaveBeenCalledTimes(2);
     await act(() => store.getState().marquerBilansVus());
     expect(screen.queryByRole('button', { name: fr.accueil.bandeauBilanSemaine })).toBeNull();
     expect(
@@ -201,6 +203,79 @@ describe('bilan du mois à l’ouverture (E7, J3.4, #64)', () => {
     await store.getState().marquerBilansVus();
     const onBilanMois = jest.fn();
     await render(<EcranAccueil store={store} onBilanMois={onBilanMois} visible={false} />);
+    expect(onBilanMois).not.toHaveBeenCalled();
+  });
+});
+
+describe('bilan de la semaine à l’ouverture (E6, J3.2, #62)', () => {
+  /** Installée le lundi 2 novembre 2026 ; `ouvertures` : les ouvertures suivantes. */
+  async function installer() {
+    const db = createTestDb();
+    await migrate(db);
+    const repos = createRepositories(db);
+    let reel = new Date(2026, 10, 2, 8, 0);
+    const store = createKakeiboStore({
+      depots: async () => repos,
+      catalogue: catalogueJson as Catalog,
+      horloge: createClock({ actif: true, reel: () => reel }),
+      nouvelId: () => 'id',
+    });
+    await store.getState().ouvrir();
+    const rouvrir = async (date: Date) => {
+      reel = date;
+      await act(() => store.getState().ouvrir());
+    };
+    return { store, rouvrir };
+  }
+
+  test('s’ouvre seul à la première ouverture après le scellement, une seule fois', async () => {
+    const { store, rouvrir } = await installer();
+    const onBilanSemaine = jest.fn();
+    const { rerender } = await render(
+      <EcranAccueil store={store} onBilanSemaine={onBilanSemaine} />,
+    );
+    expect(onBilanSemaine).not.toHaveBeenCalled();
+    await rouvrir(new Date(2026, 10, 9, 12, 0)); // lundi 9 à 12:00 : la semaine 45 est scellée
+    expect(onBilanSemaine).toHaveBeenCalledTimes(1);
+    // Retour à l'accueil sans terminer : il ne se rouvre pas de lui-même, le bandeau reste.
+    await rerender(<EcranAccueil store={store} onBilanSemaine={onBilanSemaine} visible={false} />);
+    await rerender(<EcranAccueil store={store} onBilanSemaine={onBilanSemaine} visible />);
+    await rouvrir(new Date(2026, 10, 10, 9, 0));
+    expect(onBilanSemaine).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: fr.accueil.bandeauBilanSemaine })).toBeOnTheScreen();
+  });
+
+  test('chaque semaine scellée l’ouvre une fois, le récapitulatif aussi', async () => {
+    const { store, rouvrir } = await installer();
+    const onBilanSemaine = jest.fn();
+    await render(<EcranAccueil store={store} onBilanSemaine={onBilanSemaine} />);
+    await rouvrir(new Date(2026, 10, 10, 9, 0));
+    expect(onBilanSemaine).toHaveBeenCalledTimes(1);
+    await act(() => store.getState().marquerBilansVus());
+    await rouvrir(new Date(2026, 10, 17, 9, 0)); // semaine 46
+    expect(onBilanSemaine).toHaveBeenCalledTimes(2);
+    await rouvrir(new Date(2026, 10, 24, 9, 0)); // semaines 46 et 47 : le récapitulatif
+    expect(onBilanSemaine).toHaveBeenCalledTimes(3);
+  });
+
+  test('ne s’ouvre pas sous un autre écran, et passe avant le bilan du mois', async () => {
+    const { store, rouvrir } = await installer();
+    const onBilanSemaine = jest.fn();
+    const onBilanMois = jest.fn();
+    const { rerender } = await render(
+      <EcranAccueil
+        store={store}
+        onBilanSemaine={onBilanSemaine}
+        onBilanMois={onBilanMois}
+        visible={false}
+      />,
+    );
+    await rouvrir(new Date(2026, 11, 1, 9, 0));
+    expect(onBilanSemaine).not.toHaveBeenCalled();
+    await rerender(
+      <EcranAccueil store={store} onBilanSemaine={onBilanSemaine} onBilanMois={onBilanMois} />,
+    );
+    expect(onBilanSemaine).toHaveBeenCalledTimes(1);
     expect(onBilanMois).not.toHaveBeenCalled();
   });
 });

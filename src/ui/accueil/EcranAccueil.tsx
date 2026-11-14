@@ -24,7 +24,10 @@ export interface PropsEcranAccueil {
   onCloturer?: () => void;
   /** Ouvre « Rattraper un jour » (E5) sur ce jour. */
   onRattraper?: (jour: string) => void;
-  /** Ouvre le bilan de la semaine (E6). */
+  /**
+   * Ouvre le bilan de la semaine (E6) : par le bandeau, et de lui-même à la première ouverture
+   * après le scellement, une fois par semaine scellée (ou par récapitulatif).
+   */
   onBilanSemaine?: () => void;
   /**
    * Ouvre le bilan du mois (E7) : par le bandeau, et de lui-même, une fois par mois à faire,
@@ -57,6 +60,24 @@ export function EcranAccueil({
     () => (etat && maintenant ? vueAccueil(etat, maintenant) : null),
     [etat, maintenant],
   );
+  // E6 s'ouvre de lui-même à la première ouverture après le scellement : une fois par bilan à
+  // faire (une semaine, ou les semaines du récapitulatif), tant que l'accueil reste monté ;
+  // ensuite le bandeau reste. Il passe avant E7 : le bandeau du mois attend les semaines.
+  const bilanSemaineOuvert = useRef<string | null>(null);
+  const semainesAFaire =
+    vue?.bandeau?.type === 'bilan_semaine'
+      ? vue.bandeau.ecran.kind === 'week'
+        ? vue.bandeau.ecran.week
+        : vue.bandeau.ecran.weeks.join(',')
+      : null;
+  useEffect(() => {
+    if (!visible || semainesAFaire === null || bilanSemaineOuvert.current === semainesAFaire) {
+      return;
+    }
+    bilanSemaineOuvert.current = semainesAFaire;
+    onBilanSemaine?.();
+  }, [visible, semainesAFaire, onBilanSemaine]);
+
   // E7 s'ouvre de lui-même à la première ouverture à partir du 1er du mois suivant : une fois
   // par mois à faire, tant que l'accueil reste monté ; ensuite le bandeau reste.
   const bilanMoisOuvert = useRef<string | null>(null);
