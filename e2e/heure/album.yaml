@@ -1,8 +1,9 @@
 # Album des années passées (E8, J4.8, #87) : d'abord vide, avec son message. Puis la semaine
 # hors budget de J3 (#67) : 120 € notés pour une enveloppe de 100 €, chaque jour clôturé, le
 # kumade entre et l'échelle se fêle. L'horloge de test avance de deux mois : passée la nouvelle
-# année, la maison de 2026 est dans l'album, telle qu'elle était à la fin de l'année. L'écran de
-# la maison (E8, J4.6) n'existe pas encore : l'album s'ouvre par son lien (kakeibo://album).
+# année, la maison de 2026 est dans l'album, telle qu'elle était à la fin de l'année. Entre-temps,
+# la maison (E8, J4.6, #85) montre l'échelle fêlée et sa réparation, ouvre la fiche d'un objet et
+# l'album. La maison et l'album s'ouvrent par leur lien (kakeibo://maison, kakeibo://album).
 # Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
 # du téléphone au mercredi 4 novembre 2026 à 9:00.
 # Budget de démonstration : 1 200 € de revenus, 600 € de charges fixes, 0 € d'épargne.
@@ -198,6 +199,43 @@ appId: app.kakeibo
     timeout: 10000
 - assertNotVisible: 'Le bilan de ta semaine est prêt\.'
 - assertNotVisible: 'Tu peux encore rattraper.*'
+# 4 bis. La maison (E8, #85) : le kumade à sa place, l'échelle fêlée dont la réparation commence
+#    ce lundi (0 jour sur 7), 3 emplacements libres. Toucher l'échelle ouvre sa fiche ; l'album.
+- openLink: 'kakeibo://maison'
+- extendedWaitUntil:
+    visible: 'Novembre · Kura, la réserve'
+    timeout: 10000
+- assertVisible: 'Ta maison'
+- assertVisible: 'L’échelle, fêlée, réparation.: 0 jour sur 7'
+- assertVisible: 'Le râteau porte-bonheur kumade, intact'
+- assertVisible: 'Kura, la réserve, novembre 2026\. .*L’échelle, fêlée, réparation.: 0 jour sur 7\. Le râteau porte-bonheur kumade\. 3 emplacements libres\. La maison est propre\.'
+- takeScreenshot: captures/maison-e8
+- scrollUntilVisible:
+    element:
+      text: '3 emplacements libres pour les objets à gagner'
+    direction: DOWN
+- takeScreenshot: captures/maison-e8-objets
+- tapOn: 'L’échelle, fêlée, réparation.: 0 jour sur 7'
+- extendedWaitUntil:
+    visible: 'Retour à ta maison'
+    timeout: 10000
+- assertVisible: 'L’échelle'
+- tapOn: 'Retour à ta maison'
+- extendedWaitUntil:
+    visible: 'Ouvrir l’album des années passées'
+    timeout: 10000
+- tapOn: 'Ouvrir l’album des années passées'
+- extendedWaitUntil:
+    visible: 'Ton album est encore vide\..*'
+    timeout: 10000
+- tapOn: 'Fermer l’album'
+- extendedWaitUntil:
+    visible: 'Ouvrir l’album des années passées'
+    timeout: 10000
+- tapOn: 'Retour à l’accueil'
+- extendedWaitUntil:
+    visible: 'lundi.9.novembre'
+    timeout: 10000
 # 5. Deux mois plus tard, vendredi 9 janvier 2027 : la semaine 1 a commencé le lundi 4, la
 #    maison de 2026 rejoint l'album. Les semaines sans tampon ouvrent leur récapitulatif (E6).
 - scrollUntilVisible:

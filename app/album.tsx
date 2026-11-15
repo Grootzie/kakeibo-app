@@ -1,5 +1,5 @@
-// Album des années passées (E8, J4.8, #87). L'écran de la maison (E8, J4.6) y donnera accès ;
-// en attendant, il s'ouvre par son lien (kakeibo://album), comme le font les parcours Maestro.
+// Album des années passées (E8, J4.8, #87). L’écran de la maison (E8, J4.6, #85) y donne accès ;
+// il s'ouvre aussi par son lien (kakeibo://album), comme le font les parcours Maestro.
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 
