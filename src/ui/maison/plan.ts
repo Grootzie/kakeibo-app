@@ -2,8 +2,8 @@
 // l'avant. Le composant de rendu (Maison.tsx) ne fait que dessiner ce plan ; changer de style
 // graphique touche ce dossier et les visuels, jamais le domaine ni les écrans (Rendu de la maison).
 import type { HouseScene } from '../../domain/maison';
-import type { ItemId } from '../../domain/objets';
-import type { ContentCatalog } from '../../content/catalogue';
+import type { ItemId, OwnedItem } from '../../domain/objets';
+import type { ContentCatalog, ItemVisuals } from '../../content/catalogue';
 import type { Progression } from './animations';
 import { CADRE_OBJET, SCENE, cadreDansLaScene, emplacement } from './emplacements';
 
@@ -74,6 +74,16 @@ const image = (cle: CalqueImage['cle'], visuel: string): CalqueImage => ({
   cadre: PLEIN_CADRE,
   opacite: 1,
 });
+
+/**
+ * Calques d'un objet seul dans son état, du fond vers l'avant (fiche d'objet) : la base, puis la
+ * fêlure ou les veines d'or, comme dans la maison.
+ */
+export function calquesDeLObjet(visuels: ItemVisuals, etat: OwnedItem['state']): string[] {
+  if (etat === 'cracked') return [visuels.base, visuels.crack];
+  if (etat === 'repaired') return [visuels.base, visuels.gold];
+  return [visuels.base];
+}
 
 const sortie = (t: number) => 1 - (1 - t) * (1 - t);
 

@@ -1398,8 +1398,21 @@ describe('parcours Maestro « album » (J4.8, #87)', () => {
       `text: '${m.libres(3)}'`,
       '- takeScreenshot: captures/maison-e8-objets',
       `- tapOn: '${motif(libelle)}'`,
-      `visible: '${m.ficheRetourLibelle}'`,
-      `- tapOn: '${m.ficheRetourLibelle}'`,
+      `visible: '${fr.ficheObjet.retourLibelle}'`,
+      `- assertVisible: '${fr.ficheObjet.japonaisLibelle({ kanji: '梯子', romaji: 'hashigo' }).replace('\u00a0', '.')}'`,
+      '- takeScreenshot: captures/fiche-objet',
+      `text: '${motif(
+        fr.ficheObjet.histoire(echelle, {
+          arrivee: { type: 'base', jour: '2026-11-02' },
+          felure: '2026-11-09',
+          reparation: null,
+        }),
+      )
+        .replace('\u00a0', '.')
+        .replace('le 9\\.', 'le [0-9]+\\.')}'`,
+      `- assertVisible: '${fr.ficheObjet.auJapon}'`,
+      '- takeScreenshot: captures/fiche-objet-histoire',
+      `- tapOn: '${fr.ficheObjet.retourLibelle}'`,
       `- tapOn: '${m.albumLibelle}'`,
       `visible: '${motif('Ton album est encore vide.')}.*'`,
       `- tapOn: '${a.retourLibelle}'`,
