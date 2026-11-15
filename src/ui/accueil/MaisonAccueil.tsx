@@ -24,11 +24,6 @@ import { theme } from '../theme';
 const c = theme.couleurs;
 const ACTIONS = [{ name: 'increment' }, { name: 'decrement' }, { name: 'activate' }];
 const REPERE = 8;
-/**
- * Largeur au plus de la maison (240 points de haut) : sur un téléphone courant, l'enveloppe, les
- * tampons et les deux boutons restent à l'écran sous la maison.
- */
-export const LARGEUR_MAX_MAISON = 320;
 
 export interface PropsMaisonAccueil {
   maison: VueMaisonAccueil;
@@ -92,8 +87,6 @@ export function MaisonAccueil({ maison, onOuvrir }: PropsMaisonAccueil) {
         onLayout={(e) => setLargeur(e.nativeEvent.layout.width)}
         style={{
           width: '100%',
-          maxWidth: LARGEUR_MAX_MAISON,
-          alignSelf: 'center',
           aspectRatio: SCENE.largeur / SCENE.hauteur,
         }}
       >

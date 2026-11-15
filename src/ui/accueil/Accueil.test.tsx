@@ -370,18 +370,22 @@ describe('la maison sur l’accueil (J4.5, #84)', () => {
     expect(m.props.accessibilityHint).toBe(fr.accueil.maisonIndice);
   });
 
-  it('se place entre le bandeau et l’enveloppe : enveloppe, tampons et boutons restent en place', async () => {
+  it('se place sous les boutons : bandeau, enveloppe, tampons et boutons restent en place', async () => {
     await render(
       <Accueil
         vue={vue({ bandeau: { type: 'jour_a_rattraper', jour: '2026-11-04' } })}
         maison={maison()}
       />,
     );
-    // Ordre dans l'arbre rendu : bandeau, maison, enveloppe (jauge), tampons.
+    // Ordre dans l'arbre rendu : bandeau, enveloppe (jauge), tampons, boutons, puis la maison.
     const arbre = JSON.stringify(screen.toJSON());
-    const places = ['bandeau', 'maison-accueil', 'jauge-remplie', 'case-2026-11-02'].map((id) =>
-      arbre.indexOf(`"testID":"${id}"`),
-    );
+    const places = [
+      'bandeau',
+      'jauge-remplie',
+      'case-2026-11-02',
+      'bouton-noter',
+      'maison-accueil',
+    ].map((id) => arbre.indexOf(`"testID":"${id}"`));
     expect(places.every((p) => p >= 0)).toBe(true);
     expect([...places].sort((a, b) => a - b)).toEqual(places);
     expect(screen.getByRole('button', { name: fr.accueil.noterDepenseLibelle })).toBeOnTheScreen();

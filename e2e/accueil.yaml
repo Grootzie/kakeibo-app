@@ -13,5 +13,10 @@ appId: app.kakeibo
 - assertVisible: 'Noter une dépense'
 - assertVisible: 'Clôturer ma journée'
 - assertVisible: 'Il te reste .* jusqu’à dimanche'
+# La maison est sous les boutons : on la fait venir à l'écran avant de la vérifier.
+- scrollUntilVisible:
+    element:
+      text: 'Kura, la réserve, novembre 2026\..*'
+    direction: DOWN
 - assertVisible: 'Kura, la réserve, novembre 2026\..*'
 - takeScreenshot: captures/accueil

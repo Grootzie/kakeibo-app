@@ -80,7 +80,6 @@ export function Accueil({
           />
         )}
         {explication}
-        {vue && maison && <MaisonAccueil maison={maison} onOuvrir={onMaison} />}
         {vue && <Enveloppe enveloppe={vue.enveloppe} />}
         {message}
         {vue && <CarteTampons cases={vue.cases} onRattraper={onRattraper} />}
@@ -90,6 +89,10 @@ export function Accueil({
           onCloturer={onCloturer}
         />
         {children}
+        {/* La maison sous les boutons : bandeau, enveloppe, tampons et boutons restent à leur place
+            et à l'écran, même sous une carte de première fois (#84). Le réglage caché des builds
+            de développement (children) reste juste sous les boutons. */}
+        {vue && maison && <MaisonAccueil maison={maison} onOuvrir={onMaison} />}
       </ScrollView>
     </SafeAreaView>
   );
@@ -370,6 +373,7 @@ function Boutons({
     <View style={{ gap: 12 }}>
       <Pressable
         accessibilityRole="button"
+        testID="bouton-noter"
         accessibilityLabel={fr.accueil.noterDepenseLibelle}
         onPress={onNoterDepense}
         style={{ ...bouton, backgroundColor: c.principal }}
