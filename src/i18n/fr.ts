@@ -445,9 +445,58 @@ export const fr = {
     description: (morceaux: readonly string[]) => `${morceaux.join('. ')}.`,
   },
 
-  /** La maison (E8) : écran provisoire jusqu'à J4.6 (#85). */
+  /**
+   * La maison (E8, J4.6, #85) : les pièces de l'année, leurs objets, la réparation en cours.
+   * « Réparation : 4 jours sur 7 » vient de la spec ; les autres textes sont absents de « Textes
+   * et ton », proposés au propriétaire dans la demande de fusion.
+   */
   ecranMaison: {
     titre: 'Ta maison',
+    retour: 'Retour',
+    retourLibelle: 'Retour à l’accueil',
+    album: 'Album',
+    albumLibelle: 'Ouvrir l’album des années passées',
+    /** « Novembre · Kura, la réserve ». */
+    piece: (mois: string, nomPiece: string) => `${majuscule(nomDuMois(mois))} · ${nomPiece}`,
+    /** « L’échelle », « Les étagères ». */
+    nomObjet: (objet: NomObjet) => debut(objet),
+    /** État d'un objet, sous son nom. */
+    intact: (objet: NomObjet) => accord(objet, 'Intact', 'Intacte', 'Intacts', 'Intactes'),
+    repare: (objet: NomObjet) =>
+      `${accord(objet, 'Réparé', 'Réparée', 'Réparés', 'Réparées')} à l’or`,
+    /** Fêlure et réparation › Affichage. */
+    reparation: (jours: number) => `Réparation${NBSP}: ${jours} jour${jours > 1 ? 's' : ''} sur 7`,
+    /** Fêlé, derrière un autre objet dans la file de réparation : sans chiffre. */
+    reparationEnAttente: (objet: NomObjet) =>
+      accord(
+        objet,
+        'Fêlé, attend son tour de réparation',
+        'Fêlée, attend son tour de réparation',
+        'Fêlés, attendent leur tour de réparation',
+        'Fêlées, attendent leur tour de réparation',
+      ),
+    /** Libellé du bouton d'un objet : son nom et son état, lus d'un seul tenant. */
+    objetLibelle: (
+      objet: NomObjet,
+      etat: 'intact' | 'cracked' | 'repaired',
+      reparation: { type: 'enCours'; jours: number } | { type: 'enAttente' } | null,
+    ) => {
+      if (etat === 'intact')
+        return `${debut(objet)}, ${accord(objet, 'intact', 'intacte', 'intacts', 'intactes')}`;
+      if (etat === 'repaired')
+        return `${debut(objet)}, ${accord(objet, 'réparé', 'réparée', 'réparés', 'réparées')} à l’or`;
+      const fele = `${debut(objet)}, ${accord(objet, 'fêlé', 'fêlée', 'fêlés', 'fêlées')}`;
+      if (reparation?.type === 'enCours')
+        return `${fele}, réparation${NBSP}: ${reparation.jours} jour${reparation.jours > 1 ? 's' : ''} sur 7`;
+      return `${fele}, ${accord(objet, 'attend son tour', 'attend son tour', 'attendent leur tour', 'attendent leur tour')} de réparation`;
+    },
+    objetIndice: 'Ouvre sa fiche',
+    /** Emplacements libres, signalés discrètement sous la liste. */
+    libres: (n: number) =>
+      `${n} emplacement${n > 1 ? 's' : ''} libre${n > 1 ? 's' : ''} pour les objets à gagner`,
+    enAttenteTitre: 'En attente de leur pièce',
+    /** Fiche d'objet provisoire, jusqu'à J4.7 (#86) : son nom et le retour à la maison. */
+    ficheRetourLibelle: 'Retour à ta maison',
   },
 
   /**

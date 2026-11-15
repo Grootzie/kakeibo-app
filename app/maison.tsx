@@ -1,11 +1,10 @@
-// La maison (E8). Toucher la maison de l'accueil l'ouvre (J4.5, #84) ; l'écran lui-même (pièces,
-// emplacements libres, réparation, fiche et album) arrive avec J4.6 (#85). D'ici là, un titre et
-// un retour à l'accueil.
+// La maison (E8, J4.6, #85) : toucher la maison de l'accueil l'ouvre (J4.5, #84) ; elle s'ouvre
+// aussi par son lien (kakeibo://maison), comme le font les parcours Maestro.
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 
-import { fr } from '@/i18n/fr';
-import { EcranBilanProvisoire } from '@/ui/bilan/EcranBilanProvisoire';
+import { kakeibo } from '@/state/appStore';
+import { EcranMaison } from '@/ui/maison/EcranMaison';
 
 export default function Maison() {
   const router = useRouter();
@@ -13,7 +12,19 @@ export default function Maison() {
     if (router.canGoBack()) router.back();
     else router.replace('/');
   }, [router]);
+  const ouvrirObjet = useCallback(
+    (id: string) => router.push({ pathname: '/objet', params: { id } }),
+    [router],
+  );
+  const ouvrirAlbum = useCallback(() => {
+    router.push('/album');
+  }, [router]);
   return (
-    <EcranBilanProvisoire testID="ecran-maison" titre={fr.ecranMaison.titre} onRetour={retour} />
+    <EcranMaison
+      store={kakeibo}
+      onRetour={retour}
+      onOuvrirObjet={ouvrirObjet}
+      onOuvrirAlbum={ouvrirAlbum}
+    />
   );
 }
