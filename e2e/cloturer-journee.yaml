@@ -2,10 +2,12 @@
 # sans dépense, une dépense oubliée notée sur ce jour fait passer le bouton à « J'ai tout noté »,
 # le tampon se pose et un jeton tombe dans la machine (J3.8, #74), puis retour à l'accueil, où
 # la case est clôturée et le bouton « Journée clôturée ». Une clôture ne s'annule pas : le parcours finit en effaçant les données
-# de l'appli, pour que les autres parcours retrouvent une journée à clôturer.
+# de l'appli, pour que les autres parcours retrouvent une journée à clôturer. Il part aussi d'une
+# appli effacée : un autre parcours raté ne lui laisse ni dépense ni journée clôturée (#90).
 appId: app.kakeibo
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - extendedWaitUntil:
     visible: 'Clôturer ma journée'
     timeout: 60000
