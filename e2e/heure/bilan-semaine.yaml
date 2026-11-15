@@ -1,7 +1,7 @@
 # Bilan de la semaine (E6, J3.2, #62) : installée le mercredi 4 novembre, 30 € notés pour une
 # enveloppe de 100 €, chaque jour clôturé jusqu'au dimanche 8. La dernière clôture scelle la
 # semaine : le bilan s'ouvre de lui-même, en quatre temps (5 sur 5, 30 € sur 100 €, la tirette,
-# la capsule s'ouvre sur le râteau porte-bonheur kumade, puis l'objet seul et la conclusion).
+# la capsule s'ouvre sur le râteau porte-bonheur kumade, qui rejoint sa pièce, puis la conclusion).
 # Puis la semaine 46 : 150 € notés pour 140 €, aucun tampon ; le mardi 17, son bilan dit la
 # poussière et la fêlure du râteau, sans capsule. Enfin, du lundi 16 (rattrapé) au dimanche 22,
 # 7 jours de clôture d'affilée : la clôture du dimanche annonce le râteau réparé à l'or (#66).
@@ -152,14 +152,17 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Un râteau porte-bonheur kumade entre dans ta maison\.'
     timeout: 10000
-- takeScreenshot: captures/bilan-semaine-capsule
-# Temps 4 : l'objet seul (la maison arrive en J4) et la conclusion.
+# Le râteau rejoint son emplacement dans la pièce de novembre (#84).
 - scrollUntilVisible:
     element:
       text: 'Passer au temps suivant'
     direction: DOWN
+- assertVisible: 'Kura, la réserve, novembre 2026\. .*Le râteau porte-bonheur kumade\..*'
+- takeScreenshot: captures/bilan-semaine-capsule
+# Temps 4 : l'objet dans sa pièce et la conclusion.
 - tapOn: 'Passer au temps suivant'
 - assertVisible: 'Temps 4 sur 4'
+- assertVisible: 'Kura, la réserve, novembre 2026\. .*Le râteau porte-bonheur kumade\..*'
 - assertVisible: 'Le râteau porte-bonheur kumade'
 - assertVisible: 'Une nouvelle semaine commence.: chaque soir, un jeton t’attend\.'
 - takeScreenshot: captures/bilan-semaine-objet
@@ -237,12 +240,13 @@ appId: app.kakeibo
     timeout: 10000
 - assertVisible: 'Pas de capsule cette semaine, et le râteau porte-bonheur kumade s’est fêlé\. Rien n’est perdu.: 7 jours de clôture d’affilée, et il sera réparé à l’or\.'
 - assertNotVisible: 'Tirer la tirette.*'
-- assertVisible: 'Le râteau porte-bonheur kumade s’est fêlé\.'
-- takeScreenshot: captures/bilan-semaine-felure
 - scrollUntilVisible:
     element:
       text: 'Passer au temps suivant'
     direction: DOWN
+# La fêlure se voit sur le râteau, dans sa pièce (#84).
+- assertVisible: 'Kura, la réserve, novembre 2026\. .*Le râteau porte-bonheur kumade, fêlé[^.]*\..*'
+- takeScreenshot: captures/bilan-semaine-felure
 - tapOn: 'Passer au temps suivant'
 - assertVisible: 'Rien n’est perdu.: une clôture ce soir, et tout repart\.'
 - tapOn: 'Terminer le bilan.*'

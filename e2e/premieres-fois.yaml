@@ -28,11 +28,12 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Premier tampon'
     timeout: 10000
-- assertVisible: 'Journée clôturée'
 - assertVisible: 'Chaque soir, tu clôtures ta journée.*'
 - takeScreenshot: captures/carte-premier-tampon
 - tapOn: 'Fermer l’explication .*Premier tampon.*'
 - assertNotVisible: 'Premier tampon'
+# La carte fermée : avec la maison (#84), la carte ouverte peut pousser le bouton hors de l'écran.
+- assertVisible: 'Journée clôturée'
 # Après redémarrage, aucune des deux ne revient.
 - stopApp
 - launchApp

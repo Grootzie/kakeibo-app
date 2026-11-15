@@ -1,11 +1,13 @@
-// Accueil sans maison (E2, #43) : en-tête, enveloppe, carte de tampons, boutons et bandeau.
+// Accueil (E2, #43) : en-tête, enveloppe, carte de tampons, boutons et bandeau ; la maison (#84).
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { StyleSheet } from 'react-native';
 
 import { fr } from '../../i18n/fr';
+import type { VueMaisonAccueil } from '../../state/maison';
 import type { CaseTampon, StatutCase, VueAccueil } from '../../state/selecteurs';
+import { sceneNovembre } from '../maison/scenesDeTest';
 import { theme } from '../theme';
 import { Accueil } from './Accueil';
 
@@ -331,5 +333,161 @@ describe('rattraper un jour (E5, #46)', () => {
     expect(StyleSheet.flatten(bandeau.props.style).minHeight).toBeGreaterThanOrEqual(44);
     await fireEvent.press(bandeau);
     expect(onRattraper).toHaveBeenCalledWith('2026-11-04');
+  });
+});
+
+describe('la maison sur l’accueil (J4.5, #84)', () => {
+  const piece = (room: string, month: string, items = sceneNovembre().items) => ({
+    scene: sceneNovembre({ room, month, items }),
+    description: `Description de ${room}.`,
+  });
+  const maison = (over: Partial<VueMaisonAccueil> = {}): VueMaisonAccueil => ({
+    pieces: [piece('room-11', '2026-11'), piece('room-12', '2026-12', [])],
+    courante: 1,
+    poussiere: { joursSansCloture: false, semaineIncomplete: false },
+    ...over,
+  });
+  /** Donne sa largeur à la maison, comme le ferait la mise en page. */
+  async function poser(largeur = 328) {
+    await fireEvent(screen.getByTestId('maison-accueil'), 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: largeur, height: (largeur * 3) / 4 } },
+    });
+  }
+  /** Les pages dessinées ne sont pas lues au lecteur d'écran : on les cherche quand même. */
+  const cache = (testID: string) => screen.getByTestId(testID, { includeHiddenElements: true });
+  const glisser = (x: number) =>
+    fireEvent(cache('maison-defilement'), 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x, y: 0 } },
+    });
+
+  it('montre la pièce du mois en cours, lue au lecteur d’écran avec sa place parmi les pièces', async () => {
+    await render(<Accueil vue={vue()} maison={maison()} />);
+    await poser();
+    const m = screen.getByTestId('maison-accueil');
+    expect(m).toHaveAccessibleName('Description de room-12.');
+    expect(m.props.accessibilityRole).toBe('adjustable');
+    expect(m.props.accessibilityValue).toEqual({ text: fr.accueil.maisonPosition(2, 2) });
+    expect(m.props.accessibilityHint).toBe(fr.accueil.maisonIndice);
+  });
+
+  it('se place sous les boutons : bandeau, enveloppe, tampons et boutons restent en place', async () => {
+    await render(
+      <Accueil
+        vue={vue({ bandeau: { type: 'jour_a_rattraper', jour: '2026-11-04' } })}
+        maison={maison()}
+      />,
+    );
+    // Ordre dans l'arbre rendu : bandeau, enveloppe (jauge), tampons, boutons, puis la maison.
+    const arbre = JSON.stringify(screen.toJSON());
+    const places = [
+      'bandeau',
+      'jauge-remplie',
+      'case-2026-11-02',
+      'bouton-noter',
+      'maison-accueil',
+    ].map((id) => arbre.indexOf(`"testID":"${id}"`));
+    expect(places.every((p) => p >= 0)).toBe(true);
+    expect([...places].sort((a, b) => a - b)).toEqual(places);
+    expect(screen.getByRole('button', { name: fr.accueil.noterDepenseLibelle })).toBeOnTheScreen();
+  });
+
+  it('un glissement passe d’une pièce débloquée à l’autre', async () => {
+    await render(<Accueil vue={vue()} maison={maison()} />);
+    await poser(328);
+    await glisser(0);
+    expect(screen.getByTestId('maison-accueil')).toHaveAccessibleName('Description de room-11.');
+    expect(screen.getByTestId('maison-accueil').props.accessibilityValue).toEqual({
+      text: fr.accueil.maisonPosition(1, 2),
+    });
+    await glisser(328);
+    expect(screen.getByTestId('maison-accueil')).toHaveAccessibleName('Description de room-12.');
+  });
+
+  it('au lecteur d’écran, les gestes « augmenter » et « diminuer » changent de pièce', async () => {
+    await render(<Accueil vue={vue()} maison={maison()} />);
+    await poser();
+    const m = () => screen.getByTestId('maison-accueil');
+    expect(m().props.accessibilityActions.map((a: { name: string }) => a.name)).toEqual([
+      'increment',
+      'decrement',
+      'activate',
+    ]);
+    await fireEvent(m(), 'accessibilityAction', { nativeEvent: { actionName: 'increment' } });
+    expect(m()).toHaveAccessibleName('Description de room-12.');
+    await fireEvent(m(), 'accessibilityAction', { nativeEvent: { actionName: 'decrement' } });
+    expect(m()).toHaveAccessibleName('Description de room-11.');
+    await fireEvent(m(), 'accessibilityAction', { nativeEvent: { actionName: 'decrement' } });
+    expect(m()).toHaveAccessibleName('Description de room-11.');
+  });
+
+  it('toucher la maison ouvre E8, du doigt comme au lecteur d’écran', async () => {
+    const onMaison = jest.fn();
+    await render(<Accueil vue={vue()} maison={maison()} onMaison={onMaison} />);
+    await poser();
+    await fireEvent.press(cache('piece-room-12'));
+    expect(onMaison).toHaveBeenCalledTimes(1);
+    await fireEvent(screen.getByTestId('maison-accueil'), 'accessibilityAction', {
+      nativeEvent: { actionName: 'activate' },
+    });
+    expect(onMaison).toHaveBeenCalledTimes(2);
+  });
+
+  it('dessine la pièce par le composant de rendu, sans annoncer la scène une seconde fois', async () => {
+    await render(<Accueil vue={vue()} maison={maison()} />);
+    await poser();
+    expect(
+      screen.getAllByTestId('maison', { includeHiddenElements: true }).length,
+    ).toBeGreaterThanOrEqual(1);
+    const pages = cache('maison-pages');
+    expect(screen.queryByTestId('maison')).toBeNull();
+    expect(pages.props.importantForAccessibility).toBe('no-hide-descendants');
+    expect(pages.props.accessibilityElementsHidden).toBe(true);
+  });
+
+  it('une seule pièce : pas de repères de pièces', async () => {
+    await render(
+      <Accueil
+        vue={vue()}
+        maison={maison({ pieces: [piece('room-11', '2026-11')], courante: 0 })}
+      />,
+    );
+    await poser();
+    expect(screen.queryByTestId('maison-reperes')).toBeNull();
+  });
+
+  it('plusieurs pièces : un repère par pièce, plein pour la pièce affichée, sans couleur seule', async () => {
+    await render(<Accueil vue={vue()} maison={maison()} />);
+    await poser();
+    expect(cache('maison-reperes')).toBeTruthy();
+    // La pièce affichée (la 2e) : un repère plein ; l'autre, cerclé. La forme porte l'information.
+    const fond = ['room-11', 'room-12'].map(
+      (r) => StyleSheet.flatten(cache(`repere-${r}`).props.style).backgroundColor,
+    );
+    expect(fond[0]).toBe('transparent');
+    expect(fond[1]).not.toBe('transparent');
+  });
+
+  it('la poussière s’explique sous la maison, sans reproche', async () => {
+    await render(
+      <Accueil
+        vue={vue()}
+        maison={maison({ poussiere: { joursSansCloture: true, semaineIncomplete: true } })}
+      />,
+    );
+    expect(screen.getByText(fr.messages.poussiereJours)).toBeOnTheScreen();
+    expect(screen.getByText(fr.messages.poussiereSemaineIncomplete)).toBeOnTheScreen();
+  });
+
+  it('maison propre : aucune phrase de poussière', async () => {
+    await render(<Accueil vue={vue()} maison={maison()} />);
+    expect(screen.queryByText(fr.messages.poussiereJours)).toBeNull();
+    expect(screen.queryByText(fr.messages.poussiereSemaineIncomplete)).toBeNull();
+  });
+
+  it('texte agrandi : la maison ne contient aucun texte tronqué', async () => {
+    const source = readFileSync(join(__dirname, 'MaisonAccueil.tsx'), 'utf8');
+    expect(source).not.toMatch(
+      /numberOfLines|allowFontScaling|maxFontSizeMultiplier|adjustsFontSizeToFit/,
+    );
   });
 });

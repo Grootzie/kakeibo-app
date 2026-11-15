@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react';
 import { useStore } from 'zustand';
 
 import { fr } from '../../i18n/fr';
+import { type PieceDuBilan, piecesDuBilan } from '../../state/maison';
 import {
   type VueBilanSemaine,
   type VueRecapitulatif,
@@ -24,7 +25,9 @@ export interface PropsEcranBilanSemaine {
   onTerminer: () => void;
 }
 
-type Vue = { type: 'recap'; vue: VueRecapitulatif } | { type: 'semaine'; vue: VueBilanSemaine };
+type Vue =
+  | { type: 'recap'; vue: VueRecapitulatif }
+  | { type: 'semaine'; vue: VueBilanSemaine; pieces: PieceDuBilan[] };
 
 export function EcranBilanSemaine({ store, onTerminer }: PropsEcranBilanSemaine) {
   const etat = useStore(store, (s) => s.etat);
@@ -36,7 +39,13 @@ export function EcranBilanSemaine({ store, onTerminer }: PropsEcranBilanSemaine)
     const recap = vueRecapitulatif(etat, maintenant, catalogue);
     if (recap !== null) return { type: 'recap', vue: recap };
     const semaine = vueBilanSemaine(etat, catalogue);
-    return semaine === null ? null : { type: 'semaine', vue: semaine };
+    if (semaine === null) return null;
+    // Les pièces où l'objet de la capsule entre et où un objet se fêle (#84).
+    return {
+      type: 'semaine',
+      vue: semaine,
+      pieces: piecesDuBilan(etat, catalogue, semaine.semaine, maintenant),
+    };
   }, [etat, maintenant, catalogue]);
   // Une fois les semaines marquées vues, l'écran garde ce qu'il montrait jusqu'à ce qu'on le quitte.
   const [vue, setVue] = useState<Vue | null>(calculee);
@@ -67,6 +76,7 @@ export function EcranBilanSemaine({ store, onTerminer }: PropsEcranBilanSemaine)
       <EcranBilanUneSemaine
         key={vue.vue.semaine}
         vue={vue.vue}
+        pieces={vue.pieces}
         store={store}
         reduit={reduit}
         onTerminer={marquerVus}

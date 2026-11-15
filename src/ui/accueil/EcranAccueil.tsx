@@ -3,6 +3,7 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 
+import { maisonAccueil } from '../../state/maison';
 import { joursDepense, vueAccueil } from '../../state/selecteurs';
 import type { KakeiboStore } from '../../state/store';
 import { type DepenseSaisie, FeuilleDepense } from '../depense/FeuilleDepense';
@@ -34,6 +35,8 @@ export interface PropsEcranAccueil {
    * quand il est le premier bilan prêt (après ceux des semaines).
    */
   onBilanMois?: () => void;
+  /** Ouvre la maison (E8) : toucher la maison de l'accueil. */
+  onMaison?: () => void;
   /** Faux quand un autre écran est par-dessus : les cartes de première fois attendent. */
   visible?: boolean;
   children?: ReactNode;
@@ -46,6 +49,7 @@ export function EcranAccueil({
   onRattraper,
   onBilanSemaine,
   onBilanMois,
+  onMaison,
   visible = true,
   children,
 }: PropsEcranAccueil) {
@@ -53,12 +57,17 @@ export function EcranAccueil({
   const [notee, setNotee] = useState<DepenseNotee | null>(null);
   const etat = useStore(store, (s) => s.etat);
   const maintenant = useStore(store, (s) => s.maintenant);
+  const catalogue = useStore(store, (s) => s.catalogue);
   // Pas de carte pendant que la feuille « Noter une dépense » est ouverte.
   const { carte, fermer } = useCarteExplication(store, undefined, visible && !feuille);
 
   const vue = useMemo(
     () => (etat && maintenant ? vueAccueil(etat, maintenant) : null),
     [etat, maintenant],
+  );
+  const maison = useMemo(
+    () => (etat && maintenant ? maisonAccueil(etat, catalogue, maintenant) : null),
+    [etat, catalogue, maintenant],
   );
   // E6 s'ouvre de lui-même à la première ouverture après le scellement : une fois par bilan à
   // faire (une semaine, ou les semaines du récapitulatif), tant que l'accueil reste monté ;
@@ -108,6 +117,8 @@ export function EcranAccueil({
   return (
     <Accueil
       vue={vue}
+      maison={maison}
+      onMaison={onMaison}
       onAppuiLongDate={onAppuiLongDate}
       onNoterDepense={() => setFeuille(true)}
       onCloturer={onCloturer}

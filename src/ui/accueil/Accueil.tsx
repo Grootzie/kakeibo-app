@@ -1,9 +1,10 @@
-// Accueil (E2) sans la maison, qui vient en J4. Composant d'affichage : la vue lui est passée.
+// Accueil (E2), avec la maison (J4.5). Composant d'affichage : la vue lui est passée.
 import type { ReactNode } from 'react';
 import { Pressable, ScrollView, Text, View, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { fr } from '../../i18n/fr';
+import type { VueMaisonAccueil } from '../../state/maison';
 import type {
   BandeauAccueil,
   CaseTampon,
@@ -12,6 +13,7 @@ import type {
   VueAccueil,
 } from '../../state/selecteurs';
 import { theme } from '../theme';
+import { MaisonAccueil } from './MaisonAccueil';
 
 const c = theme.couleurs;
 const ESPACE = 16;
@@ -19,6 +21,10 @@ const ESPACE = 16;
 export interface PropsAccueil {
   /** Null tant que l'état n'est pas chargé : seuls les boutons s'affichent. */
   vue: VueAccueil | null;
+  /** La maison : la pièce du mois en cours et les autres pièces de l'année ; null sans pièce. */
+  maison?: VueMaisonAccueil | null;
+  /** Ouvre la maison (E8). */
+  onMaison?: () => void;
   onAppuiLongDate?: () => void;
   /** Ouvre la feuille « Noter une dépense » (E3). */
   onNoterDepense?: () => void;
@@ -39,6 +45,8 @@ export interface PropsAccueil {
 
 export function Accueil({
   vue,
+  maison = null,
+  onMaison,
   onAppuiLongDate,
   onNoterDepense,
   onCloturer,
@@ -81,6 +89,10 @@ export function Accueil({
           onCloturer={onCloturer}
         />
         {children}
+        {/* La maison sous les boutons : bandeau, enveloppe, tampons et boutons restent à leur place
+            et à l'écran, même sous une carte de première fois (#84). Le réglage caché des builds
+            de développement (children) reste juste sous les boutons. */}
+        {vue && maison && <MaisonAccueil maison={maison} onOuvrir={onMaison} />}
       </ScrollView>
     </SafeAreaView>
   );
@@ -361,6 +373,7 @@ function Boutons({
     <View style={{ gap: 12 }}>
       <Pressable
         accessibilityRole="button"
+        testID="bouton-noter"
         accessibilityLabel={fr.accueil.noterDepenseLibelle}
         onPress={onNoterDepense}
         style={{ ...bouton, backgroundColor: c.principal }}

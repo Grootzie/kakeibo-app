@@ -168,14 +168,17 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Un râteau porte-bonheur kumade entre dans ta maison\.'
     timeout: 10000
-- takeScreenshot: captures/semaine-parfaite-3-capsule
-# Temps 4 : l'objet seul (la maison arrive en J4) et la conclusion.
+# Le râteau rejoint son emplacement dans la pièce de novembre (#84).
 - scrollUntilVisible:
     element:
       text: 'Passer au temps suivant'
     direction: DOWN
+- assertVisible: 'Kura, la réserve, novembre 2026\. .*Le râteau porte-bonheur kumade\..*'
+- takeScreenshot: captures/semaine-parfaite-3-capsule
+# Temps 4 : l'objet dans sa pièce et la conclusion.
 - tapOn: 'Passer au temps suivant'
 - assertVisible: 'Temps 4 sur 4'
+- assertVisible: 'Kura, la réserve, novembre 2026\. .*Le râteau porte-bonheur kumade\..*'
 - assertVisible: 'Le râteau porte-bonheur kumade'
 - assertVisible: 'Une nouvelle semaine commence.: chaque soir, un jeton t’attend\.'
 - takeScreenshot: captures/semaine-parfaite-4-objet

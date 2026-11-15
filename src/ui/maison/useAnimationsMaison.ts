@@ -25,11 +25,21 @@ interface Suivi {
 
 const AUCUNE = new Map<ItemId, Progression>();
 
+/**
+ * `depuis` : scène d'où partent les animations au montage (le bilan montre l'objet qui entre et
+ * la fêlure qui se fait) ; sans elle, la première scène s'affiche telle quelle.
+ */
 export function useAnimationsMaison(
   scene: HouseScene,
   reduit: boolean,
+  depuis?: HouseScene,
 ): ReadonlyMap<ItemId, Progression> {
-  const [suivi, setSuivi] = useState<Suivi>({ scene, liste: [], generation: 0, felures: 0 });
+  const [suivi, setSuivi] = useState<Suivi>(() => ({
+    scene: depuis ?? scene,
+    liste: [],
+    generation: 0,
+    felures: 0,
+  }));
   const [ecoule, setEcoule] = useState(0);
 
   // État dérivé de la scène reçue, calculé pendant le rendu : l'objet nouveau ne s'affiche

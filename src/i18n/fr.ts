@@ -217,6 +217,12 @@ export const fr = {
     reste: (centimes: number, jusqua: string) =>
       `Il te reste ${formatEuros(centimes)} jusqu’à ${jusqua}`,
     depassement: (centimes: number) => `Tu as dépassé de ${formatEuros(centimes)} cette semaine`,
+    /**
+     * La maison de l'accueil (#84), lue comme un curseur : la description de la pièce, sa place
+     * parmi les pièces de l'année, et ce que fait la touche. Textes proposés au propriétaire.
+     */
+    maisonPosition: (rang: number, total: number) => `Pièce ${rang} sur ${total}`,
+    maisonIndice: 'Ouvre ta maison. Tu peux aussi passer d’une pièce à l’autre.',
   },
 
   depense: {
@@ -330,8 +336,6 @@ export const fr = {
     tirerLibelle: `Tirer la tirette${NBSP}: la capsule tombe et s’ouvre sur l’objet de la semaine`,
     poussiereLibelle: 'Un peu de poussière',
     maisonTitre: 'Ta maison',
-    /** Dessin provisoire de l'objet, en attendant les visuels (et la maison, J4). */
-    objetLibelle: (objet: NomObjet) => `${debut(objet)}, dessin provisoire`,
     nomObjet: (objet: NomObjet) => debut(objet),
     conclusionObjet: `Une nouvelle semaine commence${NBSP}: chaque soir, un jeton t’attend.`,
     conclusionSansObjet: `Rien n’est perdu${NBSP}: une clôture ce soir, et tout repart.`,

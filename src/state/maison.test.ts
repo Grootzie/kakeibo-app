@@ -5,7 +5,14 @@ import { addDays } from '../domain/calendrier';
 import type { Catalog } from '../domain/objets';
 import type { DayKey, LocalDateTime } from '../domain/scellement';
 import { type AppEvent, type AppState, createAppState, process } from '../domain/traitement';
-import { anneesAlbum, piecesDeLAnnee, vueAlbum, vueMaison } from './maison';
+import {
+  anneesAlbum,
+  maisonAccueil,
+  piecesDeLAnnee,
+  piecesDuBilan,
+  vueAlbum,
+  vueMaison,
+} from './maison';
 
 const catalog = catalogueJson as Catalog;
 const NBSP = '\u00a0';
@@ -166,5 +173,155 @@ describe('vueAlbum (#87)', () => {
     expect(album.map((a) => a.annee)).toEqual([2026, 2027]);
     expect(album[0].pieces.map((p) => p.scene.room)).toEqual(['room-11', 'room-12']);
     expect(album[1].pieces.map((p) => p.scene.room)).toEqual(['room-01']);
+  });
+});
+
+describe('maisonAccueil (E2, #84)', () => {
+  it('la pièce du mois en cours, avec sa poussière, et les causes de la poussière', () => {
+    const neuve = maisonAccueil(etat([]), catalog, at('2026-11-02', '09:00'));
+    expect(neuve?.pieces.map((p) => p.scene.room)).toEqual(['room-11']);
+    expect(neuve?.courante).toBe(0);
+    expect(neuve?.poussiere).toEqual({ joursSansCloture: false, semaineIncomplete: false });
+
+    const sale = maisonAccueil(etat([]), catalog, at('2026-11-07', '09:00'));
+    expect(sale?.pieces[0].scene.dust).toBe(2);
+    expect(sale?.poussiere).toEqual({ joursSansCloture: true, semaineIncomplete: false });
+  });
+
+  it('après une semaine incomplète, le voile reste et sa cause est dite', () => {
+    const s = etat([
+      ...fermerDu('2026-11-02', '2026-11-08', ['2026-11-04']),
+      ...fermerDu('2026-11-09', '2026-11-10'),
+    ]);
+    const vue = maisonAccueil(s, catalog, at('2026-11-10'));
+    expect(vue?.pieces[0].scene.dust).toBe(1);
+    expect(vue?.poussiere).toEqual({ joursSansCloture: false, semaineIncomplete: true });
+  });
+
+  it('les pièces débloquées de l’année ; celle du mois en cours d’abord affichée', () => {
+    const s = etat([
+      ...fermerDu('2026-11-02', '2026-11-30'),
+      [{ type: 'open' }, at('2026-12-01', '09:00')],
+      [{ type: 'validate_month', month: '2026-11', resolution: '' }, at('2026-12-01', '09:05')],
+    ]);
+    const vue = maisonAccueil(s, catalog, at('2026-12-01', '09:10'));
+    expect(vue?.pieces.map((p) => p.scene.room)).toEqual(['room-11', 'room-12']);
+    expect(vue?.courante).toBe(1);
+  });
+
+  it('pièce du mois pas encore débloquée : la dernière pièce débloquée avant elle', () => {
+    // Le 1er décembre, sans bilan de novembre validé : la pièce de décembre attend.
+    const s = etat([...fermerDu('2026-11-02', '2026-11-30')]);
+    const vue = maisonAccueil(s, catalog, at('2026-12-01', '09:00'));
+    expect(vue?.pieces.map((p) => p.scene.room)).toEqual(['room-11']);
+    expect(vue?.courante).toBe(0);
+  });
+
+  it('le mois en cours est celui de la semaine (son jeudi) : lundi 30 novembre, décembre', () => {
+    const s = etat([
+      ...fermerDu('2026-11-02', '2026-11-29'),
+      [{ type: 'open' }, at('2026-11-30', '09:00')],
+    ]);
+    // La semaine du 30 novembre appartient à décembre, pas encore débloqué : novembre s'affiche.
+    expect(maisonAccueil(s, catalog, at('2026-11-30', '09:00'))?.courante).toBe(0);
+  });
+
+  it('nouvelle année : la pièce de janvier, celle de l’année passée n’y est plus', () => {
+    const s = etat([
+      ...fermerDu('2026-11-02', '2026-12-31'),
+      [{ type: 'open' }, at('2027-01-04', '09:00')],
+    ]);
+    const vue = maisonAccueil(s, catalog, at('2027-01-04', '09:00'));
+    expect(vue?.pieces.map((p) => `${p.scene.year} ${p.scene.room}`)).toEqual(['2027 room-01']);
+    expect(vue?.courante).toBe(0);
+  });
+});
+
+describe('piecesDuBilan (E6, #84)', () => {
+  const W45 = '2026-W45';
+
+  it('l’objet de la capsule : la pièce avant, sans lui, puis avec lui à son emplacement', () => {
+    const s = etat([
+      ...fermerDu('2026-11-02', '2026-11-08'),
+      [{ type: 'open' }, at('2026-11-10', '09:00')],
+    ]);
+    const pieces = piecesDuBilan(s, catalog, W45, at('2026-11-10', '09:00'));
+    expect(pieces).toHaveLength(1);
+    const [p] = pieces;
+    expect(p.objet).toBe(true);
+    expect(p.fele).toBe(false);
+    expect(p.apres.scene.items.map((i) => i.itemId)).toContain('rateau-porte-bonheur-kumade');
+    expect(p.avant.scene.items.map((i) => i.itemId)).not.toContain('rateau-porte-bonheur-kumade');
+    expect(p.avantCapsule.scene.items.map((i) => i.itemId)).not.toContain(
+      'rateau-porte-bonheur-kumade',
+    );
+    // Son emplacement est libre avant la capsule, et dit comme tel au lecteur d'écran.
+    expect(p.avant.scene.freeSlots.map((f) => f.rank)).toEqual([1, 2, 3, 4]);
+    expect(p.apres.scene.freeSlots.map((f) => f.rank)).toEqual([2, 3, 4]);
+    expect(p.avant.description).toContain('4 emplacements libres');
+    expect(p.apres.description).toContain('Le râteau porte-bonheur kumade.');
+  });
+
+  it('hors budget : l’objet fêlé, intact avant, fêlé ensuite, dans la même pièce', () => {
+    const s = etat([
+      depenser('2026-11-03', 15000),
+      ...fermerDu('2026-11-02', '2026-11-08'),
+      [{ type: 'open' }, at('2026-11-10', '09:00')],
+    ]);
+    const [p] = piecesDuBilan(s, catalog, W45, at('2026-11-10', '09:00'));
+    expect(p.objet).toBe(true);
+    expect(p.fele).toBe(true);
+    const etatDe = (v: typeof p.avant, id: string) =>
+      v.scene.items.find((i) => i.itemId === id)?.state;
+    expect(etatDe(p.avant, 'echelle')).toBe('intact');
+    expect(etatDe(p.avantCapsule, 'echelle')).toBe('cracked');
+    expect(etatDe(p.apres, 'echelle')).toBe('cracked');
+    expect(p.avantCapsule.scene.items.map((i) => i.itemId)).not.toContain(
+      'rateau-porte-bonheur-kumade',
+    );
+    expect(p.avantCapsule.description).toContain('L’échelle, fêlée');
+    expect(p.avant.description).not.toContain('fêlée');
+  });
+
+  it('tampons manquants, hors budget : seule la pièce de l’objet fêlé', () => {
+    const s = etat([
+      depenser('2026-11-03', 15000),
+      ...fermerDu('2026-11-02', '2026-11-08', ['2026-11-04']),
+      [{ type: 'open' }, at('2026-11-10', '09:00')],
+    ]);
+    const pieces = piecesDuBilan(s, catalog, W45, at('2026-11-10', '09:00'));
+    expect(pieces.map((p) => [p.piece, p.objet, p.fele])).toEqual([['room-11', false, true]]);
+  });
+
+  it('semaine sans capsule ni fêlure : aucune pièce', () => {
+    const s = etat([
+      ...fermerDu('2026-11-02', '2026-11-08', ['2026-11-04']),
+      [{ type: 'open' }, at('2026-11-10', '09:00')],
+    ]);
+    expect(piecesDuBilan(s, catalog, W45, at('2026-11-10', '09:00'))).toEqual([]);
+  });
+
+  it('objet en attente de sa pièce : pas de pièce pour lui', () => {
+    // Semaine 49 (jeudi 3 décembre) complète, bilan de novembre pas validé.
+    const s = etat([
+      ...fermerDu('2026-11-02', '2026-12-06'),
+      [{ type: 'open' }, at('2026-12-07', '09:00')],
+    ]);
+    expect(piecesDuBilan(s, catalog, '2026-W49', at('2026-12-07', '09:00'))).toEqual([]);
+  });
+
+  it('chaque pièce n’apparaît qu’une fois, celle de l’objet gagné d’abord', () => {
+    // Décembre débloqué ; semaine 49 complète mais hors budget : l'objet de base de décembre
+    // obtenu le plus récemment se fêle, dans la pièce où entre l'objet de la capsule.
+    const s = etat([
+      ...fermerDu('2026-11-02', '2026-11-30'),
+      [{ type: 'open' }, at('2026-12-01', '09:00')],
+      [{ type: 'validate_month', month: '2026-11', resolution: '' }, at('2026-12-01', '09:05')],
+      depenser('2026-12-01', 30000),
+      ...fermerDu('2026-12-01', '2026-12-06'),
+      [{ type: 'open' }, at('2026-12-07', '09:00')],
+    ]);
+    const pieces = piecesDuBilan(s, catalog, '2026-W49', at('2026-12-07', '09:00'));
+    expect(pieces.map((p) => [p.piece, p.objet, p.fele])).toEqual([['room-12', true, true]]);
   });
 });
