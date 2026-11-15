@@ -18,6 +18,18 @@ function dansLOrdre(parcours: string, lignes: string[]): void {
   }
 }
 
+/**
+ * La pièce de novembre au bilan de la semaine (#84), telle que le lecteur d'écran la lit : la
+ * description de la maison (fr.maison), vérifiée plus bas avec les textes de l'appli.
+ */
+const PIECE_RATEAU = 'Kura, la réserve, novembre 2026\\. .*Le râteau porte-bonheur kumade\\..*';
+const PIECE_RATEAU_FELE =
+  'Kura, la réserve, novembre 2026\\. .*Le râteau porte-bonheur kumade, fêlé\\..*';
+const PIECE_ECHELLE_FELEE =
+  'Kura, la réserve, novembre 2026\\. .*L’échelle, fêlée\\. 4 emplacements libres\\..*';
+const PIECE_ECHELLE_FELEE_RATEAU =
+  'Kura, la réserve, novembre 2026\\. .*L’échelle, fêlée\\. Le râteau porte-bonheur kumade\\. 3 emplacements libres\\..*';
+
 describe('parcours Maestro de démarrage', () => {
   const parcours = readFileSync(join(__dirname, '..', 'e2e', 'accueil.yaml'), 'utf8');
 
@@ -36,6 +48,16 @@ describe('parcours Maestro de démarrage', () => {
     expect(parcours).toContain(`- assertVisible: '${fr.accueil.cloturerJournee}'`);
     expect(parcours).toContain("- assertVisible: 'Il te reste .* jusqu’à dimanche'");
     expect(fr.accueil.reste(0, 'dimanche')).toMatch(/^Il te reste .* jusqu’à dimanche$/);
+  });
+
+  it('vérifie la maison de l’accueil : la pièce de novembre, par sa description (#84)', () => {
+    dansLOrdre(parcours, [
+      "- assertVisible: 'Kura, la réserve, novembre 2026\\..*'",
+      '- takeScreenshot: captures/accueil',
+    ]);
+    expect(fr.maison.piece('Kura, la réserve', '2026-11', 2026)).toBe(
+      'Kura, la réserve, novembre 2026',
+    );
   });
 
   it('lance l’appli et prend une capture', () => {
@@ -997,8 +1019,11 @@ describe('parcours Maestro « bilan de la semaine » (J3.2, #62)', () => {
       '- takeScreenshot: captures/bilan-semaine-tirette',
       "- tapOn: 'Tirer la tirette.*'",
       `visible: '${motif(fr.messages.ouvertureCapsule(rateau))}'`,
+      // Le râteau a rejoint son emplacement dans la pièce de novembre (#84).
+      `- assertVisible: '${PIECE_RATEAU}'`,
       '- takeScreenshot: captures/bilan-semaine-capsule',
       `- tapOn: '${b.suivantLibelle}'`,
+      `- assertVisible: '${PIECE_RATEAU}'`,
       `- assertVisible: '${b.nomObjet(rateau)}'`,
       `- assertVisible: '${motif(b.conclusionObjet)}'`,
       '- takeScreenshot: captures/bilan-semaine-objet',
@@ -1021,7 +1046,8 @@ describe('parcours Maestro « bilan de la semaine » (J3.2, #62)', () => {
       `- assertVisible: '${fr.recapitulatif.horsEnveloppe}'`,
       `- assertVisible: '${motif(fr.bilan.manqueHorsBudget(rateau))}'`,
       "- assertNotVisible: 'Tirer la tirette.*'",
-      `- assertVisible: '${motif(fr.messages.fele(rateau))}'`,
+      // La fêlure se voit sur le râteau, dans sa pièce (#84).
+      `- assertVisible: '${PIECE_RATEAU_FELE}'`,
       '- takeScreenshot: captures/bilan-semaine-felure',
       `- assertVisible: '${motif(b.conclusionSansObjet)}'`,
       "- tapOn: 'Terminer le bilan.*'",
@@ -1276,6 +1302,14 @@ describe('parcours Maestro « semaine hors budget » (J3, #67)', () => {
       'Tu as tout noté, c’est l’essentiel\u00a0: tes jetons sont prêts, tire la tirette. L’échelle s’est fêlée\u00a0; 7 jours de clôture d’affilée, et elle sera réparée à l’or.',
     );
     expect(fr.messages.fele(echelle)).toBe('L’échelle s’est fêlée.');
+    // Morceaux de la description de la pièce (#84), cherchés par les parcours.
+    expect(fr.maison.piece('Kura, la réserve', '2026-11', 2026)).toBe(
+      'Kura, la réserve, novembre 2026',
+    );
+    expect(fr.maison.objet(echelle, 'cracked', null)).toBe('L’échelle, fêlée');
+    expect(fr.maison.objet(rateau, 'cracked', null)).toBe('Le râteau porte-bonheur kumade, fêlé');
+    expect(fr.maison.objet(rateau, 'intact', null)).toBe('Le râteau porte-bonheur kumade');
+    expect(fr.maison.emplacementsLibres(4)).toBe('4 emplacements libres');
   });
 
   it('clôture chaque jour décompté avec une dépense au-delà de l’enveloppe', () => {
@@ -1306,11 +1340,12 @@ describe('parcours Maestro « semaine hors budget » (J3, #67)', () => {
       `- tapOn: 'Fermer l’explication .*${t.first_capsule}.*'`,
       `visible: '${t.first_crack}'`,
       `- tapOn: 'Fermer l’explication .*${t.first_crack}.*'`,
-      `- assertVisible: '${motif(fr.messages.fele(echelle))}'`,
+      // La fêlure se voit sur l'échelle, dans sa pièce ; le râteau n'y est pas encore (#84).
+      `- assertVisible: '${PIECE_ECHELLE_FELEE}'`,
       '- takeScreenshot: captures/semaine-hors-budget-3-tirette',
       "- tapOn: 'Tirer la tirette.*'",
       `visible: '${motif(fr.messages.ouvertureCapsule(rateau))}'`,
-      `- assertVisible: '${motif(fr.messages.fele(echelle))}'`,
+      `- assertVisible: '${PIECE_ECHELLE_FELEE_RATEAU}'`,
       '- takeScreenshot: captures/semaine-hors-budget-3-capsule',
       `- tapOn: '${b.suivantLibelle}'`,
       `- assertVisible: '${b.temps(4)}'`,

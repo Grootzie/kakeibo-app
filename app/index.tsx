@@ -18,6 +18,7 @@ export default function Home() {
       onRattraper={(jour) => router.push({ pathname: '/cloturer', params: { jour } })}
       onBilanSemaine={() => router.push('/bilan-semaine')}
       onBilanMois={() => router.push('/bilan-mois')}
+      onMaison={() => router.push('/maison')}
     >
       {horlogeVisible && <HorlogeDev />}
     </EcranAccueil>

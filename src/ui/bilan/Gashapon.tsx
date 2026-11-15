@@ -1,13 +1,14 @@
 // Machine à capsules du bilan de la semaine (E6, temps 3). Dessin provisoire, en attendant le lot
 // de visuels (Fiche des visuels › Capsule gashapon) : la tirette tourne, la capsule tombe,
-// s'ouvre en deux, l'objet en sort (1,5 s en tout). Avec « moins d'animations » (réglage du
+// s'ouvre en deux, l'objet en sort (1,5 s en tout), avec son visuel ; puis il rejoint son
+// emplacement dans la pièce (#84). Avec « moins d'animations » (réglage du
 // téléphone), la capsule est ouverte d'emblée, sans mouvement.
 import { useEffect, useState } from 'react';
 import { Animated, Easing, View } from 'react-native';
 
 import { fr } from '../../i18n/fr';
 import { theme } from '../theme';
-import { ObjetProvisoire } from './ObjetProvisoire';
+import { ImageObjet } from '../maison/ImageObjet';
 import type { ObjetNomme } from '../../state/selecteurs';
 
 const c = theme.couleurs;
@@ -156,7 +157,7 @@ export function Gashapon({ objet, tiree, reduit, onOuverte }: PropsGashapon) {
           }}
         />
         <Animated.View style={{ opacity: sortie, transform: [{ scale: echelle }] }}>
-          <ObjetProvisoire objet={objet} taille={64} />
+          <ImageObjet itemId={objet.id} taille={64} />
         </Animated.View>
       </Animated.View>
     </View>

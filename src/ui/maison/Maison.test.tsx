@@ -42,8 +42,8 @@ afterEach(() => {
 });
 
 /** Monte la maison, lui donne sa largeur et laisse les images se décoder. */
-async function monter(v: VueMaison, largeur = 360) {
-  const rendu = await render(<Maison vue={v} />);
+async function monter(v: VueMaison, largeur = 360, depuis?: HouseScene) {
+  const rendu = await render(<Maison vue={v} depuis={depuis} />);
   await fireEvent(screen.getByTestId('maison'), 'layout', {
     nativeEvent: { layout: { x: 0, y: 0, width: largeur, height: (largeur * 3) / 4 } },
   });
@@ -252,6 +252,36 @@ describe('animations', () => {
     expect(dessine('items/rateau-porte-bonheur-kumade/crack')).toBe(false);
     expect(opaciteDe('items/rateau-porte-bonheur-kumade/gold')).toBe(1);
     expect(Haptics.impactAsync).not.toHaveBeenCalled();
+  });
+
+  it('depuis une scène d’avant : au montage, l’objet entre et la fêlure se fait (bilan, #84)', async () => {
+    jest.useFakeTimers();
+    const avant = sceneNovembre({ items: sceneNovembre().items.slice(0, 3) });
+    const apres = sceneNovembre({
+      items: [
+        objetScene('etageres', 'base', 1),
+        objetScene('coffre-nagamochi', 'base', 2),
+        objetScene('echelle', 'base', 3, 'cracked'),
+        objetScene('rateau-porte-bonheur-kumade', 'weekly', 1),
+      ],
+    });
+    await monter(vue(apres), 360, avant);
+    expect(groupeDe('rateau-porte-bonheur-kumade').opacity).toBe(0);
+    expect(opaciteDe('items/echelle/crack')).toBe(0);
+    expect(Haptics.impactAsync).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      jest.advanceTimersByTime(400);
+    });
+    expect(groupeDe('rateau-porte-bonheur-kumade').opacity).toBe(1);
+    expect(opaciteDe('items/echelle/crack')).toBe(1);
+  });
+
+  it('depuis une scène d’avant, « Réduire les animations » : l’état final d’emblée', async () => {
+    moinsAnimations = true;
+    jest.useFakeTimers();
+    const avant = sceneNovembre({ items: sceneNovembre().items.slice(0, 3) });
+    await monter(vue(sceneNovembre()), 360, avant);
+    expect(groupeDe('rateau-porte-bonheur-kumade').opacity).toBe(1);
   });
 
   it('« Réduire les animations » : le nouvel état s’affiche d’emblée, la fêlure vibre quand même', async () => {

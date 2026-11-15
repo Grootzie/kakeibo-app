@@ -1,5 +1,7 @@
 # Parcours de démarrage : l'écran d'accueil affiche le bouton « Noter une dépense ».
-# Il affiche aussi l'enveloppe, la carte de tampons et « Clôturer ma journée » (E2, #43).
+# Il affiche aussi l'enveloppe, la carte de tampons et « Clôturer ma journée » (E2, #43), et la
+# maison : la pièce du mois, lue au lecteur d'écran par sa description (J4.5, #84).
+# Les parcours se jouent le mercredi 4 novembre 2026 : la pièce de novembre, Kura.
 # Échoue si le texte est absent (écran blanc, erreur, lanceur Android).
 # L'émulateur de l'intégration continue est parfois lent : on attend le texte jusqu'à 60 s.
 appId: app.kakeibo
@@ -11,4 +13,5 @@ appId: app.kakeibo
 - assertVisible: 'Noter une dépense'
 - assertVisible: 'Clôturer ma journée'
 - assertVisible: 'Il te reste .* jusqu’à dimanche'
+- assertVisible: 'Kura, la réserve, novembre 2026\..*'
 - takeScreenshot: captures/accueil
