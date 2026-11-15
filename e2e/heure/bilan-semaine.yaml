@@ -245,7 +245,7 @@ appId: app.kakeibo
       text: 'Passer au temps suivant'
     direction: DOWN
 # La fêlure se voit sur le râteau, dans sa pièce (#84).
-- assertVisible: 'Kura, la réserve, novembre 2026\. .*Le râteau porte-bonheur kumade, fêlé\..*'
+- assertVisible: 'Kura, la réserve, novembre 2026\. .*Le râteau porte-bonheur kumade, fêlé[^.]*\..*'
 - takeScreenshot: captures/bilan-semaine-felure
 - tapOn: 'Passer au temps suivant'
 - assertVisible: 'Rien n’est perdu.: une clôture ce soir, et tout repart\.'

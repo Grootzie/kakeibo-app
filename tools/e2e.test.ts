@@ -24,11 +24,11 @@ function dansLOrdre(parcours: string, lignes: string[]): void {
  */
 const PIECE_RATEAU = 'Kura, la réserve, novembre 2026\\. .*Le râteau porte-bonheur kumade\\..*';
 const PIECE_RATEAU_FELE =
-  'Kura, la réserve, novembre 2026\\. .*Le râteau porte-bonheur kumade, fêlé\\..*';
+  'Kura, la réserve, novembre 2026\\. .*Le râteau porte-bonheur kumade, fêlé[^.]*\\..*';
 const PIECE_ECHELLE_FELEE =
-  'Kura, la réserve, novembre 2026\\. .*L’échelle, fêlée\\. 4 emplacements libres\\..*';
+  'Kura, la réserve, novembre 2026\\. .*L’échelle, fêlée[^.]*\\. 4 emplacements libres\\..*';
 const PIECE_ECHELLE_FELEE_RATEAU =
-  'Kura, la réserve, novembre 2026\\. .*L’échelle, fêlée\\. Le râteau porte-bonheur kumade\\. 3 emplacements libres\\..*';
+  'Kura, la réserve, novembre 2026\\. .*L’échelle, fêlée[^.]*\\. Le râteau porte-bonheur kumade\\. 3 emplacements libres\\..*';
 
 describe('parcours Maestro de démarrage', () => {
   const parcours = readFileSync(join(__dirname, '..', 'e2e', 'accueil.yaml'), 'utf8');

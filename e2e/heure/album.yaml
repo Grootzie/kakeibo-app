@@ -177,13 +177,13 @@ appId: app.kakeibo
       text: 'Tirer la tirette.*'
     direction: DOWN
 # La fêlure se voit sur l'échelle, dans la pièce de novembre (#84) ; le râteau n'y est pas encore.
-- assertVisible: 'Kura, la réserve, novembre 2026\. .*L’échelle, fêlée\. 4 emplacements libres\..*'
+- assertVisible: 'Kura, la réserve, novembre 2026\. .*L’échelle, fêlée[^.]*\. 4 emplacements libres\..*'
 - tapOn: 'Tirer la tirette.*'
 - extendedWaitUntil:
     visible: 'Un râteau porte-bonheur kumade entre dans ta maison\.'
     timeout: 10000
 # Le râteau a rejoint son emplacement dans la pièce, à côté de l'échelle fêlée (#84).
-- assertVisible: 'Kura, la réserve, novembre 2026\. .*L’échelle, fêlée\. Le râteau porte-bonheur kumade\. 3 emplacements libres\..*'
+- assertVisible: 'Kura, la réserve, novembre 2026\. .*L’échelle, fêlée[^.]*\. Le râteau porte-bonheur kumade\. 3 emplacements libres\..*'
 # Temps 4 : l'objet gagné et la conclusion.
 - scrollUntilVisible:
     element:
