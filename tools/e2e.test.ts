@@ -106,6 +106,10 @@ describe('parcours Maestro « Clôturer ma journée » (#45)', () => {
   it('efface les données à la fin : une clôture ne s’annule pas, les autres parcours en ont besoin', () => {
     expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
   });
+
+  it('part d’une appli effacée : un autre parcours raté ne lui laisse rien (#90)', () => {
+    expect(parcours).toMatch(/---\n- launchApp:\n {4}clearState: true\n/);
+  });
 });
 
 describe('parcours Maestro « Rattraper un jour » (#46)', () => {
@@ -529,7 +533,6 @@ describe('script de l’émulateur (#52)', () => {
     const jeudi = position('adb shell date 110520002026.00');
     const rattraper = position('maestro test e2e/heure/rattraper-jour.yaml');
     const automatique = position('adb shell settings put global auto_time 1');
-    expect(position('maestro test e2e ')).toBeLessThan(racine);
     expect([racine, efface, mercredi, installer, jeudi, rattraper, automatique]).toEqual(
       [racine, efface, mercredi, installer, jeudi, rattraper, automatique].sort((a, b) => a - b),
     );
@@ -690,9 +693,39 @@ describe('script de l’émulateur (#52)', () => {
     expect(code).toBe(1);
   });
 
-  it('sans parcours à heure précise, ne touche pas à l’heure du téléphone', () => {
-    const { journal } = jouer(true);
-    expect(journal).not.toMatch(/adb shell date|adb root/);
+  it('joue les parcours de e2e/ à une date fixe, le mercredi 4 novembre 2026 à 10:00, puis rend l’heure', () => {
+    // À la date réelle, un dimanche, la clôture scelle la semaine et ouvre E6 : « Premier tampon »
+    // et « Clôturer ma journée » n'étaient plus visibles (demande #90).
+    for (const heure of [false, true]) {
+      const { code, journal } = jouer(true, heure);
+      expect(code).toBe(0);
+      const lignes = journal.split('\n');
+      const position = (debut: string) => lignes.findIndex((l) => l.startsWith(debut));
+      const ordre = [
+        position('adb root'),
+        position('adb shell settings put global auto_time 0'),
+        position('adb shell date 110410002026.00'),
+        position('adb install appli.apk'),
+        position('maestro test e2e '),
+      ];
+      expect(Math.min(...ordre)).toBeGreaterThanOrEqual(0);
+      expect(ordre).toEqual([...ordre].sort((a, b) => a - b));
+      const rendue = lignes.findLastIndex((l) => /^adb shell date \d{8}\d{4}\.\d{2}$/.test(l));
+      const automatique = lignes.lastIndexOf('adb shell settings put global auto_time 1');
+      expect(rendue).toBeGreaterThan(ordre[4]);
+      expect(automatique).toBeGreaterThan(rendue);
+      expect(lignes.indexOf('adb shell settings put system font_scale 2.0')).toBeGreaterThan(
+        automatique,
+      );
+    }
+  });
+
+  it('rend l’heure même si un parcours de e2e/ échoue', () => {
+    const { code, journal } = jouer(false);
+    expect(code).toBe(1);
+    expect(journal).toMatch(
+      /adb shell date \d{8}\d{4}\.\d{2}\n(.*\n)*adb shell settings put global auto_time 1/,
+    );
   });
 
   it('échoue si le parcours de rattrapage échoue', () => {
