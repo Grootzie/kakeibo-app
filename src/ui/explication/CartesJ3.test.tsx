@@ -26,11 +26,16 @@ const echelle = { nom: 'échelle', article: "l'", genre: 'f' } as const;
 const REPAREE = fr.messages.reparation(echelle);
 
 const catalogue = catalogueJson as Catalog;
-/** Catalogue où la pièce de décembre a son explication (le vrai ne l'a pas encore). */
+/** Catalogue où la pièce de décembre a une autre explication que celle du vrai catalogue. */
 const EXPLICATION_DOMA = 'Explication de la pièce de décembre, pour le test.';
 const catalogueExplique: Catalog = {
   ...catalogue,
   rooms: catalogue.rooms.map((r) => (r.month === 12 ? { ...r, explanation: EXPLICATION_DOMA } : r)),
+};
+/** Catalogue où la pièce de décembre n'a pas d'explication. */
+const catalogueSansExplication: Catalog = {
+  ...catalogue,
+  rooms: catalogue.rooms.map(({ explanation: _explication, ...r }) => r),
 };
 
 interface Banc {
@@ -343,8 +348,18 @@ describe('bilan du mois (E7)', () => {
     expect(await vues(banc.repos)).toEqual(['first_month_review', 'new_room']);
   });
 
-  it('sans explication de la pièce au catalogue, le texte de la spec seul', async () => {
+  it('suit le texte de la spec de l’explication de la pièce du vrai catalogue (#81)', async () => {
     const banc = await installer();
+    await bilanDuMois(banc);
+    await fermerCarte(t.first_month_review);
+    await valider();
+    const doma = catalogue.rooms.find((r) => r.month === 12)?.explanation;
+    expect(doma).toMatch(/^Le doma est la salle au sol de terre battue/);
+    expect(screen.getByText(`${x.nouvellePiece} ${doma}`)).toBeOnTheScreen();
+  });
+
+  it('sans explication de la pièce au catalogue, le texte de la spec seul', async () => {
+    const banc = await installer(catalogueSansExplication);
     await bilanDuMois(banc);
     await fermerCarte(t.first_month_review);
     await valider();

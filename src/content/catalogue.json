@@ -4,73 +4,85 @@
       "id": "room-01",
       "month": 1,
       "name": "Genkan, l’entrée",
-      "feast": "Shōgatsu, le Nouvel An"
+      "feast": "Shōgatsu, le Nouvel An",
+      "explanation": "Le genkan est l’entrée de la maison japonaise : on y laisse ses chaussures avant de monter d’une marche. À Shōgatsu, le Nouvel An, on le décore pour accueillir la divinité de l’année."
     },
     {
       "id": "room-02",
       "month": 2,
       "name": "Chanoma, la salle commune",
-      "feast": "Setsubun, la veille du printemps"
+      "feast": "Setsubun, la veille du printemps",
+      "explanation": "Le chanoma est la pièce où la famille se retrouve pour manger et se réchauffer. Début février, à Setsubun, on y chasse les démons pour faire entrer le printemps."
     },
     {
       "id": "room-03",
       "month": 3,
       "name": "Washitsu, la salle de tatamis",
-      "feast": "Hinamatsuri, la fête des filles"
+      "feast": "Hinamatsuri, la fête des filles",
+      "explanation": "Le washitsu est la pièce traditionnelle au sol de tatamis, où l’on reçoit et où l’on dort. Le 3 mars, à Hinamatsuri, on y expose des poupées pour souhaiter santé et bonheur aux filles."
     },
     {
       "id": "room-04",
       "month": 4,
       "name": "Niwa, le jardin",
-      "feast": "Hanami, les cerisiers en fleur"
+      "feast": "Hanami, les cerisiers en fleur",
+      "explanation": "Le niwa, le jardin japonais, compose en petit un paysage de pierres, d’eau et de plantes. Au printemps, à Hanami, on pique-nique sous les cerisiers en fleur."
     },
     {
       "id": "room-05",
       "month": 5,
       "name": "Furoba, la salle de bain",
-      "feast": "Kodomo no hi, la fête des enfants"
+      "feast": "Kodomo no hi, la fête des enfants",
+      "explanation": "Au Japon, on se lave avant d’entrer dans le bain, qui sert à se détendre. Le 5 mai, Kodomo no hi, on y souhaite aux enfants santé et courage."
     },
     {
       "id": "room-06",
       "month": 6,
       "name": "Daidokoro, la cuisine",
-      "feast": "Tsuyu, la saison des pluies"
+      "feast": "Tsuyu, la saison des pluies",
+      "explanation": "Le daidokoro, la cuisine, est le cœur pratique de la maison. En juin, pendant tsuyu, la saison des pluies, on y met les prunes en bocaux."
     },
     {
       "id": "room-07",
       "month": 7,
       "name": "Shosai, le bureau",
-      "feast": "Tanabata, la fête des étoiles"
+      "feast": "Tanabata, la fête des étoiles",
+      "explanation": "Le shosai est le bureau, la pièce où l’on lit et où l’on écrit. Le 7 juillet, à Tanabata, on y écrit ses vœux sur des bandes de papier."
     },
     {
       "id": "room-08",
       "month": 8,
       "name": "Engawa, la véranda",
-      "feast": "Obon et les nuits d’été"
+      "feast": "Obon et les nuits d’été",
+      "explanation": "L’engawa est la véranda de bois qui longe la maison, entre l’intérieur et le jardin. Mi-août, pendant Obon, la famille accueille les esprits des ancêtres."
     },
     {
       "id": "room-09",
       "month": 9,
       "name": "Chashitsu, le pavillon de thé",
-      "feast": "Tsukimi, la lune d’automne"
+      "feast": "Tsukimi, la lune d’automne",
+      "explanation": "Le chashitsu est le pavillon où l’on sert le thé selon la cérémonie, dans le calme et la simplicité. À Tsukimi, au milieu de l’automne, on y contemple la pleine lune."
     },
     {
       "id": "room-10",
       "month": 10,
       "name": "Irori-no-ma, la salle du foyer",
-      "feast": "Les récoltes d’automne"
+      "feast": "Les récoltes d’automne",
+      "explanation": "L’irori-no-ma est la pièce du foyer, où la famille se réchauffait et cuisinait autour du feu. En automne, on y fête les récoltes, à commencer par le riz nouveau."
     },
     {
       "id": "room-11",
       "month": 11,
       "name": "Kura, la réserve",
-      "feast": "Tori no ichi et Shichi-go-san"
+      "feast": "Tori no ichi et Shichi-go-san",
+      "explanation": "Le kura est la réserve aux murs épais qui protégeait du feu les biens précieux de la famille. En novembre, on y prépare Tori no ichi et Shichi-go-san, la fête des enfants de 3, 5 et 7 ans."
     },
     {
       "id": "room-12",
       "month": 12,
       "name": "Doma, la salle en terre battue",
-      "feast": "Ōmisoka, le réveillon"
+      "feast": "Ōmisoka, le réveillon",
+      "explanation": "Le doma est la salle au sol de terre battue, entre la rue et la maison, où l’on travaillait sans se déchausser. Le 31 décembre, Ōmisoka, on y prépare l’arrivée de la nouvelle année."
     }
   ],
   "items": [
@@ -81,7 +93,17 @@
       "source": "base",
       "name": "porte coulissante",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "引き戸",
+        "romaji": "hikido"
+      },
+      "explanation": "Au Japon, beaucoup de portes glissent au lieu de pivoter : elles ne prennent aucune place en s’ouvrant. Celle du genkan donne directement sur la rue.",
+      "visuals": {
+        "base": "items/porte-coulissante/base",
+        "crack": "items/porte-coulissante/crack",
+        "gold": "items/porte-coulissante/gold"
+      }
     },
     {
       "id": "meuble-a-chaussures",
@@ -90,7 +112,17 @@
       "source": "base",
       "name": "meuble à chaussures",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "下駄箱",
+        "romaji": "getabako"
+      },
+      "explanation": "On se déchausse dans le genkan avant de monter dans la maison. Ce meuble garde le nom des geta, les sandales de bois d’autrefois.",
+      "visuals": {
+        "base": "items/meuble-a-chaussures/base",
+        "crack": "items/meuble-a-chaussures/crack",
+        "gold": "items/meuble-a-chaussures/gold"
+      }
     },
     {
       "id": "porte-parapluies",
@@ -99,7 +131,17 @@
       "source": "base",
       "name": "porte-parapluies",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "傘立て",
+        "romaji": "kasatate"
+      },
+      "explanation": "Au Japon, on laisse son parapluie mouillé à l’entrée, chez soi comme devant les magasins. Il ne franchit jamais le seuil de la maison.",
+      "visuals": {
+        "base": "items/porte-parapluies/base",
+        "crack": "items/porte-parapluies/crack",
+        "gold": "items/porte-parapluies/gold"
+      }
     },
     {
       "id": "kadomatsu",
@@ -108,7 +150,17 @@
       "source": "weekly",
       "name": "kadomatsu",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "門松",
+        "romaji": "kadomatsu"
+      },
+      "explanation": "Ces pins et ces bambous, posés de chaque côté de l’entrée, accueillent la divinité de la nouvelle année. On les retire en général après le 7 janvier.",
+      "visuals": {
+        "base": "items/kadomatsu/base",
+        "crack": "items/kadomatsu/crack",
+        "gold": "items/kadomatsu/gold"
+      }
     },
     {
       "id": "shimekazari",
@@ -117,7 +169,17 @@
       "source": "weekly",
       "name": "shimekazari",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "注連飾り",
+        "romaji": "shimekazari"
+      },
+      "explanation": "Cette tresse de paille de riz, accrochée à la porte au Nouvel An, marque un lieu purifié. Elle protège la maison et accueille, elle aussi, la divinité de l’année.",
+      "visuals": {
+        "base": "items/shimekazari/base",
+        "crack": "items/shimekazari/crack",
+        "gold": "items/shimekazari/gold"
+      }
     },
     {
       "id": "kagami-mochi",
@@ -126,7 +188,17 @@
       "source": "weekly",
       "name": "kagami-mochi",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "鏡餅",
+        "romaji": "kagami-mochi"
+      },
+      "explanation": "Deux galettes de riz empilées, coiffées d’une petite orange amère, sont offertes à la divinité de la nouvelle année. Vers le 11 janvier, on les brise et on les mange : c’est le kagami-biraki.",
+      "visuals": {
+        "base": "items/kagami-mochi/base",
+        "crack": "items/kagami-mochi/crack",
+        "gold": "items/kagami-mochi/gold"
+      }
     },
     {
       "id": "daruma",
@@ -135,7 +207,17 @@
       "source": "weekly",
       "name": "daruma",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "達磨",
+        "romaji": "daruma"
+      },
+      "explanation": "On lui peint un œil en faisant un vœu, et le second quand il est exaucé. Lesté, il se relève toujours : sept fois à terre, huit fois debout.",
+      "visuals": {
+        "base": "items/daruma/base",
+        "crack": "items/daruma/crack",
+        "gold": "items/daruma/gold"
+      }
     },
     {
       "id": "raquette-hagoita",
@@ -144,7 +226,17 @@
       "source": "weekly",
       "name": "raquette hagoita",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "羽子板",
+        "romaji": "hagoita"
+      },
+      "explanation": "Cette raquette de bois sert au hanetsuki, un jeu de volant du Nouvel An. Les plus belles, peintes ou garnies de tissu, se gardent comme porte-bonheur.",
+      "visuals": {
+        "base": "items/raquette-hagoita/base",
+        "crack": "items/raquette-hagoita/crack",
+        "gold": "items/raquette-hagoita/gold"
+      }
     },
     {
       "id": "kotatsu",
@@ -153,7 +245,17 @@
       "source": "base",
       "name": "kotatsu",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "炬燵",
+        "romaji": "kotatsu"
+      },
+      "explanation": "Cette table basse chauffante, couverte d’une couette, réchauffe les jambes de toute la famille. En hiver, on a bien du mal à en sortir.",
+      "visuals": {
+        "base": "items/kotatsu/base",
+        "crack": "items/kotatsu/crack",
+        "gold": "items/kotatsu/gold"
+      }
     },
     {
       "id": "coussins-zabuton",
@@ -162,7 +264,17 @@
       "source": "base",
       "name": "coussins zabuton",
       "article": "les",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "座布団",
+        "romaji": "zabuton"
+      },
+      "explanation": "On s’assoit sur ces coussins plats, posés à même le tatami. On en offre un à l’invité dès son arrivée.",
+      "visuals": {
+        "base": "items/coussins-zabuton/base",
+        "crack": "items/coussins-zabuton/crack",
+        "gold": "items/coussins-zabuton/gold"
+      }
     },
     {
       "id": "commode-tansu",
@@ -171,7 +283,17 @@
       "source": "base",
       "name": "commode tansu",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "箪笥",
+        "romaji": "tansu"
+      },
+      "explanation": "Ce meuble de bois à tiroirs garde le linge et les kimonos. Autrefois, la mariée apportait le sien dans sa nouvelle maison.",
+      "visuals": {
+        "base": "items/commode-tansu/base",
+        "crack": "items/commode-tansu/crack",
+        "gold": "items/commode-tansu/gold"
+      }
     },
     {
       "id": "haricots-grilles-dans-leur-boite",
@@ -180,7 +302,17 @@
       "source": "weekly",
       "name": "haricots grillés dans leur boîte",
       "article": "les",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "福豆",
+        "romaji": "fukumame"
+      },
+      "explanation": "À Setsubun, on lance ces haricots de soja grillés en criant « Oni wa soto, fuku wa uchi » : dehors les démons, dedans le bonheur. Puis on en mange autant que son âge.",
+      "visuals": {
+        "base": "items/haricots-grilles-dans-leur-boite/base",
+        "crack": "items/haricots-grilles-dans-leur-boite/crack",
+        "gold": "items/haricots-grilles-dans-leur-boite/gold"
+      }
     },
     {
       "id": "masque-d-oni",
@@ -189,7 +321,17 @@
       "source": "weekly",
       "name": "masque d’oni",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "鬼の面",
+        "romaji": "oni no men"
+      },
+      "explanation": "À Setsubun, un membre de la famille porte ce masque de démon et se fait chasser à coups de haricots. C’est souvent le père qui s’y colle.",
+      "visuals": {
+        "base": "items/masque-d-oni/base",
+        "crack": "items/masque-d-oni/crack",
+        "gold": "items/masque-d-oni/gold"
+      }
     },
     {
       "id": "masque-d-otafuku",
@@ -198,7 +340,17 @@
       "source": "weekly",
       "name": "masque d’Otafuku",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "お多福の面",
+        "romaji": "otafuku no men"
+      },
+      "explanation": "Otafuku, aux joues rondes et au sourire paisible, incarne la bonne fortune. À Setsubun, certains sanctuaires dressent un grand masque à son visage pour accueillir la chance.",
+      "visuals": {
+        "base": "items/masque-d-otafuku/base",
+        "crack": "items/masque-d-otafuku/crack",
+        "gold": "items/masque-d-otafuku/gold"
+      }
     },
     {
       "id": "branche-de-prunier-en-fleur",
@@ -207,7 +359,17 @@
       "source": "weekly",
       "name": "branche de prunier en fleur",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "梅の枝",
+        "romaji": "ume no eda"
+      },
+      "explanation": "Le prunier fleurit dès la fin de l’hiver, bien avant les cerisiers. Ses fleurs annoncent le printemps qui arrive.",
+      "visuals": {
+        "base": "items/branche-de-prunier-en-fleur/base",
+        "crack": "items/branche-de-prunier-en-fleur/crack",
+        "gold": "items/branche-de-prunier-en-fleur/gold"
+      }
     },
     {
       "id": "tatamis",
@@ -216,7 +378,17 @@
       "source": "base",
       "name": "tatamis",
       "article": "les",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "畳",
+        "romaji": "tatami"
+      },
+      "explanation": "Ces nattes de paille de riz couvrent le sol ; on n’y marche jamais en chaussures. Au Japon, on mesure encore la surface d’une pièce en nombre de tatamis.",
+      "visuals": {
+        "base": "items/tatamis/base",
+        "crack": "items/tatamis/crack",
+        "gold": "items/tatamis/gold"
+      }
     },
     {
       "id": "shoji",
@@ -225,7 +397,17 @@
       "source": "base",
       "name": "shōji",
       "article": "les",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "障子",
+        "romaji": "shōji"
+      },
+      "explanation": "Ces panneaux coulissants de bois et de papier washi laissent passer une lumière douce. Ils ferment les pièces sans les plonger dans le noir.",
+      "visuals": {
+        "base": "items/shoji/base",
+        "crack": "items/shoji/crack",
+        "gold": "items/shoji/gold"
+      }
     },
     {
       "id": "table-basse",
@@ -234,7 +416,17 @@
       "source": "base",
       "name": "table basse",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "座卓",
+        "romaji": "zataku"
+      },
+      "explanation": "On s’y installe à genoux ou en tailleur, sur des coussins. Elle sert aux repas comme au thé avec les invités.",
+      "visuals": {
+        "base": "items/table-basse/base",
+        "crack": "items/table-basse/crack",
+        "gold": "items/table-basse/gold"
+      }
     },
     {
       "id": "poupees-de-l-empereur-et-de-l-imperatrice",
@@ -243,7 +435,17 @@
       "source": "weekly",
       "name": "poupées de l’empereur et de l’impératrice",
       "article": "les",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "内裏雛",
+        "romaji": "dairi-bina"
+      },
+      "explanation": "Ces deux poupées trônent en haut de l’étagère de Hinamatsuri. On les range vite après le 3 mars : la tradition dit qu’un retard repousserait le mariage des filles.",
+      "visuals": {
+        "base": "items/poupees-de-l-empereur-et-de-l-imperatrice/base",
+        "crack": "items/poupees-de-l-empereur-et-de-l-imperatrice/crack",
+        "gold": "items/poupees-de-l-empereur-et-de-l-imperatrice/gold"
+      }
     },
     {
       "id": "lampes-bonbori",
@@ -252,7 +454,17 @@
       "source": "weekly",
       "name": "lampes bonbori",
       "article": "les",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "雪洞",
+        "romaji": "bonbori"
+      },
+      "explanation": "Ces petites lampes de papier sur pied éclairent les poupées de Hinamatsuri. Une chanson d’enfants de la fête commence par leur lumière.",
+      "visuals": {
+        "base": "items/lampes-bonbori/base",
+        "crack": "items/lampes-bonbori/crack",
+        "gold": "items/lampes-bonbori/gold"
+      }
     },
     {
       "id": "gateaux-hishi-mochi",
@@ -261,7 +473,17 @@
       "source": "weekly",
       "name": "gâteaux hishi-mochi",
       "article": "les",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "菱餅",
+        "romaji": "hishi-mochi"
+      },
+      "explanation": "Ces gâteaux de riz en losange superposent le rose, le blanc et le vert. On les offre aux poupées le jour de Hinamatsuri.",
+      "visuals": {
+        "base": "items/gateaux-hishi-mochi/base",
+        "crack": "items/gateaux-hishi-mochi/crack",
+        "gold": "items/gateaux-hishi-mochi/gold"
+      }
     },
     {
       "id": "branche-de-pecher-en-fleur",
@@ -270,7 +492,17 @@
       "source": "weekly",
       "name": "branche de pêcher en fleur",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "桃の花",
+        "romaji": "momo no hana"
+      },
+      "explanation": "Hinamatsuri s’appelle aussi la fête des pêchers, qui fleurissent à cette époque. On prêtait à leurs fleurs le pouvoir d’éloigner le mal.",
+      "visuals": {
+        "base": "items/branche-de-pecher-en-fleur/base",
+        "crack": "items/branche-de-pecher-en-fleur/crack",
+        "gold": "items/branche-de-pecher-en-fleur/gold"
+      }
     },
     {
       "id": "paravent-dore",
@@ -279,7 +511,17 @@
       "source": "weekly",
       "name": "paravent doré",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "金屏風",
+        "romaji": "kinbyōbu"
+      },
+      "explanation": "Ce paravent à feuilles d’or se dresse derrière les poupées de Hinamatsuri. Il sert aussi de fond aux mariages et aux cérémonies.",
+      "visuals": {
+        "base": "items/paravent-dore/base",
+        "crack": "items/paravent-dore/crack",
+        "gold": "items/paravent-dore/gold"
+      }
     },
     {
       "id": "gravier-ratisse",
@@ -288,7 +530,17 @@
       "source": "base",
       "name": "gravier ratissé",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "砂紋",
+        "romaji": "samon"
+      },
+      "explanation": "Dans les jardins zen, on ratisse le gravier en lignes et en cercles qui évoquent l’eau. Ces motifs sont refaits souvent, à la main.",
+      "visuals": {
+        "base": "items/gravier-ratisse/base",
+        "crack": "items/gravier-ratisse/crack",
+        "gold": "items/gravier-ratisse/gold"
+      }
     },
     {
       "id": "palissade-de-bambou",
@@ -297,7 +549,17 @@
       "source": "base",
       "name": "palissade de bambou",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "竹垣",
+        "romaji": "takegaki"
+      },
+      "explanation": "Cette palissade de bambou ferme le jardin sans le couper du paysage. Il en existe des dizaines de motifs, chacun avec son nom.",
+      "visuals": {
+        "base": "items/palissade-de-bambou/base",
+        "crack": "items/palissade-de-bambou/crack",
+        "gold": "items/palissade-de-bambou/gold"
+      }
     },
     {
       "id": "pas-japonais",
@@ -306,7 +568,17 @@
       "source": "base",
       "name": "pas japonais",
       "article": "les",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "飛び石",
+        "romaji": "tobiishi"
+      },
+      "explanation": "Ces pierres plates posées dans l’herbe guident les pas et protègent la mousse. Leur tracé ralentit la marche, pour qu’on regarde le jardin.",
+      "visuals": {
+        "base": "items/pas-japonais/base",
+        "crack": "items/pas-japonais/crack",
+        "gold": "items/pas-japonais/gold"
+      }
     },
     {
       "id": "cerisier",
@@ -315,7 +587,17 @@
       "source": "weekly",
       "name": "cerisier",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "桜",
+        "romaji": "sakura"
+      },
+      "explanation": "Le cerisier ne fleurit qu’une semaine ou deux, et c’est ce qui le rend précieux. Chaque printemps, la météo suit l’avancée de sa floraison du sud au nord du pays.",
+      "visuals": {
+        "base": "items/cerisier/base",
+        "crack": "items/cerisier/crack",
+        "gold": "items/cerisier/gold"
+      }
     },
     {
       "id": "lanterne-de-pierre",
@@ -324,7 +606,17 @@
       "source": "weekly",
       "name": "lanterne de pierre",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "石灯籠",
+        "romaji": "ishidōrō"
+      },
+      "explanation": "Venue des temples, la lanterne de pierre éclairait autrefois le chemin des jardins de thé. Elle est aujourd’hui surtout un ornement.",
+      "visuals": {
+        "base": "items/lanterne-de-pierre/base",
+        "crack": "items/lanterne-de-pierre/crack",
+        "gold": "items/lanterne-de-pierre/gold"
+      }
     },
     {
       "id": "brochettes-de-dango-tricolores",
@@ -333,7 +625,17 @@
       "source": "weekly",
       "name": "brochettes de dango tricolores",
       "article": "les",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "花見団子",
+        "romaji": "hanami dango"
+      },
+      "explanation": "Rose, blanc et vert : ces boulettes de riz sucrées se mangent sous les cerisiers, à Hanami. Un dicton préfère d’ailleurs « les dango aux fleurs ».",
+      "visuals": {
+        "base": "items/brochettes-de-dango-tricolores/base",
+        "crack": "items/brochettes-de-dango-tricolores/crack",
+        "gold": "items/brochettes-de-dango-tricolores/gold"
+      }
     },
     {
       "id": "coupelles-de-sake",
@@ -342,7 +644,17 @@
       "source": "weekly",
       "name": "coupelles de saké",
       "article": "les",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "盃",
+        "romaji": "sakazuki"
+      },
+      "explanation": "Sous les cerisiers, on partage le saké dans ces petites coupelles. La politesse veut qu’on serve les autres, jamais soi-même.",
+      "visuals": {
+        "base": "items/coupelles-de-sake/base",
+        "crack": "items/coupelles-de-sake/crack",
+        "gold": "items/coupelles-de-sake/gold"
+      }
     },
     {
       "id": "lanternes-de-papier",
@@ -351,7 +663,17 @@
       "source": "weekly",
       "name": "lanternes de papier",
       "article": "les",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "提灯",
+        "romaji": "chōchin"
+      },
+      "explanation": "Ces lanternes de papier tendu sur du bambou s’allument le soir sous les cerisiers. On appelle yozakura les cerisiers admirés de nuit.",
+      "visuals": {
+        "base": "items/lanternes-de-papier/base",
+        "crack": "items/lanternes-de-papier/crack",
+        "gold": "items/lanternes-de-papier/gold"
+      }
     },
     {
       "id": "baignoire-en-hinoki",
@@ -360,7 +682,17 @@
       "source": "base",
       "name": "baignoire en hinoki",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "檜風呂",
+        "romaji": "hinoki-buro"
+      },
+      "explanation": "Ce bain profond est fait de hinoki, un cyprès japonais au parfum frais. Son bois résiste à l’eau et embaume à chaque bain.",
+      "visuals": {
+        "base": "items/baignoire-en-hinoki/base",
+        "crack": "items/baignoire-en-hinoki/crack",
+        "gold": "items/baignoire-en-hinoki/gold"
+      }
     },
     {
       "id": "seau-et-tabouret-en-bois",
@@ -369,7 +701,17 @@
       "source": "base",
       "name": "seau et tabouret en bois",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "風呂桶と風呂椅子",
+        "romaji": "furo-oke to furo-isu"
+      },
+      "explanation": "Assis sur le petit tabouret, on se lave et on se rince au seau avant d’entrer dans le bain. L’eau du bain reste ainsi propre pour toute la famille.",
+      "visuals": {
+        "base": "items/seau-et-tabouret-en-bois/base",
+        "crack": "items/seau-et-tabouret-en-bois/crack",
+        "gold": "items/seau-et-tabouret-en-bois/gold"
+      }
     },
     {
       "id": "panier-a-vetements",
@@ -378,7 +720,17 @@
       "source": "base",
       "name": "panier à vêtements",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "脱衣籠",
+        "romaji": "datsui-kago"
+      },
+      "explanation": "On y dépose ses vêtements avant le bain. On en trouve de pareils dans les bains publics, les sentō.",
+      "visuals": {
+        "base": "items/panier-a-vetements/base",
+        "crack": "items/panier-a-vetements/crack",
+        "gold": "items/panier-a-vetements/gold"
+      }
     },
     {
       "id": "feuilles-d-iris-du-bain-shobu-yu",
@@ -387,7 +739,17 @@
       "source": "weekly",
       "name": "feuilles d’iris du bain shōbu-yu",
       "article": "les",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "菖蒲湯",
+        "romaji": "shōbu-yu"
+      },
+      "explanation": "Le 5 mai, on fait flotter des feuilles d’iris dans le bain pour la santé des enfants. Le mot shōbu se prononce aussi comme « esprit guerrier » : on leur souhaite du courage.",
+      "visuals": {
+        "base": "items/feuilles-d-iris-du-bain-shobu-yu/base",
+        "crack": "items/feuilles-d-iris-du-bain-shobu-yu/crack",
+        "gold": "items/feuilles-d-iris-du-bain-shobu-yu/gold"
+      }
     },
     {
       "id": "casque-de-samourai-en-papier-plie",
@@ -396,7 +758,17 @@
       "source": "weekly",
       "name": "casque de samouraï en papier plié",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "折り紙の兜",
+        "romaji": "origami no kabuto"
+      },
+      "explanation": "À la fête des enfants, on plie un casque de samouraï, le kabuto, dans une feuille de papier. Il souhaite à l’enfant de grandir fort et protégé.",
+      "visuals": {
+        "base": "items/casque-de-samourai-en-papier-plie/base",
+        "crack": "items/casque-de-samourai-en-papier-plie/crack",
+        "gold": "items/casque-de-samourai-en-papier-plie/gold"
+      }
     },
     {
       "id": "petites-carpes-koinobori",
@@ -405,7 +777,17 @@
       "source": "weekly",
       "name": "petites carpes koinobori",
       "article": "les",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "鯉のぼり",
+        "romaji": "koinobori"
+      },
+      "explanation": "Ces manches à air en forme de carpe flottent au vent pour la fête des enfants. Selon la légende, la carpe qui remonte la cascade devient dragon : elle symbolise le courage.",
+      "visuals": {
+        "base": "items/petites-carpes-koinobori/base",
+        "crack": "items/petites-carpes-koinobori/crack",
+        "gold": "items/petites-carpes-koinobori/gold"
+      }
     },
     {
       "id": "serviette-tenugui",
@@ -414,7 +796,17 @@
       "source": "weekly",
       "name": "serviette tenugui",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "手拭い",
+        "romaji": "tenugui"
+      },
+      "explanation": "Cette fine serviette de coton imprimé sèche en un rien de temps. Au bain, on ne la trempe pas dans l’eau : on la pose sur sa tête.",
+      "visuals": {
+        "base": "items/serviette-tenugui/base",
+        "crack": "items/serviette-tenugui/crack",
+        "gold": "items/serviette-tenugui/gold"
+      }
     },
     {
       "id": "pistolet-a-eau-en-bambou",
@@ -423,7 +815,17 @@
       "source": "weekly",
       "name": "pistolet à eau en bambou",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "水鉄砲",
+        "romaji": "mizudeppō"
+      },
+      "explanation": "Un tube de bambou et un piston entouré de tissu : il n’en faut pas plus pour arroser toute la famille. C’est un jouet d’été depuis des générations.",
+      "visuals": {
+        "base": "items/pistolet-a-eau-en-bambou/base",
+        "crack": "items/pistolet-a-eau-en-bambou/crack",
+        "gold": "items/pistolet-a-eau-en-bambou/gold"
+      }
     },
     {
       "id": "fourneau-kamado",
@@ -432,7 +834,17 @@
       "source": "base",
       "name": "fourneau kamado",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "竈",
+        "romaji": "kamado"
+      },
+      "explanation": "Ce fourneau de terre et de pierre cuisait le riz dans une marmite posée sur le feu. Son nom a longtemps désigné le foyer, c’est-à-dire la famille elle-même.",
+      "visuals": {
+        "base": "items/fourneau-kamado/base",
+        "crack": "items/fourneau-kamado/crack",
+        "gold": "items/fourneau-kamado/gold"
+      }
     },
     {
       "id": "plan-de-travail",
@@ -441,7 +853,17 @@
       "source": "base",
       "name": "plan de travail",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "調理台",
+        "romaji": "chōridai"
+      },
+      "explanation": "C’est ici qu’on lave le riz et qu’on taille les légumes. La cuisine japonaise soigne autant la coupe que la cuisson.",
+      "visuals": {
+        "base": "items/plan-de-travail/base",
+        "crack": "items/plan-de-travail/crack",
+        "gold": "items/plan-de-travail/gold"
+      }
     },
     {
       "id": "etagere-a-bols",
@@ -450,7 +872,17 @@
       "source": "base",
       "name": "étagère à bols",
       "article": "l'",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "食器棚",
+        "romaji": "shokkidana"
+      },
+      "explanation": "Au Japon, chacun a souvent son propre bol à riz et ses propres baguettes. Ils attendent sur l’étagère le prochain repas.",
+      "visuals": {
+        "base": "items/etagere-a-bols/base",
+        "crack": "items/etagere-a-bols/crack",
+        "gold": "items/etagere-a-bols/gold"
+      }
     },
     {
       "id": "bocal-d-umeshu",
@@ -459,7 +891,17 @@
       "source": "weekly",
       "name": "bocal d’umeshu",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "梅酒",
+        "romaji": "umeshu"
+      },
+      "explanation": "En juin, on met les prunes ume à macérer dans l’alcool avec du sucre candi. Il faut patienter plusieurs mois avant de goûter l’umeshu.",
+      "visuals": {
+        "base": "items/bocal-d-umeshu/base",
+        "crack": "items/bocal-d-umeshu/crack",
+        "gold": "items/bocal-d-umeshu/gold"
+      }
     },
     {
       "id": "teru-teru-bozu",
@@ -468,7 +910,17 @@
       "source": "weekly",
       "name": "teru teru bōzu",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "てるてる坊主",
+        "romaji": "teru teru bōzu"
+      },
+      "explanation": "Cette petite poupée de tissu blanc, pendue à la fenêtre, demande au ciel le retour du beau temps. Les enfants en fabriquent pendant la saison des pluies.",
+      "visuals": {
+        "base": "items/teru-teru-bozu/base",
+        "crack": "items/teru-teru-bozu/crack",
+        "gold": "items/teru-teru-bozu/gold"
+      }
     },
     {
       "id": "hortensias",
@@ -477,7 +929,17 @@
       "source": "weekly",
       "name": "hortensias",
       "article": "les",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "紫陽花",
+        "romaji": "ajisai"
+      },
+      "explanation": "Les hortensias fleurissent pendant la saison des pluies et changent de couleur selon le sol. Des temples entiers sont célèbres pour leurs allées d’hortensias.",
+      "visuals": {
+        "base": "items/hortensias/base",
+        "crack": "items/hortensias/crack",
+        "gold": "items/hortensias/gold"
+      }
     },
     {
       "id": "grenouille-porte-bonheur",
@@ -486,7 +948,17 @@
       "source": "weekly",
       "name": "grenouille porte-bonheur",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "福蛙",
+        "romaji": "fuku-gaeru"
+      },
+      "explanation": "En japonais, grenouille se dit kaeru, comme le verbe « revenir ». On l’offre pour que l’argent, ou ceux qui voyagent, reviennent à la maison.",
+      "visuals": {
+        "base": "items/grenouille-porte-bonheur/base",
+        "crack": "items/grenouille-porte-bonheur/crack",
+        "gold": "items/grenouille-porte-bonheur/gold"
+      }
     },
     {
       "id": "ombrelle-en-papier-huile",
@@ -495,7 +967,17 @@
       "source": "weekly",
       "name": "ombrelle en papier huilé",
       "article": "l'",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "和傘",
+        "romaji": "wagasa"
+      },
+      "explanation": "Cette ombrelle de bambou et de papier huilé protège de la pluie comme du soleil. Il faut des dizaines d’étapes pour en fabriquer une à la main.",
+      "visuals": {
+        "base": "items/ombrelle-en-papier-huile/base",
+        "crack": "items/ombrelle-en-papier-huile/crack",
+        "gold": "items/ombrelle-en-papier-huile/gold"
+      }
     },
     {
       "id": "bureau-bas",
@@ -504,7 +986,17 @@
       "source": "base",
       "name": "bureau bas",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "文机",
+        "romaji": "fuzukue"
+      },
+      "explanation": "On écrivait autrefois à genoux, devant ce petit bureau posé sur le tatami. Il servait à la lecture, aux lettres et à la calligraphie.",
+      "visuals": {
+        "base": "items/bureau-bas/base",
+        "crack": "items/bureau-bas/crack",
+        "gold": "items/bureau-bas/gold"
+      }
     },
     {
       "id": "bibliotheque",
@@ -513,7 +1005,17 @@
       "source": "base",
       "name": "bibliothèque",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "本棚",
+        "romaji": "hondana"
+      },
+      "explanation": "Au Japon, beaucoup de livres se lisent en colonnes, de haut en bas et de droite à gauche. On les ouvre donc par ce qui serait, pour nous, la fin.",
+      "visuals": {
+        "base": "items/bibliotheque/base",
+        "crack": "items/bibliotheque/crack",
+        "gold": "items/bibliotheque/gold"
+      }
     },
     {
       "id": "lampe-andon",
@@ -522,7 +1024,17 @@
       "source": "base",
       "name": "lampe andon",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "行灯",
+        "romaji": "andon"
+      },
+      "explanation": "Cette lanterne de papier et de bois éclairait les maisons avant l’électricité. Une petite flamme d’huile brûlait à l’intérieur.",
+      "visuals": {
+        "base": "items/lampe-andon/base",
+        "crack": "items/lampe-andon/crack",
+        "gold": "items/lampe-andon/gold"
+      }
     },
     {
       "id": "bambou-aux-v-ux-tanzaku",
@@ -531,7 +1043,17 @@
       "source": "weekly",
       "name": "bambou aux vœux tanzaku",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "笹飾り",
+        "romaji": "sasa-kazari"
+      },
+      "explanation": "À Tanabata, on écrit ses vœux sur des bandes de papier, les tanzaku, qu’on suspend à une branche de bambou. La fête célèbre la seule nuit de l’année où deux étoiles amoureuses se retrouvent.",
+      "visuals": {
+        "base": "items/bambou-aux-v-ux-tanzaku/base",
+        "crack": "items/bambou-aux-v-ux-tanzaku/crack",
+        "gold": "items/bambou-aux-v-ux-tanzaku/gold"
+      }
     },
     {
       "id": "carillon-a-vent-furin",
@@ -540,7 +1062,17 @@
       "source": "weekly",
       "name": "carillon à vent fūrin",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "風鈴",
+        "romaji": "fūrin"
+      },
+      "explanation": "Le tintement de cette petite cloche de verre donne une impression de fraîcheur en plein été. Une bande de papier attachée au battant attrape le moindre souffle.",
+      "visuals": {
+        "base": "items/carillon-a-vent-furin/base",
+        "crack": "items/carillon-a-vent-furin/crack",
+        "gold": "items/carillon-a-vent-furin/gold"
+      }
     },
     {
       "id": "necessaire-de-calligraphie",
@@ -549,7 +1081,17 @@
       "source": "weekly",
       "name": "nécessaire de calligraphie",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "書道具",
+        "romaji": "shodōgu"
+      },
+      "explanation": "Pinceau, bâton d’encre, pierre à encre et papier : ce sont les « quatre trésors du lettré ». On frotte l’encre sur la pierre avec un peu d’eau avant d’écrire.",
+      "visuals": {
+        "base": "items/necessaire-de-calligraphie/base",
+        "crack": "items/necessaire-de-calligraphie/crack",
+        "gold": "items/necessaire-de-calligraphie/gold"
+      }
     },
     {
       "id": "volubilis-en-pot",
@@ -558,7 +1100,17 @@
       "source": "weekly",
       "name": "volubilis en pot",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "朝顔",
+        "romaji": "asagao"
+      },
+      "explanation": "Son nom japonais veut dire « visage du matin » : ses fleurs s’ouvrent à l’aube et se fanent dans la journée. Les écoliers japonais en cultivent souvent un pot pendant l’été.",
+      "visuals": {
+        "base": "items/volubilis-en-pot/base",
+        "crack": "items/volubilis-en-pot/crack",
+        "gold": "items/volubilis-en-pot/gold"
+      }
     },
     {
       "id": "eventail-uchiwa",
@@ -567,7 +1119,17 @@
       "source": "weekly",
       "name": "éventail uchiwa",
       "article": "l'",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "団扇",
+        "romaji": "uchiwa"
+      },
+      "explanation": "Cet éventail rond et plat ne se replie pas, contrairement au sensu. On en distribue dans la rue et aux fêtes d’été.",
+      "visuals": {
+        "base": "items/eventail-uchiwa/base",
+        "crack": "items/eventail-uchiwa/crack",
+        "gold": "items/eventail-uchiwa/gold"
+      }
     },
     {
       "id": "plancher-de-la-veranda",
@@ -576,7 +1138,17 @@
       "source": "base",
       "name": "plancher de la véranda",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "縁板",
+        "romaji": "en-ita"
+      },
+      "explanation": "Ce plancher de bois court le long de la maison, à l’abri du toit, en pente légère pour que la pluie s’écoule. Les soirs d’été, on s’y assoit pour prendre le frais.",
+      "visuals": {
+        "base": "items/plancher-de-la-veranda/base",
+        "crack": "items/plancher-de-la-veranda/crack",
+        "gold": "items/plancher-de-la-veranda/gold"
+      }
     },
     {
       "id": "store-en-bambou",
@@ -585,7 +1157,17 @@
       "source": "base",
       "name": "store en bambou",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "簾",
+        "romaji": "sudare"
+      },
+      "explanation": "Ce store de lamelles de bambou laisse passer l’air mais arrête le soleil. On le déroule au début de l’été et on le range à l’automne.",
+      "visuals": {
+        "base": "items/store-en-bambou/base",
+        "crack": "items/store-en-bambou/crack",
+        "gold": "items/store-en-bambou/gold"
+      }
     },
     {
       "id": "pierre-de-seuil",
@@ -594,7 +1176,17 @@
       "source": "base",
       "name": "pierre de seuil",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "沓脱石",
+        "romaji": "kutsunugi-ishi"
+      },
+      "explanation": "Cette large pierre posée au pied de la véranda sert de marche. On y laisse ses sandales avant de monter sur le plancher.",
+      "visuals": {
+        "base": "items/pierre-de-seuil/base",
+        "crack": "items/pierre-de-seuil/crack",
+        "gold": "items/pierre-de-seuil/gold"
+      }
     },
     {
       "id": "porte-encens-kayari-buta",
@@ -603,7 +1195,17 @@
       "source": "weekly",
       "name": "porte-encens kayari-buta",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "蚊遣り豚",
+        "romaji": "kayari-buta"
+      },
+      "explanation": "Ce cochon en terre cuite abrite un serpentin qui éloigne les moustiques. Sa fumée est l’odeur des soirs d’été au Japon.",
+      "visuals": {
+        "base": "items/porte-encens-kayari-buta/base",
+        "crack": "items/porte-encens-kayari-buta/crack",
+        "gold": "items/porte-encens-kayari-buta/gold"
+      }
     },
     {
       "id": "pasteque",
@@ -612,7 +1214,17 @@
       "source": "weekly",
       "name": "pastèque",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "西瓜",
+        "romaji": "suika"
+      },
+      "explanation": "En été, on rafraîchit la pastèque dans l’eau froide avant de la partager. À la plage, on joue à la fendre les yeux bandés : c’est le suikawari.",
+      "visuals": {
+        "base": "items/pasteque/base",
+        "crack": "items/pasteque/crack",
+        "gold": "items/pasteque/gold"
+      }
     },
     {
       "id": "cheval-et-vache-d-obon",
@@ -621,7 +1233,17 @@
       "source": "weekly",
       "name": "cheval et vache d’Obon",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "精霊馬",
+        "romaji": "shōryō-uma"
+      },
+      "explanation": "Pendant Obon, on accueille les esprits des ancêtres. Le cheval en concombre les ramène vite ; la vache en aubergine les raccompagne lentement.",
+      "visuals": {
+        "base": "items/cheval-et-vache-d-obon/base",
+        "crack": "items/cheval-et-vache-d-obon/crack",
+        "gold": "items/cheval-et-vache-d-obon/gold"
+      }
     },
     {
       "id": "lanterne-d-obon",
@@ -630,7 +1252,17 @@
       "source": "weekly",
       "name": "lanterne d’Obon",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "盆提灯",
+        "romaji": "bon-jōchin"
+      },
+      "explanation": "Ces lanternes guident les esprits des ancêtres jusqu’à la maison pendant Obon. On les allume à leur arrivée et on les éteint à leur départ.",
+      "visuals": {
+        "base": "items/lanterne-d-obon/base",
+        "crack": "items/lanterne-d-obon/crack",
+        "gold": "items/lanterne-d-obon/gold"
+      }
     },
     {
       "id": "cierges-magiques-senko-hanabi",
@@ -639,7 +1271,17 @@
       "source": "weekly",
       "name": "cierges magiques senkō-hanabi",
       "article": "les",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "線香花火",
+        "romaji": "senkō-hanabi"
+      },
+      "explanation": "Ce petit feu d’artifice de papier crépite en étincelles fines, jusqu’à ce que sa boule de feu tombe. On le garde pour la fin de la soirée, en tâchant de le faire durer.",
+      "visuals": {
+        "base": "items/cierges-magiques-senko-hanabi/base",
+        "crack": "items/cierges-magiques-senko-hanabi/crack",
+        "gold": "items/cierges-magiques-senko-hanabi/gold"
+      }
     },
     {
       "id": "alcove-tokonoma",
@@ -648,7 +1290,17 @@
       "source": "base",
       "name": "alcôve tokonoma",
       "article": "l'",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "床の間",
+        "romaji": "tokonoma"
+      },
+      "explanation": "Cette alcôve surélevée accueille un rouleau et un bouquet, choisis selon la saison. L’invité d’honneur s’assoit le dos tourné vers elle.",
+      "visuals": {
+        "base": "items/alcove-tokonoma/base",
+        "crack": "items/alcove-tokonoma/crack",
+        "gold": "items/alcove-tokonoma/gold"
+      }
     },
     {
       "id": "brasero-et-bouilloire",
@@ -657,7 +1309,17 @@
       "source": "base",
       "name": "brasero et bouilloire",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "風炉と釜",
+        "romaji": "furo to kama"
+      },
+      "explanation": "L’eau du thé chauffe dans cette bouilloire de fonte, posée sur un brasero au charbon de bois. Son léger frémissement fait partie de la cérémonie.",
+      "visuals": {
+        "base": "items/brasero-et-bouilloire/base",
+        "crack": "items/brasero-et-bouilloire/crack",
+        "gold": "items/brasero-et-bouilloire/gold"
+      }
     },
     {
       "id": "petite-porte-nijiriguchi",
@@ -666,7 +1328,17 @@
       "source": "base",
       "name": "petite porte nijiriguchi",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "躙口",
+        "romaji": "nijiriguchi"
+      },
+      "explanation": "Cette porte est si basse qu’il faut entrer à genoux, en s’inclinant. Dans le pavillon de thé, tous les invités deviennent ainsi égaux.",
+      "visuals": {
+        "base": "items/petite-porte-nijiriguchi/base",
+        "crack": "items/petite-porte-nijiriguchi/crack",
+        "gold": "items/petite-porte-nijiriguchi/gold"
+      }
     },
     {
       "id": "dango-de-tsukimi",
@@ -675,7 +1347,17 @@
       "source": "weekly",
       "name": "dango de Tsukimi",
       "article": "les",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "月見団子",
+        "romaji": "tsukimi dango"
+      },
+      "explanation": "Ces boulettes de riz blanches, empilées en pyramide, sont offertes à la lune. Leur forme ronde rappelle la pleine lune.",
+      "visuals": {
+        "base": "items/dango-de-tsukimi/base",
+        "crack": "items/dango-de-tsukimi/crack",
+        "gold": "items/dango-de-tsukimi/gold"
+      }
     },
     {
       "id": "eulalie-en-vase",
@@ -684,7 +1366,17 @@
       "source": "weekly",
       "name": "eulalie en vase",
       "article": "l'",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "薄",
+        "romaji": "susuki"
+      },
+      "explanation": "À Tsukimi, on pose des tiges d’eulalie près des offrandes : leurs plumets rappellent les épis de riz. On dit aussi qu’elles éloignent le mal.",
+      "visuals": {
+        "base": "items/eulalie-en-vase/base",
+        "crack": "items/eulalie-en-vase/crack",
+        "gold": "items/eulalie-en-vase/gold"
+      }
     },
     {
       "id": "lapin-de-la-lune",
@@ -693,7 +1385,17 @@
       "source": "weekly",
       "name": "lapin de la lune",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "月の兎",
+        "romaji": "tsuki no usagi"
+      },
+      "explanation": "Au Japon, on ne voit pas un visage dans la Lune, mais un lapin qui pile du riz pour en faire des mochi. On le salue à Tsukimi, la fête de la lune d’automne.",
+      "visuals": {
+        "base": "items/lapin-de-la-lune/base",
+        "crack": "items/lapin-de-la-lune/crack",
+        "gold": "items/lapin-de-la-lune/gold"
+      }
     },
     {
       "id": "bol-a-the",
@@ -702,7 +1404,17 @@
       "source": "weekly",
       "name": "bol à thé",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "茶碗",
+        "romaji": "chawan"
+      },
+      "explanation": "On y fouette le thé matcha avec un fouet de bambou. L’invité le tourne avant de boire, pour ne pas poser les lèvres sur sa face décorée.",
+      "visuals": {
+        "base": "items/bol-a-the/base",
+        "crack": "items/bol-a-the/crack",
+        "gold": "items/bol-a-the/gold"
+      }
     },
     {
       "id": "rouleau-a-la-lune",
@@ -711,7 +1423,17 @@
       "source": "weekly",
       "name": "rouleau à la lune",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "掛け軸",
+        "romaji": "kakejiku"
+      },
+      "explanation": "Ce rouleau peint ou calligraphié se suspend dans l’alcôve. On le change au fil des saisons : à Tsukimi, il montre la lune.",
+      "visuals": {
+        "base": "items/rouleau-a-la-lune/base",
+        "crack": "items/rouleau-a-la-lune/crack",
+        "gold": "items/rouleau-a-la-lune/gold"
+      }
     },
     {
       "id": "foyer-irori",
@@ -720,7 +1442,17 @@
       "source": "base",
       "name": "foyer irori",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "囲炉裏",
+        "romaji": "irori"
+      },
+      "explanation": "Ce foyer creusé dans le plancher chauffait la pièce et cuisait les repas. Chacun avait sa place autour du feu, selon son rang dans la famille.",
+      "visuals": {
+        "base": "items/foyer-irori/base",
+        "crack": "items/foyer-irori/crack",
+        "gold": "items/foyer-irori/gold"
+      }
     },
     {
       "id": "cremaillere-jizai-kagi",
@@ -729,7 +1461,17 @@
       "source": "base",
       "name": "crémaillère jizai-kagi",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "自在鉤",
+        "romaji": "jizai-kagi"
+      },
+      "explanation": "Ce crochet suspendu au-dessus du feu monte et descend pour régler la chaleur sous la marmite. Il porte souvent un poisson de bois, censé protéger la maison du feu.",
+      "visuals": {
+        "base": "items/cremaillere-jizai-kagi/base",
+        "crack": "items/cremaillere-jizai-kagi/crack",
+        "gold": "items/cremaillere-jizai-kagi/gold"
+      }
     },
     {
       "id": "nattes-de-paille",
@@ -738,7 +1480,17 @@
       "source": "base",
       "name": "nattes de paille",
       "article": "les",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "筵",
+        "romaji": "mushiro"
+      },
+      "explanation": "Tressées en paille de riz, ces nattes couvraient le sol autour du foyer. Rien ne se perdait de la récolte : la paille servait aussi aux sandales et aux cordes.",
+      "visuals": {
+        "base": "items/nattes-de-paille/base",
+        "crack": "items/nattes-de-paille/crack",
+        "gold": "items/nattes-de-paille/gold"
+      }
     },
     {
       "id": "kakis-seches",
@@ -747,7 +1499,17 @@
       "source": "weekly",
       "name": "kakis séchés",
       "article": "les",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "干し柿",
+        "romaji": "hoshigaki"
+      },
+      "explanation": "On pèle les kakis et on les suspend dehors pour qu’ils sèchent plusieurs semaines. Ils deviennent alors aussi sucrés qu’un bonbon.",
+      "visuals": {
+        "base": "items/kakis-seches/base",
+        "crack": "items/kakis-seches/crack",
+        "gold": "items/kakis-seches/gold"
+      }
     },
     {
       "id": "panier-de-chataignes",
@@ -756,7 +1518,17 @@
       "source": "weekly",
       "name": "panier de châtaignes",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "栗",
+        "romaji": "kuri"
+      },
+      "explanation": "Les châtaignes se ramassent en automne. Cuites avec le riz, elles donnent le kuri gohan, un plat de saison.",
+      "visuals": {
+        "base": "items/panier-de-chataignes/base",
+        "crack": "items/panier-de-chataignes/crack",
+        "gold": "items/panier-de-chataignes/gold"
+      }
     },
     {
       "id": "bouilloire-en-fonte",
@@ -765,7 +1537,17 @@
       "source": "weekly",
       "name": "bouilloire en fonte",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "鉄瓶",
+        "romaji": "tetsubin"
+      },
+      "explanation": "Cette bouilloire de fonte, suspendue au-dessus du foyer, garde l’eau chaude longtemps. Celles d’Iwate, dans le nord du Japon, sont réputées depuis des siècles.",
+      "visuals": {
+        "base": "items/bouilloire-en-fonte/base",
+        "crack": "items/bouilloire-en-fonte/crack",
+        "gold": "items/bouilloire-en-fonte/gold"
+      }
     },
     {
       "id": "branche-d-erable-rouge",
@@ -774,7 +1556,17 @@
       "source": "weekly",
       "name": "branche d’érable rouge",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "紅葉",
+        "romaji": "momiji"
+      },
+      "explanation": "En automne, on part admirer les érables rouges, comme on admire les cerisiers au printemps. Cette promenade a un nom : le momijigari.",
+      "visuals": {
+        "base": "items/branche-d-erable-rouge/base",
+        "crack": "items/branche-d-erable-rouge/crack",
+        "gold": "items/branche-d-erable-rouge/gold"
+      }
     },
     {
       "id": "sac-de-riz-nouveau",
@@ -783,7 +1575,17 @@
       "source": "weekly",
       "name": "sac de riz nouveau",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "新米",
+        "romaji": "shinmai"
+      },
+      "explanation": "Le riz nouveau, le shinmai, arrive à l’automne, juste après la récolte. Plus tendre et plus parfumé, il se savoure nature.",
+      "visuals": {
+        "base": "items/sac-de-riz-nouveau/base",
+        "crack": "items/sac-de-riz-nouveau/crack",
+        "gold": "items/sac-de-riz-nouveau/gold"
+      }
     },
     {
       "id": "etageres",
@@ -792,7 +1594,17 @@
       "source": "base",
       "name": "étagères",
       "article": "les",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "棚",
+        "romaji": "tana"
+      },
+      "explanation": "Sur ces étagères de bois, on rangeait par saison la vaisselle, les rouleaux et les objets de fête. Chacun n’en sortait qu’au moment voulu.",
+      "visuals": {
+        "base": "items/etageres/base",
+        "crack": "items/etageres/crack",
+        "gold": "items/etageres/gold"
+      }
     },
     {
       "id": "coffre-nagamochi",
@@ -801,7 +1613,17 @@
       "source": "base",
       "name": "coffre nagamochi",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "長持",
+        "romaji": "nagamochi"
+      },
+      "explanation": "Ce long coffre de bois gardait les vêtements et la literie. On le portait à deux, sur une perche, lors des déménagements et des mariages.",
+      "visuals": {
+        "base": "items/coffre-nagamochi/base",
+        "crack": "items/coffre-nagamochi/crack",
+        "gold": "items/coffre-nagamochi/gold"
+      }
     },
     {
       "id": "echelle",
@@ -810,7 +1632,17 @@
       "source": "base",
       "name": "échelle",
       "article": "l'",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "梯子",
+        "romaji": "hashigo"
+      },
+      "explanation": "Le kura a souvent un étage, où l’on monte par une échelle raide. Les objets les plus précieux y attendent leur saison.",
+      "visuals": {
+        "base": "items/echelle/base",
+        "crack": "items/echelle/crack",
+        "gold": "items/echelle/gold"
+      }
     },
     {
       "id": "rateau-porte-bonheur-kumade",
@@ -819,7 +1651,17 @@
       "source": "weekly",
       "name": "râteau porte-bonheur kumade",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "熊手",
+        "romaji": "kumade"
+      },
+      "explanation": "Ce râteau de bambou se vend en novembre aux marchés Tori no ichi : il sert à ratisser la chance. On en rachète un plus grand chaque année.",
+      "visuals": {
+        "base": "items/rateau-porte-bonheur-kumade/base",
+        "crack": "items/rateau-porte-bonheur-kumade/crack",
+        "gold": "items/rateau-porte-bonheur-kumade/gold"
+      }
     },
     {
       "id": "chat-porte-bonheur",
@@ -828,7 +1670,17 @@
       "source": "weekly",
       "name": "chat porte-bonheur",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "招き猫",
+        "romaji": "maneki-neko"
+      },
+      "explanation": "Sa patte levée invite la fortune à entrer. Le plus souvent, on dit que la patte gauche appelle les clients, et la droite l’argent.",
+      "visuals": {
+        "base": "items/chat-porte-bonheur/base",
+        "crack": "items/chat-porte-bonheur/crack",
+        "gold": "items/chat-porte-bonheur/gold"
+      }
     },
     {
       "id": "boulier-soroban",
@@ -837,7 +1689,17 @@
       "source": "weekly",
       "name": "boulier soroban",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "算盤",
+        "romaji": "soroban"
+      },
+      "explanation": "Le boulier japonais s’apprend encore à l’école. Les plus habiles calculent de tête en imaginant ses boules.",
+      "visuals": {
+        "base": "items/boulier-soroban/base",
+        "crack": "items/boulier-soroban/crack",
+        "gold": "items/boulier-soroban/gold"
+      }
     },
     {
       "id": "sucres-d-orge-chitose-ame",
@@ -846,7 +1708,17 @@
       "source": "weekly",
       "name": "sucres d’orge chitose-ame",
       "article": "les",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "千歳飴",
+        "romaji": "chitose-ame"
+      },
+      "explanation": "À Shichi-go-san, les enfants de 3, 5 et 7 ans reçoivent ces longs bâtons de sucre rouges et blancs. Leur nom veut dire « bonbon de mille ans » : on leur souhaite une longue vie.",
+      "visuals": {
+        "base": "items/sucres-d-orge-chitose-ame/base",
+        "crack": "items/sucres-d-orge-chitose-ame/crack",
+        "gold": "items/sucres-d-orge-chitose-ame/gold"
+      }
     },
     {
       "id": "maillet-de-la-fortune",
@@ -855,7 +1727,17 @@
       "source": "weekly",
       "name": "maillet de la fortune",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "打ち出の小槌",
+        "romaji": "uchide no kozuchi"
+      },
+      "explanation": "Dans les contes, ce petit maillet magique fait apparaître ce qu’on souhaite à chaque coup. C’est l’attribut de Daikoku, l’un des sept dieux du bonheur.",
+      "visuals": {
+        "base": "items/maillet-de-la-fortune/base",
+        "crack": "items/maillet-de-la-fortune/crack",
+        "gold": "items/maillet-de-la-fortune/gold"
+      }
     },
     {
       "id": "jarre-a-eau",
@@ -864,7 +1746,17 @@
       "source": "base",
       "name": "jarre à eau",
       "article": "la",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "水甕",
+        "romaji": "mizugame"
+      },
+      "explanation": "Avant l’eau courante, on remplissait cette grande jarre au puits pour la cuisine. Un couvercle de bois gardait l’eau propre.",
+      "visuals": {
+        "base": "items/jarre-a-eau/base",
+        "crack": "items/jarre-a-eau/crack",
+        "gold": "items/jarre-a-eau/gold"
+      }
     },
     {
       "id": "banc-de-bois",
@@ -873,7 +1765,17 @@
       "source": "base",
       "name": "banc de bois",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "腰掛け",
+        "romaji": "koshikake"
+      },
+      "explanation": "Ce simple banc accueillait les visiteurs qui ne montaient pas dans la maison. On s’y asseyait aussi pour se chausser.",
+      "visuals": {
+        "base": "items/banc-de-bois/base",
+        "crack": "items/banc-de-bois/crack",
+        "gold": "items/banc-de-bois/gold"
+      }
     },
     {
       "id": "sandales-de-paille",
@@ -882,7 +1784,17 @@
       "source": "base",
       "name": "sandales de paille",
       "article": "les",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "草鞋",
+        "romaji": "waraji"
+      },
+      "explanation": "Ces sandales tressées en paille de riz se fabriquaient à la maison, pendant les soirées d’hiver. On les usait vite sur les routes.",
+      "visuals": {
+        "base": "items/sandales-de-paille/base",
+        "crack": "items/sandales-de-paille/crack",
+        "gold": "items/sandales-de-paille/gold"
+      }
     },
     {
       "id": "mortier-et-maillet-a-mochi",
@@ -891,7 +1803,17 @@
       "source": "weekly",
       "name": "mortier et maillet à mochi",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "臼と杵",
+        "romaji": "usu to kine"
+      },
+      "explanation": "À la fin de l’année, on pile le riz gluant dans ce mortier pour faire les mochi du Nouvel An. Deux personnes s’y relaient : l’une frappe, l’autre retourne la pâte.",
+      "visuals": {
+        "base": "items/mortier-et-maillet-a-mochi/base",
+        "crack": "items/mortier-et-maillet-a-mochi/crack",
+        "gold": "items/mortier-et-maillet-a-mochi/gold"
+      }
     },
     {
       "id": "balai-du-grand-menage",
@@ -900,7 +1822,17 @@
       "source": "weekly",
       "name": "balai du grand ménage",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "箒",
+        "romaji": "hōki"
+      },
+      "explanation": "Avant le Nouvel An, on fait le grand ménage, l’ōsōji, pour accueillir l’année dans une maison propre. Ce balai chasse la poussière de l’année écoulée.",
+      "visuals": {
+        "base": "items/balai-du-grand-menage/base",
+        "crack": "items/balai-du-grand-menage/crack",
+        "gold": "items/balai-du-grand-menage/gold"
+      }
     },
     {
       "id": "soba-du-reveillon",
@@ -909,7 +1841,17 @@
       "source": "weekly",
       "name": "soba du réveillon",
       "article": "les",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "年越し蕎麦",
+        "romaji": "toshikoshi soba"
+      },
+      "explanation": "Le soir du 31 décembre, on mange des nouilles de sarrasin, longues comme la vie qu’on se souhaite. Elles se coupent facilement : on laisse derrière soi les soucis de l’année.",
+      "visuals": {
+        "base": "items/soba-du-reveillon/base",
+        "crack": "items/soba-du-reveillon/crack",
+        "gold": "items/soba-du-reveillon/gold"
+      }
     },
     {
       "id": "panier-de-yuzu",
@@ -918,7 +1860,17 @@
       "source": "weekly",
       "name": "panier de yuzu",
       "article": "le",
-      "gender": "m"
+      "gender": "m",
+      "japanese": {
+        "kanji": "柚子",
+        "romaji": "yuzu"
+      },
+      "explanation": "Au solstice d’hiver, on fait flotter ce petit agrume parfumé dans le bain, le yuzu-yu. On dit qu’il protège du rhume tout l’hiver.",
+      "visuals": {
+        "base": "items/panier-de-yuzu/base",
+        "crack": "items/panier-de-yuzu/crack",
+        "gold": "items/panier-de-yuzu/gold"
+      }
     },
     {
       "id": "boites-a-osechi",
@@ -927,7 +1879,17 @@
       "source": "weekly",
       "name": "boîtes à osechi",
       "article": "les",
-      "gender": "f"
+      "gender": "f",
+      "japanese": {
+        "kanji": "重箱",
+        "romaji": "jūbako"
+      },
+      "explanation": "Ces boîtes laquées empilées gardent les plats du Nouvel An, l’osechi. Chaque plat porte un vœu : longue vie, récolte abondante, réussite.",
+      "visuals": {
+        "base": "items/boites-a-osechi/base",
+        "crack": "items/boites-a-osechi/crack",
+        "gold": "items/boites-a-osechi/gold"
+      }
     }
   ]
 }

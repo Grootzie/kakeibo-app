@@ -440,7 +440,11 @@ describe('bilan du mois (E7, J3.4, #64)', () => {
       catalog,
     ).state;
     expect(piecesOuvertesParBilan(s, '2026-11', catalog)).toEqual([
-      { mois: '2026-12', fete: 'Ōmisoka, le réveillon' },
+      {
+        mois: '2026-12',
+        fete: 'Ōmisoka, le réveillon',
+        explication: catalog.rooms.find((r) => r.month === 12)?.explanation,
+      },
     ]);
   });
 
@@ -779,6 +783,12 @@ describe('explication de la pièce qui s’ouvre (#66)', () => {
         explication: 'La doma est la salle en terre battue.',
       },
     ]);
-    expect(piecesOuvertesParBilan(s, '2026-11', catalog)[0]).not.toHaveProperty('explication');
+    const sansExplication: Catalog = {
+      ...catalog,
+      rooms: catalog.rooms.map(({ explanation: _explication, ...r }) => r),
+    };
+    expect(piecesOuvertesParBilan(s, '2026-11', sansExplication)[0]).not.toHaveProperty(
+      'explication',
+    );
   });
 });

@@ -4,6 +4,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
 import { join, relative } from 'path';
 
 import catalogueJson from '../../src/content/catalogue.json';
+import { catalogue as contenu } from '../../src/content/catalogue';
 import type { Catalog } from '../../src/domain/objets';
 import { CADRE_OBJET, SCENE } from '../../src/ui/maison/emplacements';
 import { enTeteWebp, lireWebp } from './lireWebp';
@@ -44,6 +45,16 @@ describe('visuels provisoires de la maison', () => {
     for (let mois = 1; mois <= 12; mois++)
       expect(chemins).toContain(`capsules/${String(mois).padStart(2, '0')}`);
     expect(chemins).toHaveLength(12 * 2 + 95 * 3 + 2 + 12);
+  });
+
+  it('produit chaque visuel que le catalogue donne aux objets, à chaque échelle', () => {
+    const chemins = new Set(visuels.map((v) => v.chemin));
+    for (const item of contenu.items)
+      for (const chemin of Object.values(item.visuals)) {
+        expect(chemins.has(chemin)).toBe(true);
+        for (const echelle of ECHELLES)
+          expect(existsSync(join(dossier, fichierVisuel(chemin, echelle)))).toBe(true);
+      }
   });
 
   it('versionne chaque visuel en WebP 1x, 2x et 3x, et rien d’autre', () => {
