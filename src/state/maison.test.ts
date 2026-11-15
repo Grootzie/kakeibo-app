@@ -5,7 +5,7 @@ import { addDays } from '../domain/calendrier';
 import type { Catalog } from '../domain/objets';
 import type { DayKey, LocalDateTime } from '../domain/scellement';
 import { type AppEvent, type AppState, createAppState, process } from '../domain/traitement';
-import { anneesAlbum, piecesDeLAnnee, vueMaison } from './maison';
+import { anneesAlbum, piecesDeLAnnee, vueAlbum, vueMaison } from './maison';
 
 const catalog = catalogueJson as Catalog;
 const NBSP = '\u00a0';
@@ -109,5 +109,62 @@ describe('vueMaison', () => {
     expect(piecesDeLAnnee(s, catalog, 2027)).toEqual(['room-01']);
     expect(anneesAlbum(s, at('2027-01-04', '09:00'))).toEqual([2026]);
     expect(anneesAlbum(s, at('2027-01-03', '09:00'))).toEqual([]);
+  });
+});
+
+describe('vueAlbum (#87)', () => {
+  // Semaine 45 complète et hors budget : le kumade entre, l'échelle se fêle. Semaine 46 : 4 jours
+  // clôturés d'affilée, la réparation en est à 4 jours sur 7 quand l'année se termine.
+  const fin2026 = (): [AppEvent, LocalDateTime][] => [
+    depenser('2026-11-03', 15000),
+    ...fermerDu('2026-11-02', '2026-11-08'),
+    ...fermerDu('2026-11-09', '2026-11-12'),
+  ];
+
+  it('album vide tant que l’année de la maison n’est pas finie', () => {
+    const s = etat(fin2026());
+    expect(vueAlbum(s, catalog, at('2026-12-31', '09:00'))).toEqual([]);
+    // Le dimanche 3 janvier 2027 appartient encore à la semaine 2026-W53.
+    expect(vueAlbum(s, catalog, at('2027-01-03', '09:00'))).toEqual([]);
+  });
+
+  it('la nouvelle année range la maison de 2026 telle quelle, sans poussière ni réparation en cours', () => {
+    const s = etat([...fin2026(), [{ type: 'open' }, at('2027-01-04', '09:00')]]);
+    const album = vueAlbum(s, catalog, at('2027-01-04', '09:00'));
+    expect(album.map((a) => a.annee)).toEqual([2026]);
+    const [kura] = album[0].pieces;
+    expect(album[0].pieces).toHaveLength(1);
+    expect(kura.scene.room).toBe('room-11');
+    expect(kura.scene.dust).toBe(0);
+    expect(kura.scene.items.map((i) => [i.itemId, i.state, i.repairDays])).toEqual([
+      ['etageres', 'intact', null],
+      ['coffre-nagamochi', 'intact', null],
+      ['echelle', 'cracked', null],
+      ['rateau-porte-bonheur-kumade', 'intact', null],
+    ]);
+    expect(kura.description).toBe(
+      'Kura, la réserve, novembre 2026. Les étagères. Le coffre nagamochi. L’échelle, fêlée. ' +
+        'Le râteau porte-bonheur kumade. 3 emplacements libres. La maison est propre.',
+    );
+  });
+
+  it('les clôtures de la nouvelle année ne réparent pas un objet de l’album', () => {
+    const s = etat([...fin2026(), ...fermerDu('2027-01-04', '2027-01-17')]);
+    const echelle = vueAlbum(s, catalog, at('2027-01-17'))[0].pieces[0].scene.items[2];
+    expect(echelle).toMatchObject({ itemId: 'echelle', state: 'cracked', repairDays: null });
+  });
+
+  it('chaque pièce débloquée de l’année, dans l’ordre des mois, une vignette par année', () => {
+    // Bilan de novembre validé : la pièce de décembre s'ouvre en 2026.
+    const s = etat([
+      ...fin2026(),
+      [{ type: 'open' }, at('2026-12-01', '09:00')],
+      [{ type: 'validate_month', month: '2026-11', resolution: '' }, at('2026-12-01', '09:05')],
+      [{ type: 'open' }, at('2028-01-03', '09:00')],
+    ]);
+    const album = vueAlbum(s, catalog, at('2028-01-03', '09:00'));
+    expect(album.map((a) => a.annee)).toEqual([2026, 2027]);
+    expect(album[0].pieces.map((p) => p.scene.room)).toEqual(['room-11', 'room-12']);
+    expect(album[1].pieces.map((p) => p.scene.room)).toEqual(['room-01']);
   });
 });
