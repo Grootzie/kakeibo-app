@@ -15,9 +15,11 @@
     "test": "jest"
   },
   "dependencies": {
+    "@shopify/react-native-skia": "2.14.0",
     "date-fns": "^4.4.0",
     "expo": "~58.0.22",
     "expo-constants": "~58.0.14",
+    "expo-haptics": "~58.0.7",
     "expo-linking": "~58.0.15",
     "expo-notifications": "~58.1.7",
     "expo-router": "~58.0.29",
@@ -46,6 +48,29 @@
     "typescript": "~6.0.3"
   },
   "jest": {
-    "preset": "jest-expo"
+    "projects": [
+      {
+        "displayName": "appli",
+        "preset": "jest-expo",
+        "setupFiles": [
+          "<rootDir>/jest.setup.ts"
+        ],
+        "testPathIgnorePatterns": [
+          "/node_modules/",
+          "\\.rendu\\.test\\.ts$"
+        ]
+      },
+      {
+        "displayName": "rendu",
+        "preset": "jest-expo/web",
+        "testEnvironment": "node",
+        "testMatch": [
+          "<rootDir>/src/**/*.rendu.test.ts"
+        ],
+        "moduleNameMapper": {
+          "^@shopify/react-native-skia$": "<rootDir>/node_modules/@shopify/react-native-skia/lib/commonjs"
+        }
+      }
+    ]
   }
 }

@@ -2,6 +2,7 @@
 // versionnés identiques à ce que produit le script (Fiche des visuels).
 import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
 import { join, relative } from 'path';
+import { format, resolveConfig } from 'prettier';
 
 import catalogueJson from '../../src/content/catalogue.json';
 import { catalogue as contenu } from '../../src/content/catalogue';
@@ -10,6 +11,8 @@ import { CADRE_OBJET, SCENE } from '../../src/ui/maison/emplacements';
 import { enTeteWebp, lireWebp } from './lireWebp';
 import { CADRE_CAPSULE, DOSSIER, ECHELLES, fichierVisuel, listeVisuels } from './provisoires';
 import { encoderWebp } from './webp';
+import { MODULE_VISUELS, moduleVisuels } from './module';
+import { VISUELS_PROVISOIRES } from '../../src/ui/maison/visuelsProvisoires';
 
 const catalogue = catalogueJson as Catalog;
 const racine = join(__dirname, '..', '..');
@@ -166,5 +169,14 @@ describe('visuels provisoires de la maison', () => {
           Buffer.from(encoderWebp(v.dessiner(e))).equals(lire(chemin, e)),
         ]).toEqual([chemin, e, true]);
     }
+  });
+
+  it('donne au rendu de la maison un module identique à ce que produit le script', async () => {
+    const attendu = await format(moduleVisuels(catalogue), {
+      ...(await resolveConfig(join(racine, MODULE_VISUELS))),
+      parser: 'typescript',
+    });
+    expect(readFileSync(join(racine, MODULE_VISUELS), 'utf8')).toBe(attendu);
+    expect(Object.keys(VISUELS_PROVISOIRES)).toEqual(visuels.map((v) => v.chemin));
   });
 });
