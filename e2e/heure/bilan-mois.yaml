@@ -152,9 +152,10 @@ appId: app.kakeibo
 - assertVisible: 'Bilan de novembre enregistré\.'
 - assertNotVisible: 'Valider mon bilan'
 - assertNotVisible: 'Confirmer mon budget'
-# La première fois, la carte « Nouvelle pièce » (#66) suit la pièce qui s'ouvre.
+# La première fois, la carte « Nouvelle pièce » (#66) suit la pièce qui s'ouvre, avec
+# l'explication de la pièce tirée du catalogue (#81).
 - assertVisible: 'Nouvelle pièce'
-- assertVisible: 'Chaque mois ouvre une pièce de la maison, décorée pour sa fête ou sa saison\..*'
+- assertVisible: 'Chaque mois ouvre une pièce de la maison, décorée pour sa fête ou sa saison\..*Le doma est la salle au sol de terre battue.*'
 - takeScreenshot: captures/carte-nouvelle-piece
 - tapOn: 'Fermer l’explication .*Nouvelle pièce.*'
 - extendedWaitUntil:

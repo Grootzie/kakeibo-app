@@ -384,7 +384,7 @@ export function piecesOuvertesParBilan(
     .map((salle) => ({
       mois: `${mois.slice(0, 4)}-${String(salle.month).padStart(2, '0')}`,
       fete: salle.feast,
-      // Explication de la pièce, rédigée avec le catalogue (Produit) ; absente tant qu'elle manque.
+      // Explication de la pièce, tirée du catalogue (#81) ; absente si le catalogue n'en donne pas.
       ...(salle.explanation === undefined ? {} : { explication: salle.explanation }),
     }));
 }

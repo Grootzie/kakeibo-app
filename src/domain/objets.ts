@@ -13,7 +13,7 @@ export interface CatalogRoom {
   name: string;
   /** Fête ou saison du mois, telle que le tableau de la spec la nomme. */
   feast: string;
-  /** Explication de la pièce, deux phrases au plus (carte « Nouvelle pièce ») ; pas encore écrite. */
+  /** Explication de la pièce, deux phrases au plus (carte « Nouvelle pièce »). */
   explanation?: string;
 }
 
