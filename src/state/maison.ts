@@ -53,3 +53,24 @@ export function piecesDeLAnnee(etat: AppState, catalogue: Catalog, annee: number
 export function anneesAlbum(etat: AppState, now: LocalDateTime): number[] {
   return albumYears(etat.house, houseYear(now.day));
 }
+
+/** Une maison de l'album : son année et chacune de ses pièces, telle qu'elle était à la fin. */
+export interface MaisonAlbum {
+  annee: number;
+  pieces: VueMaison[];
+}
+
+/**
+ * Album (E8, #87) : une maison par année passée, de la plus ancienne à la plus récente, chacune
+ * avec ses pièces débloquées dans l'ordre des mois. Les objets gardent leur état de fin d'année ;
+ * ni poussière ni réparation en cours (la file de réparation repart à zéro chaque année).
+ */
+export function vueAlbum(etat: AppState, catalogue: Catalog, now: LocalDateTime): MaisonAlbum[] {
+  return anneesAlbum(etat, now).map((annee) => ({
+    annee,
+    pieces: piecesDeLAnnee(etat, catalogue, annee).flatMap((piece) => {
+      const vue = vueMaison(etat, catalogue, annee, piece, now);
+      return vue === null ? [] : [vue];
+    }),
+  }));
+}

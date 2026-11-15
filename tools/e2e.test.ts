@@ -1329,3 +1329,62 @@ describe('parcours Maestro « semaine hors budget » (J3, #67)', () => {
     expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
   });
 });
+
+describe('parcours Maestro « album » (J4.8, #87)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'heure', 'album.yaml'), 'utf8');
+  const script = readFileSync(join(__dirname, 'parcours-android.sh'), 'utf8');
+  const a = fr.album;
+  const motif = (texte: string) => texte.replace(/\./g, '\\.').replace(/ /g, '.');
+
+  it('est joué par le script de l’émulateur, appli effacée, le 4 novembre 2026 à 9:00', () => {
+    expect(script).toMatch(/for parcours in [^;]*\balbum; do/);
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+
+  it('joue la semaine hors budget de J3 : le kumade entre, l’échelle se fêle', () => {
+    dansLOrdre(parcours, etapesSemaineComplete('120', 'Essentiel'));
+    expect(parcours).toContain("- assertVisible: 'Tu as dépassé de 20.€ cette semaine'");
+  });
+
+  it('calcule les textes attendus avec ceux de l’appli', () => {
+    expect(a.vide(2026)).toMatch(/^Ton album est encore vide\./);
+    expect(a.vignetteLibelle(2026, 1)).toBe('Ta maison de 2026, 1 pièce');
+    expect(a.piece('2026-11', 'Kura, la réserve')).toBe('Novembre · Kura, la réserve');
+    expect(fr.bilan.retourLibelle).toBe('Retour à l’accueil');
+  });
+
+  it('montre l’album vide, puis la maison de 2026 après la nouvelle année, avec une capture par étape', () => {
+    dansLOrdre(parcours, [
+      "- openLink: 'kakeibo://album'",
+      `visible: '${motif('Ton album est encore vide.')}.*'`,
+      `- assertVisible: '${a.titre}'`,
+      '- takeScreenshot: captures/album-vide',
+      `- tapOn: '${a.retourLibelle}'`,
+      "- longPressOn: 'mercredi.4.novembre'",
+      "- tapOn: 'Tirer la tirette.*'",
+      `- tapOn: '${fr.dev.plusUnMois.replace('+', '\\+')}'`,
+      `visible: '${fr.recapitulatif.titre}'`,
+      `- tapOn: '${fr.bilan.retourLibelle}'`,
+      `- tapOn: '${fr.dev.plusUnMois.replace('+', '\\+')}'`,
+      `visible: '${fr.recapitulatif.titre}'`,
+      "visible: 'samedi.9.janvier'",
+      "- openLink: 'kakeibo://album'",
+      `visible: '${a.vignetteLibelle(2026, 1)}'`,
+      '- takeScreenshot: captures/album-vignettes',
+      `- tapOn: '${a.vignetteLibelle(2026, 1)}'`,
+      `visible: '${a.piece('2026-11', 'Kura, la réserve')}'`,
+      `- assertVisible: '${a.annee(2026)}'`,
+      '- takeScreenshot: captures/album-2026',
+      `- tapOn: '${a.toutesLesAnneesLibelle}'`,
+      `- tapOn: '${a.retourLibelle}'`,
+    ]);
+  });
+
+  it('la pièce de l’album garde l’échelle fêlée, sans poussière ni réparation en cours', () => {
+    expect(parcours).toContain(
+      "- assertVisible: 'Kura, la réserve, novembre 2026\\. .*L’échelle, fêlée\\. Le râteau porte-bonheur kumade\\. 3 emplacements libres\\. La maison est propre\\.'",
+    );
+    expect(parcours).not.toMatch(/^- takeScreenshot: captures\/semaine-hors-budget/m);
+  });
+});

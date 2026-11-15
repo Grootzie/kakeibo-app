@@ -441,6 +441,29 @@ export const fr = {
     description: (morceaux: readonly string[]) => `${morceaux.join('. ')}.`,
   },
 
+  /**
+   * Album des années passées (E8, #87). Textes absents de « Textes et ton », proposés au
+   * propriétaire dans la demande de fusion.
+   */
+  album: {
+    titre: 'Album',
+    retour: 'Retour',
+    retourLibelle: 'Fermer l’album',
+    /** Album vide : court, sans reproche ; année de la maison en cours. */
+    vide: (annee: number) =>
+      `Ton album est encore vide. À la nouvelle année, ta maison de ${annee} viendra s’y ranger, telle que tu l’as faite.`,
+    /** Une vignette par année passée. */
+    vignette: (annee: number) => `${annee}`,
+    vignetteLibelle: (annee: number, pieces: number) =>
+      `Ta maison de ${annee}, ${pieces} pièce${pieces > 1 ? 's' : ''}`,
+    vignetteIndice: 'Affiche ses pièces en grand',
+    annee: (annee: number) => `Ta maison de ${annee}`,
+    toutesLesAnnees: 'Toutes les années',
+    toutesLesAnneesLibelle: 'Revenir à toutes les années de l’album',
+    /** « Novembre · Kura, la réserve ». */
+    piece: (mois: string, nomPiece: string) => `${majuscule(nomDuMois(mois))} · ${nomPiece}`,
+  },
+
   messages: {
     /** « Un daruma entre dans ta maison. », « Des lanternes de papier entrent dans ta maison. » */
     ouvertureCapsule: (objet: NomObjet) =>
