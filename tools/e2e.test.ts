@@ -1381,6 +1381,34 @@ describe('parcours Maestro « album » (J4.8, #87)', () => {
     ]);
   });
 
+  it('visite la maison (E8, #85) après le bilan : réparation, fiche, album, avec ses captures', () => {
+    const m = fr.ecranMaison;
+    const echelle = { nom: 'échelle', article: "l'" as const, genre: 'f' as const };
+    const libelle = m.objetLibelle(echelle, 'cracked', { type: 'enCours', jours: 0 });
+    expect(libelle).toBe('L’échelle, fêlée, réparation\u00a0: 0 jour sur 7');
+    expect(m.libres(3)).toBe('3 emplacements libres pour les objets à gagner');
+    dansLOrdre(parcours, [
+      "- tapOn: 'Terminer le bilan.*'",
+      "- openLink: 'kakeibo://maison'",
+      `visible: '${m.piece('2026-11', 'Kura, la réserve')}'`,
+      `- assertVisible: '${m.titre}'`,
+      `- assertVisible: '${motif(libelle)}'`,
+      `- assertVisible: '${m.objetLibelle({ nom: 'râteau porte-bonheur kumade', article: 'le', genre: 'm' }, 'intact', null)}'`,
+      '- takeScreenshot: captures/maison-e8',
+      `text: '${m.libres(3)}'`,
+      '- takeScreenshot: captures/maison-e8-objets',
+      `- tapOn: '${motif(libelle)}'`,
+      `visible: '${m.ficheRetourLibelle}'`,
+      `- tapOn: '${m.ficheRetourLibelle}'`,
+      `- tapOn: '${m.albumLibelle}'`,
+      `visible: '${motif('Ton album est encore vide.')}.*'`,
+      `- tapOn: '${a.retourLibelle}'`,
+      `- tapOn: '${m.retourLibelle}'`,
+      "visible: 'lundi.9.novembre'",
+      `- tapOn: '${fr.dev.plusUnMois.replace('+', '\\+')}'`,
+    ]);
+  });
+
   it('la pièce de l’album garde l’échelle fêlée, sans poussière ni réparation en cours', () => {
     expect(parcours).toContain(
       "- assertVisible: 'Kura, la réserve, novembre 2026\\. .*L’échelle, fêlée\\. Le râteau porte-bonheur kumade\\. 3 emplacements libres\\. La maison est propre\\.'",
