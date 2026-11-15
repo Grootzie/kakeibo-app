@@ -21,6 +21,14 @@ done
 # Ferme une éventuelle boîte « L'appli ne répond pas » du système.
 adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS >/dev/null 2>&1 || true
 
+# Les parcours de e2e/ se jouent à une date fixe, le mercredi 4 novembre 2026 à 10:00 : à la date
+# réelle, un dimanche, la clôture scelle la semaine et ouvre son bilan (E6) au lieu de l'accueil (#90).
+# L'APK publié n'a pas l'horloge de test : on règle l'heure du téléphone (adb root), rendue plus bas.
+adb root >/dev/null 2>&1 || true
+sleep 5
+adb shell settings put global auto_time 0 || true
+adb shell date 110410002026.00 || true
+
 adb install "$APK" || exit 1
 adb logcat -c || true
 
@@ -35,12 +43,9 @@ fi
 adb exec-out screencap -p > captures/ecran.png || true
 adb exec-out uiautomator dump /dev/tty > captures/hierarchie.xml 2>/dev/null || true
 adb logcat -d > captures/logcat.txt 2>&1 || true
-# Parcours qui ont besoin d'une heure précise (#46) : l'APK publié n'a pas l'horloge de test,
-# alors on règle l'heure du téléphone (adb root), puis on la rend à la fin.
+# Parcours qui ont besoin d'une heure précise (#46) : l'heure du téléphone est déjà réglable
+# (adb root, heure automatique coupée, ci-dessus) ; elle est rendue à la fin.
 if [ -f e2e/heure/installer.yaml ]; then
-  adb root >/dev/null 2>&1 || true
-  sleep 5
-  adb shell settings put global auto_time 0 || true
   adb shell pm clear app.kakeibo >/dev/null 2>&1 || true
   # Installation le mercredi 4 novembre 2026 à 9 h, puis jeudi 5 à 20 h : mercredi est à rattraper.
   adb shell date 110409002026.00 || true
@@ -79,9 +84,9 @@ if [ -f e2e/heure/installer.yaml ]; then
       maestro test "e2e/heure/$parcours.yaml" --format junit --output "captures/maestro-$parcours.xml" || statut=1
     fi
   done
-  adb shell date "$(date -u +%m%d%H%M%Y.%S)" || true
-  adb shell settings put global auto_time 1 || true
 fi
+adb shell date "$(date -u +%m%d%H%M%Y.%S)" || true
+adb shell settings put global auto_time 1 || true
 
 # Accueil avec le texte agrandi à 200 % (#43) : capture et hiérarchie, puis retour à 100 %.
 adb shell settings put system font_scale 2.0 || true
