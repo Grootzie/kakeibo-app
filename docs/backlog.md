@@ -64,6 +64,24 @@ La maison arrive en J4 (en parallèle) : en attendant, le bilan montre l'objet s
 - **J3.7 · Parcours « semaine parfaite » et « semaine hors budget » (Testeur).** (#67) Deux parcours Maestro sur l'émulateur, avec l'horloge de test, une capture par temps du bilan. Sections : Jalons, E2, E4, E6, Horloge de test.
 - **J3.8 · Jeton du soir.** (#74) Ajouté à la demande du propriétaire (spec, révision 847) : à chaque clôture (E4 et E5), un jeton tombe dans la machine avec le tampon ; texte de la carte « Premier tampon » mis à jour. Aucune règle du domaine ne change. Sections : E4, E5, Objets et pièces, Fiche des visuels, Messages d'explication, Accessibilité.
 
+Validé le 15 novembre 2026 : parcours « semaine parfaite » et « semaine hors budget » au vert sur l'émulateur Android avec l'horloge de test, intégration continue verte sur `main`.
+
+## J4 · Maison
+
+Validé quand : captures des 3 états d'objet (intact, fêlé, réparé à l'or) et des 3 niveaux de poussière, prises sur l'émulateur Android avec l'horloge de test.
+
+Visuels provisoires seulement : le premier lot en style estampe est l'affaire de J6, après validation du propriétaire. La fiche des objets dans Comprendre attend E12 (J5).
+
+- **J4.1 · Modèle de scène de la maison.** (#80) Fonction pure qui rend la pièce, les objets à leur emplacement et dans leur état, les emplacements libres, le niveau de poussière, la réparation en cours et la description pour le lecteur d'écran. Sections : Rendu de la maison, Objets et pièces, Poussière, Fêlure et réparation, E8, Modèle de données.
+- **J4.2 · Catalogue complet.** (#81) Noms japonais (kanji et transcription), explications des pièces et des objets en deux phrases au plus, références des trois visuels ; relues par le propriétaire avec les lots de J6. Sections : Modèle de données (Catalogue), Contenu de la V1, Textes et ton.
+- **J4.3 · Visuels provisoires.** (#82) Fonds, objets et calques fêlure et or, voile, toile d'araignée, capsules, aux formats et aux poids de la fiche, générés par un script ; positions provisoires des emplacements. Sections : Premier lot, Fiche des visuels, Rendu de la maison.
+- **J4.4 · Composant de rendu.** (#83) Un seul composant dessine la scène : états des objets, poussière 1 et 2, animations d'apparition, de fêlure et de réparation, « Réduire les animations », description accessible. Sections : Rendu de la maison, Fiche des visuels, Accessibilité.
+- **J4.5 · La maison sur l'accueil et dans le bilan.** (#84) Pièce du mois avec sa poussière, glissement entre pièces débloquées, toucher ouvre E8 ; l'objet de la capsule rejoint son emplacement dans la pièce. Sections : E2, E6, Fiche des visuels, Textes et ton.
+- **J4.6 · La maison (E8).** (#85) Pièces débloquées, emplacements libres discrets, « Réparation : 4 jours sur 7 », accès à la fiche et à l'album. Sections : E8, Fêlure et réparation, Accessibilité.
+- **J4.7 · Fiche d'objet.** (#86) Nom en français et en japonais, explication, histoire « Gagné la semaine du 2 novembre. Fêlé le 15, réparé à l'or le 22. » Sections : E8, Fiche des visuels, Messages d'explication, Modèle de données.
+- **J4.8 · Album.** (#87) Une vignette par année passée, chaque pièce telle qu'elle était à la fin de l'année. Sections : E8, Fiche des visuels, Objets et pièces, Décisions ouvertes (Nouvelle année).
+- **J4.9 · Captures des états et de la poussière (Testeur).** (#88) Parcours Maestro « maison » et « poussière » sur l'émulateur, avec l'horloge de test, une capture par état et par niveau. Sections : Jalons, E2, E8, Poussière, Fêlure et réparation, Horloge de test.
+
 ## Ensuite
 
-J4 à J9 : voir « Jalons » dans la spec. L'agent Produit découpe chaque jalon en tickets quand le précédent est validé.
+J5 à J9 : voir « Jalons » dans la spec. L'agent Produit découpe chaque jalon en tickets quand le précédent est validé.
