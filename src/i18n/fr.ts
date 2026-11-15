@@ -411,6 +411,36 @@ export const fr = {
     refusBudget: 'Ton budget n’a pas pu être enregistré. Réessaie dans un instant.',
   },
 
+  /**
+   * La maison (E8, E2, E6, J4.1) : description de la scène pour le lecteur d'écran.
+   * Textes absents de « Textes et ton », proposés au propriétaire dans la demande de fusion.
+   */
+  maison: {
+    /** « Kura, la réserve, novembre 2026 ». */
+    piece: (nomPiece: string, mois: string, annee: number) =>
+      `${nomPiece}, ${nomDuMois(mois)} ${annee}`,
+    /** « L’échelle », « L’échelle, fêlée, réparation : 4 jours sur 7 », « Le daruma, réparé à l’or ». */
+    objet: (objet: NomObjet, etat: 'intact' | 'cracked' | 'repaired', jours: number | null) => {
+      if (etat === 'repaired')
+        return `${debut(objet)}, ${accord(objet, 'réparé', 'réparée', 'réparés', 'réparées')} à l’or`;
+      if (etat === 'intact') return debut(objet);
+      const fele = `${debut(objet)}, ${accord(objet, 'fêlé', 'fêlée', 'fêlés', 'fêlées')}`;
+      return jours === null
+        ? fele
+        : `${fele}, réparation${NBSP}: ${jours} jour${jours > 1 ? 's' : ''} sur 7`;
+    },
+    emplacementsLibres: (n: number) =>
+      `${n} emplacement${n > 1 ? 's' : ''} libre${n > 1 ? 's' : ''}`,
+    /** Niveaux de poussière 0, 1 et 2 (Poussière, Fiche des visuels). */
+    poussiere: [
+      'La maison est propre',
+      'Un voile de poussière',
+      'De la poussière, une toile d’araignée et la lumière baissée',
+    ] as const,
+    /** La scène lue d'un seul tenant. */
+    description: (morceaux: readonly string[]) => `${morceaux.join('. ')}.`,
+  },
+
   messages: {
     /** « Un daruma entre dans ta maison. », « Des lanternes de papier entrent dans ta maison. » */
     ouvertureCapsule: (objet: NomObjet) =>
