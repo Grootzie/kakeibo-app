@@ -4,11 +4,15 @@
 //
 //   node --experimental-strip-types tools/generer-visuels-provisoires.ts
 //
-// À lancer depuis la racine du dépôt. Les fichiers du dossier sont remplacés, sauf LISEZMOI.md.
+// À lancer depuis la racine du dépôt. Les fichiers du dossier sont remplacés, sauf LISEZMOI.md ;
+// le module qui les donne au rendu de la maison (src/ui/maison/visuelsProvisoires.ts) aussi.
 import { mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 
 import type { Catalog } from '../src/domain/objets';
+import { format, resolveConfig } from 'prettier';
+
+import { MODULE_VISUELS, moduleVisuels } from './visuels/module.ts';
 import { DOSSIER, ECHELLES, fichierVisuel, listeVisuels } from './visuels/provisoires.ts';
 import { encoderWebp } from './visuels/webp.ts';
 
@@ -33,3 +37,12 @@ console.log(`${DOSSIER} : ${(total / 1024 / 1024).toFixed(2)} Mo`);
 console.log(
   `Fichier le plus lourd : ${plusLourd.chemin} (${(plusLourd.poids / 1024).toFixed(1)} Ko)`,
 );
+
+writeFileSync(
+  MODULE_VISUELS,
+  await format(moduleVisuels(catalogue), {
+    ...(await resolveConfig(MODULE_VISUELS)),
+    parser: 'typescript',
+  }),
+);
+console.log(`${MODULE_VISUELS} : module des visuels`);

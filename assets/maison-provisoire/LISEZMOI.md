@@ -15,4 +15,4 @@ Ils suivent la fiche des visuels :
 - `dust/veil` (niveau 1) et `dust/cobweb` (niveau 2, avec le voile ; l'assombrissement de 15 % revient au rendu) ;
 - `capsules/<mois>` : la capsule aux couleurs du mois, 48 × 48 points.
 
-Chaque visuel existe en WebP 1x, `@2x` et `@3x`, fond transparent. Les cadres et les emplacements viennent de `src/ui/maison/emplacements.ts`.
+Chaque visuel existe en WebP 1x, `@2x` et `@3x`, fond transparent. Les cadres et les emplacements viennent de `src/ui/maison/emplacements.ts`. Le script écrit aussi `src/ui/maison/visuelsProvisoires.ts`, qui donne chaque visuel au rendu de la maison.
