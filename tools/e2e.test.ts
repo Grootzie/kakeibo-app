@@ -1059,6 +1059,9 @@ describe('parcours Maestro : réparation annoncée et cartes de première fois d
     expect(fr.explications.nouvellePiece).toMatch(
       /^Chaque mois ouvre une pièce de la maison, décorée pour sa fête ou sa saison\..*$/,
     );
+    expect((catalogueJson as Catalog).rooms.find((r) => r.month === 12)?.explanation).toMatch(
+      /^Le doma est la salle au sol de terre battue.*$/,
+    );
     expect(fr.accueil.date('2026-11-22')).toMatch(/^dimanche.22.novembre$/);
     expect(fr.cloture.titreRattrapage('2026-11-16')).toMatch(/^Rattraper lundi 16.novembre$/);
   });
@@ -1113,6 +1116,7 @@ describe('parcours Maestro : réparation annoncée et cartes de première fois d
       `- tapOn: '${fr.bilanMois.confirmerBudget}'`,
       `visible: '${motif(fr.messages.nouvellePiece('2026-12', 'Ōmisoka, le réveillon'))}'`,
       `- assertVisible: '${t.new_room}'`,
+      "Le doma est la salle au sol de terre battue.*'",
       '- takeScreenshot: captures/carte-nouvelle-piece',
       fermer(t.new_room),
       '- takeScreenshot: captures/bilan-mois-valide',
