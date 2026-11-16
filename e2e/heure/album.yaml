@@ -202,7 +202,7 @@ appId: app.kakeibo
 - assertNotVisible: 'Le bilan de ta semaine est prêt\.'
 - assertNotVisible: 'Tu peux encore rattraper.*'
 # 4 bis. La maison (E8, #85) : le kumade à sa place, l'échelle fêlée dont la réparation commence
-#    ce lundi (0 jour sur 7), 3 emplacements libres. Toucher l'échelle ouvre sa fiche ; l'album.
+#    ce lundi (0 jour sur 7), 3 emplacements libres. Toucher l'échelle ouvre sa fiche (#86) ; l'album.
 - openLink: 'kakeibo://maison'
 - extendedWaitUntil:
     visible: 'Novembre · Kura, la réserve'
@@ -222,6 +222,16 @@ appId: app.kakeibo
     visible: 'Retour à ta maison'
     timeout: 10000
 - assertVisible: 'L’échelle'
+# Fiche d'objet (J4.7, #86) : l'échelle en grand dans son état, son nom japonais, son explication
+# et son histoire (objet de base arrivé à l'installation le 4, fêlé au scellement du lundi 9).
+- assertVisible: 'En japonais.: hashigo, 梯子'
+- takeScreenshot: captures/fiche-objet
+- scrollUntilVisible:
+    element:
+      text: 'Dans ta maison depuis le 4.novembre\. Fêlée le 9\.'
+    direction: DOWN
+- assertVisible: 'Au Japon'
+- takeScreenshot: captures/fiche-objet-histoire
 - tapOn: 'Retour à ta maison'
 - extendedWaitUntil:
     visible: 'Ouvrir l’album des années passées'

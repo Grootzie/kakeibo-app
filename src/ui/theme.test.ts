@@ -55,3 +55,11 @@ describe('thème de l’accueil (#43)', () => {
     expect(r - Math.max(g, b)).toBeLessThan(40);
   });
 });
+
+describe('fiche d’objet (J4.7, #86)', () => {
+  const c = theme.couleurs;
+  it('lit les textes sur le fond de papier au contraste AA', () => {
+    expect(contrastRatio(c.texte, c.papier)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(c.texteDiscret, c.papier)).toBeGreaterThanOrEqual(4.5);
+  });
+});
