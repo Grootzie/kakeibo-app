@@ -98,10 +98,19 @@ appId: app.kakeibo
 - assertVisible: 'Essentiel.: 35.€'
 - assertVisible: 'Envies.: 12,50.€'
 - takeScreenshot: captures/carnet-semaine-scellee
+# Le titre du jour arrive en bas de l'écran avant ses dépenses : on fait défiler jusqu'aux
+# dépenses elles-mêmes, centrées, pour que le jour et ses deux lignes soient à l'écran.
 - scrollUntilVisible:
     element:
-      text: 'mercredi 4.novembre, total.: 47,50.€'
+      text: '12,50.€ en Envies'
     direction: DOWN
+    centerElement: true
+- scrollUntilVisible:
+    element:
+      text: '35.€ en Essentiel'
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'mercredi 4.novembre, total.: 47,50.€'
 - assertVisible: '35.€ en Essentiel'
 - assertVisible: '12,50.€ en Envies'
 - takeScreenshot: captures/carnet-jours

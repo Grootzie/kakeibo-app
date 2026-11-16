@@ -1703,7 +1703,11 @@ describe('parcours Maestro « carnet » (J5.3, #102)', () => {
       `- assertVisible: '${motif(t.totalCategorie('Essentiel', 3500))}'`,
       `- assertVisible: '${motif(t.totalCategorie('Envies', 1250))}'`,
       '- takeScreenshot: captures/carnet-semaine-scellee',
-      `text: '${motif(t.jourLibelle('2026-11-04', 4750))}'`,
+      // Défilement jusqu'aux dépenses elles-mêmes, centrées : défiler jusqu'au titre du jour
+      // s'arrêtait dès qu'il dépassait du bas de l'écran, ses dépenses encore cachées.
+      `text: '${motif(t.depenseLibelle(1250, 'Envies', ''))}'\n    direction: DOWN\n    centerElement: true`,
+      `text: '${motif(t.depenseLibelle(3500, 'Essentiel', ''))}'\n    direction: DOWN\n    centerElement: true`,
+      `- assertVisible: '${motif(t.jourLibelle('2026-11-04', 4750))}'`,
       `- assertVisible: '${motif(t.depenseLibelle(3500, 'Essentiel', ''))}'`,
       `- assertVisible: '${motif(t.depenseLibelle(1250, 'Envies', ''))}'`,
       '- takeScreenshot: captures/carnet-jours',
