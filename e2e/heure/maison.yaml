@@ -59,6 +59,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 - scrollUntilVisible:
     element:
       text: '\+1 jour'
@@ -77,6 +80,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 - scrollUntilVisible:
     element:
       text: '\+1 jour'
@@ -95,6 +101,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 #    Dimanche 8 : la dernière clôture scelle la semaine ; son bilan s'ouvre, première capsule.
 - scrollUntilVisible:
     element:
@@ -188,6 +197,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 #    Mardi 10 à samedi 14 : « Rien dépensé aujourd’hui ».
 - scrollUntilVisible:
     element:
@@ -207,6 +219,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 - scrollUntilVisible:
     element:
       text: '\+1 jour'
@@ -225,6 +240,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 - scrollUntilVisible:
     element:
       text: '\+1 jour'
@@ -243,6 +261,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 - scrollUntilVisible:
     element:
       text: '\+1 jour'
@@ -261,6 +282,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 - scrollUntilVisible:
     element:
       text: '\+1 jour'
@@ -279,6 +303,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 #    Dimanche 15 : la semaine est scellée ; au bilan, le chat entre et le kumade se fêle.
 - scrollUntilVisible:
     element:
@@ -347,6 +374,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 - scrollUntilVisible:
     element:
       text: '\+1 jour'
@@ -365,6 +395,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 - scrollUntilVisible:
     element:
       text: '\+1 jour'
@@ -383,6 +416,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 #    Le kumade, fêlé, dans la maison (E8) : « Réparation : 3 jours sur 7 ».
 - openLink: 'kakeibo://maison'
 - extendedWaitUntil:
@@ -415,6 +451,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 - scrollUntilVisible:
     element:
       text: '\+1 jour'
@@ -433,6 +472,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 - scrollUntilVisible:
     element:
       text: '\+1 jour'
@@ -451,6 +493,9 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 10000
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 15000
 #    Dimanche 22 : la septième clôture d'affilée répare le kumade à l'or, annoncé à la clôture,
 #    avec la carte « Première réparation » ; puis le bilan de la semaine 47 s'ouvre.
 - scrollUntilVisible:

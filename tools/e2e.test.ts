@@ -1482,6 +1482,12 @@ describe('parcours Maestro « maison » : intact, fêlé, réparé à l’or (J4
   });
 
   it('clôture chaque jour du mercredi 4 au dimanche 22, un jour de plus à chaque fois', () => {
+    // Après chaque clôture qui ne scelle pas la semaine, on attend le retour à l'accueil.
+    expect(
+      parcours.split(
+        "    visible: 'Journée clôturée'\n    timeout: 10000\n- extendedWaitUntil:\n    visible: 'Noter une dépense'",
+      ).length - 1,
+    ).toBe(15);
     expect(parcours.split(plusUnJour).length - 1).toBe(18);
     expect(parcours.split(`- tapOn: '${fr.accueil.cloturerJournee}'`).length - 1).toBe(19);
     expect(parcours).toContain("- assertVisible: 'Décalage.: 18 jours'");
@@ -1573,6 +1579,8 @@ describe('parcours Maestro « maison » : intact, fêlé, réparé à l’or (J4
       "- inputText: '150'",
       "- tapOn: 'Fermer l’explication .*Première fêlure.*'",
       "visible: 'mercredi.18.novembre'",
+      // « Journée clôturée » est aussi le bouton de E4 : la maison s'ouvre depuis l'accueil.
+      `    visible: '${fr.accueil.noterDepense}'`,
       "- openLink: 'kakeibo://maison'",
       "- assertVisible: 'Le râteau porte-bonheur kumade, fêlé, réparation.: 3 jours sur 7'",
       "- assertVisible: 'Réparation.: 3 jours sur 7'",
