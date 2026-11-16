@@ -21,6 +21,7 @@ import {
 } from '../domain/traitement';
 import type { Horloge } from './clock';
 import { fr } from '../i18n/fr';
+import { heureValide } from './bienvenue';
 import { type IdExplication, ecrireExplicationsVues, lireExplicationsVues } from './explications';
 import { type Charge, chargeDepuisLigne, charger, persister } from './persistance';
 import { type ReglagesRappel, type ServiceRappels, rappelsAPlanifier } from './rappel';
@@ -68,6 +69,16 @@ export type RefusCharge = Refusal | 'unknown_charge' | 'charge_stopped';
 /** Refus d'une dépense : ceux du domaine, et une note trop longue. */
 export type RefusDepense = Refusal | 'note_too_long';
 
+/** Refus de la fin de la bienvenue (E1) : ceux du budget, et une heure de rappel illisible. */
+export type RefusBienvenue = Refusal | 'invalid_reminder_time';
+
+/** Ce que la bienvenue (E1) enregistre à la fin de ses quatre étapes. */
+export interface FinBienvenue {
+  budget: MontantsBudget;
+  /** Heure du rappel du soir, HH:MM. */
+  heureRappel: string;
+}
+
 /** Ce qu'une écriture acceptée change dans l'état de l'interface. */
 interface MiseAJour {
   depenses?: ExpenseRow[];
@@ -91,6 +102,10 @@ export interface EtatKakeibo {
   reglagesRappel: ReglagesRappel | null;
   /** Cartes de première fois déjà vues (settings.seen_explanations). */
   explicationsVues: string[];
+  /** Horloge de test active : build de développement (réglages cachés des parcours). */
+  horlogeTest: boolean;
+  /** Bienvenue passée par le réglage caché des builds de développement, le temps d'une session. */
+  bienvenuePassee: boolean;
   ouvrir(): Promise<void>;
   enregistrerDepense(depense: NouvelleDepense): Promise<RefusDepense | null>;
   /** Nouvelle dépense (E3) : rend son identifiant, pour pouvoir l'annuler. */
@@ -136,12 +151,25 @@ export interface EtatKakeibo {
   /** Une carte de première fois s'affiche : elle ne reviendra plus, même après redémarrage. */
   marquerExplicationVue(id: IdExplication): Promise<void>;
   /**
-   * Demande l'autorisation des notifications (E1 en J5 ; en attendant, réglage caché des builds
-   * de développement), puis replanifie le rappel du soir. Rend vrai si elle est accordée.
+   * Demande l'autorisation des notifications (fin de E1, et réglage caché des builds de
+   * développement), puis replanifie le rappel du soir. Rend vrai si elle est accordée.
    */
   demanderAutorisationRappel(): Promise<boolean>;
-  /** Réglage caché des builds de développement, en attendant E1 (J5). */
+  /** Réglage caché des builds de développement : budget de démonstration pour les parcours. */
   poserBudgetDemo(): Promise<boolean>;
+  /** Rappel du soir : heure HH:MM et activé ou non, enregistrés, puis rappels replanifiés. */
+  reglerRappel(reglages: ReglagesRappel): Promise<'invalid_reminder_time' | null>;
+  /**
+   * Fin de la bienvenue (E1) : première version du budget et charge « Charges fixes », réglages
+   * du rappel, puis demande d'autorisation des notifications. Un refus d'autorisation n'empêche
+   * rien ; un budget refusé n'enregistre rien et ne demande rien.
+   */
+  terminerBienvenue(fin: FinBienvenue): Promise<RefusBienvenue | null>;
+  /**
+   * Réglage caché des builds de développement : passe la bienvenue pour cette session, sans
+   * budget, afin que les parcours existants partent de l'accueil. Faux sans l'horloge de test.
+   */
+  passerBienvenue(): boolean;
 }
 
 /** Budget de démonstration : 1 200 € de revenus, 600 € de charges fixes, 0 € d'épargne. */
@@ -178,7 +206,7 @@ export function createKakeiboStore(deps: DependancesStore) {
   };
 
   const store = createStore<EtatKakeibo>()((set, get) => {
-    /** Première ouverture : installation au jour du téléphone, sans budget (E1 viendra en J5). */
+    /** Première ouverture : installation au jour du téléphone, sans budget : E1 le pose. */
     async function installer(r: Repositories): Promise<Charge> {
       const t = deps.horloge.now();
       const maintenant = heureLocale(t);
@@ -353,6 +381,8 @@ export function createKakeiboStore(deps: DependancesStore) {
       maintenant: null,
       reglagesRappel: null,
       explicationsVues: [],
+      horlogeTest: deps.horloge.actif,
+      bienvenuePassee: false,
 
       ouvrir: async () => {
         await traiter({ type: 'open' });
@@ -507,6 +537,40 @@ export function createKakeiboStore(deps: DependancesStore) {
         }
         await traiter({ type: 'open' });
         return accordee;
+      },
+
+      reglerRappel: (reglages) => {
+        if (!heureValide(reglages.reminderTime)) return Promise.resolve('invalid_reminder_time');
+        return enFile(async () => {
+          const r = await repos();
+          await etatCourant(r);
+          const settings = await r.settings.get();
+          if (settings !== null) {
+            await r.settings.save({
+              ...settings,
+              reminder_time: reglages.reminderTime,
+              reminder_enabled: reglages.reminderEnabled ? 1 : 0,
+            });
+          }
+          set({ reglagesRappel: { ...reglages } });
+          await planifierRappels();
+          return null;
+        });
+      },
+
+      terminerBienvenue: async ({ budget, heureRappel }) => {
+        if (!heureValide(heureRappel)) return 'invalid_reminder_time';
+        const refus = await get().poserBudgetInitial(budget);
+        if (refus !== null) return refus;
+        await get().reglerRappel({ reminderTime: heureRappel, reminderEnabled: true });
+        await get().demanderAutorisationRappel();
+        return null;
+      },
+
+      passerBienvenue: () => {
+        if (!deps.horloge.actif) return false;
+        set({ bienvenuePassee: true });
+        return true;
       },
 
       // Même chemin que la bienvenue (E1) : une première charge « Charges fixes », puis la

@@ -1,0 +1,132 @@
+# Bienvenue (E1, #101) : appli neuve, mercredi 4 novembre 2026 à 9:00 (le script l'a effacée et a
+# réglé l'heure du téléphone). Les quatre étapes, une capture chacune : la méthode avec la maison,
+# les quatre catégories, mon mois (budget du mois et enveloppe de la semaine ; on ne continue que
+# si le budget est supérieur à zéro), mon rappel du soir (21:00 par défaut). Notifications
+# accordées d'avance : la demande d'autorisation répond sans boîte du système. Puis l'accueil,
+# avec l'enveloppe annoncée et la pièce du mois ; relancée, l'appli ne montre plus la bienvenue.
+# Le parcours finit en effaçant les données de l'appli.
+appId: app.kakeibo
+---
+- launchApp:
+    permissions:
+      notifications: allow
+- extendedWaitUntil:
+    visible: 'La méthode en une minute'
+    timeout: 60000
+- assertVisible: 'Étape 1 sur 4'
+- assertVisible: 'Noter'
+- assertVisible: 'Clôturer chaque soir'
+- assertVisible: 'Faire le bilan'
+- assertVisible: 'Kura, la réserve, novembre 2026\..*'
+- takeScreenshot: captures/bienvenue-1-methode
+- scrollUntilVisible:
+    element:
+      text: 'Continuer.: étape suivante'
+    direction: DOWN
+- tapOn: 'Continuer.: étape suivante'
+# 2. Les quatre catégories.
+- extendedWaitUntil:
+    visible: 'Les quatre catégories'
+    timeout: 10000
+- assertVisible: 'Étape 2 sur 4'
+- assertVisible: 'Essentiel.: par exemple .*'
+- assertVisible: 'Envies.: par exemple .*'
+- assertVisible: 'Culture.: par exemple .*'
+- takeScreenshot: captures/bienvenue-2-categories
+- scrollUntilVisible:
+    element:
+      text: 'Imprévus.: par exemple .*'
+    direction: DOWN
+- scrollUntilVisible:
+    element:
+      text: 'Continuer.: étape suivante'
+    direction: DOWN
+- tapOn: 'Continuer.: étape suivante'
+# 3. Mon mois : 2 000 € de revenus, 1 100 € de charges fixes, 300 € d'épargne.
+- extendedWaitUntil:
+    visible: 'Mon mois'
+    timeout: 10000
+- assertVisible: 'Étape 3 sur 4'
+- assertVisible: 'Indique tes revenus pour voir ton budget du mois\.'
+- scrollUntilVisible:
+    element:
+      text: 'Mes revenus du mois, en euros'
+    direction: DOWN
+- tapOn: 'Mes revenus du mois, en euros'
+- inputText: '2000'
+- scrollUntilVisible:
+    element:
+      text: 'Mes charges fixes du mois, en euros'
+    direction: DOWN
+- tapOn: 'Mes charges fixes du mois, en euros'
+- inputText: '1100'
+- scrollUntilVisible:
+    element:
+      text: 'Mon épargne visée, en euros'
+    direction: DOWN
+- tapOn: 'Mon épargne visée, en euros'
+- inputText: '1700'
+# Budget nul : on ne continue pas.
+- scrollUntilVisible:
+    element:
+      text: 'Budget du mois.: 0.€'
+    direction: DOWN
+- assertVisible: 'Ton budget du mois doit être supérieur à 0.€ pour continuer\.'
+- takeScreenshot: captures/bienvenue-3-budget-nul
+- scrollUntilVisible:
+    element:
+      text: 'Mon épargne visée, en euros'
+    direction: DOWN
+- tapOn: 'Mon épargne visée, en euros'
+- eraseText: 10
+- inputText: '300'
+- scrollUntilVisible:
+    element:
+      text: 'Enveloppe de cette semaine.: 100.€'
+    direction: DOWN
+# Installation un mercredi : 5 jours décomptés à 20 € (600 € sur 30 jours).
+- assertVisible: 'Budget du mois.: 600.€'
+- assertVisible: 'Enveloppe de cette semaine.: 100.€'
+- takeScreenshot: captures/bienvenue-3-mois
+- scrollUntilVisible:
+    element:
+      text: 'Continuer.: étape suivante'
+    direction: DOWN
+- tapOn: 'Continuer.: étape suivante'
+# 4. Mon rappel du soir.
+- extendedWaitUntil:
+    visible: 'Mon rappel du soir'
+    timeout: 10000
+- assertVisible: 'Étape 4 sur 4'
+- assertVisible: 'Heure du rappel.: 21 h 00'
+- tapOn: 'Rappel 15 minutes plus tard'
+- assertVisible: 'Heure du rappel.: 21 h 15'
+- tapOn: 'Rappel 15 minutes plus tôt'
+- assertVisible: 'Heure du rappel.: 21 h 00'
+- takeScreenshot: captures/bienvenue-4-rappel
+- scrollUntilVisible:
+    element:
+      text: 'Commencer.: .*'
+    direction: DOWN
+- tapOn: 'Commencer.: .*'
+# L'accueil, avec l'enveloppe annoncée.
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 20000
+- assertVisible: 'Il te reste 100.€ jusqu’à dimanche'
+- assertVisible: 'mercredi, à clôturer aujourd’hui'
+- takeScreenshot: captures/bienvenue-accueil
+- scrollUntilVisible:
+    element:
+      text: 'Kura, la réserve, novembre 2026\..*'
+    direction: DOWN
+- takeScreenshot: captures/bienvenue-accueil-maison
+# Relancée : plus de bienvenue.
+- launchApp
+- extendedWaitUntil:
+    visible: 'Noter une dépense'
+    timeout: 60000
+- assertNotVisible: 'La méthode en une minute'
+- assertVisible: 'Il te reste 100.€ jusqu’à dimanche'
+- launchApp:
+    clearState: true

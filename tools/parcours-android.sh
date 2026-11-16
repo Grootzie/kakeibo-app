@@ -72,12 +72,12 @@ if [ -f e2e/heure/installer.yaml ]; then
     sleep 2
     maestro test e2e/heure/rappel-toucher.yaml --format junit --output captures/maestro-heure-4.xml || statut=1
   fi
-  # Parcours « journée type », « rattrapage » (#49), « bilans prêts » (#61), « bilan du mois » (#64),
+  # Parcours « bienvenue » (E1, #101), « journée type », « rattrapage » (#49), « bilans prêts » (#61), « bilan du mois » (#64),
   # « récapitulatif » (#63), « bilan de la semaine » (#62), « semaine parfaite » et « semaine hors
   # budget » (critère de J3, #67), « album » (#87), « maison » et « poussière » (critère de J4,
   # #88) : appli effacée, mercredi 4 novembre 2026 à 9:00 ; l'horloge de test de l'APK de
   # développement avance ensuite les jours.
-  for parcours in journee-type rattrapage bilans-prets bilan-mois recapitulatif bilan-semaine \
+  for parcours in bienvenue journee-type rattrapage bilans-prets bilan-mois recapitulatif bilan-semaine \
     semaine-parfaite semaine-hors-budget maison poussiere album; do
     if [ -f "e2e/heure/$parcours.yaml" ]; then
       adb shell pm clear app.kakeibo >/dev/null 2>&1 || true
@@ -89,7 +89,8 @@ fi
 adb shell date "$(date -u +%m%d%H%M%Y.%S)" || true
 adb shell settings put global auto_time 1 || true
 
-# Accueil avec le texte agrandi à 200 % (#43) : capture et hiérarchie, puis retour à 100 %.
+# Texte agrandi à 200 % (#43) : capture et hiérarchie, puis retour à 100 %. Appli effacée par le
+# dernier parcours : c'est la bienvenue (E1, #101) qui s'affiche.
 adb shell settings put system font_scale 2.0 || true
 adb shell am force-stop app.kakeibo || true
 adb shell monkey -p app.kakeibo -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 || true
