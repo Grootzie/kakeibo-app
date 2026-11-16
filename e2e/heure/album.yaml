@@ -223,12 +223,12 @@ appId: app.kakeibo
     timeout: 10000
 - assertVisible: 'L’échelle'
 # Fiche d'objet (J4.7, #86) : l'échelle en grand dans son état, son nom japonais, son explication
-# et son histoire (objet de base, fêlé par la semaine 45).
+# et son histoire (objet de base arrivé à l'installation le 4, fêlé au scellement du lundi 9).
 - assertVisible: 'En japonais.: hashigo, 梯子'
 - takeScreenshot: captures/fiche-objet
 - scrollUntilVisible:
     element:
-      text: 'Dans ta maison depuis le 2.novembre\. Fêlée le [0-9]+\.'
+      text: 'Dans ta maison depuis le 4.novembre\. Fêlée le 9\.'
     direction: DOWN
 - assertVisible: 'Au Japon'
 - takeScreenshot: captures/fiche-objet-histoire

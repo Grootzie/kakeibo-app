@@ -1438,13 +1438,11 @@ describe('parcours Maestro « album » (J4.8, #87)', () => {
       '- takeScreenshot: captures/fiche-objet',
       `text: '${motif(
         fr.ficheObjet.histoire(echelle, {
-          arrivee: { type: 'base', jour: '2026-11-02' },
+          arrivee: { type: 'base', jour: '2026-11-04' },
           felure: '2026-11-09',
           reparation: null,
         }),
-      )
-        .replace('\u00a0', '.')
-        .replace('le 9\\.', 'le [0-9]+\\.')}'`,
+      ).replace('\u00a0', '.')}'`,
       `- assertVisible: '${fr.ficheObjet.auJapon}'`,
       '- takeScreenshot: captures/fiche-objet-histoire',
       `- tapOn: '${fr.ficheObjet.retourLibelle}'`,
