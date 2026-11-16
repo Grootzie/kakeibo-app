@@ -5,6 +5,7 @@ import {
   type DayClosureRow,
   type ExpenseRow,
   type OwnedItemRow,
+  type RecurringChargeRow,
   type SettingsRow,
   type WeekResultRow,
   createRepositories,
@@ -99,6 +100,16 @@ const objet: OwnedItemRow = {
   cracked_at: null,
   cracked_week: null,
   repaired_at: null,
+};
+
+const abonnement: RecurringChargeRow = {
+  id: 'c-abo',
+  label: 'Abonnement',
+  amount: 1200,
+  frequency: 'monthly',
+  day: 15,
+  starts_on: '2026-11-03',
+  ends_on: null,
 };
 
 describe('dépôts', () => {
@@ -229,6 +240,47 @@ describe('dépôts', () => {
     });
   });
 
+  describe('recurring_charge', () => {
+    it('ajoute une charge, la modifie, puis l’arrête : la ligne reste avec son arrêt', async () => {
+      const { repos } = await depots();
+      await repos.recurringCharges.save(abonnement);
+      expect(await repos.recurringCharges.all()).toEqual([abonnement]);
+      const modifiee = { ...abonnement, label: 'Musique', amount: 1100, day: 31 };
+      await repos.recurringCharges.save(modifiee);
+      expect(await repos.recurringCharges.all()).toEqual([modifiee]);
+      await repos.recurringCharges.save({ ...modifiee, ends_on: '2026-11-20' });
+      expect(await repos.recurringCharges.all()).toEqual([{ ...modifiee, ends_on: '2026-11-20' }]);
+    });
+
+    it('relit les charges dans l’ordre de leur début, puis de leur ajout', async () => {
+      const { repos } = await depots();
+      const loyer = { ...abonnement, id: 'z-loyer', starts_on: '2026-11-01', day: 5 };
+      const gaz = {
+        ...abonnement,
+        id: 'a-gaz',
+        starts_on: '2026-11-03',
+        frequency: 'weekly' as const,
+        day: 2,
+      };
+      await repos.recurringCharges.save(abonnement);
+      await repos.recurringCharges.save(gaz);
+      await repos.recurringCharges.save(loyer);
+      expect((await repos.recurringCharges.all()).map((c) => c.id)).toEqual([
+        'z-loyer',
+        'c-abo',
+        'a-gaz',
+      ]);
+    });
+
+    it('refuse une charge invalide (jour hors bornes de sa fréquence)', async () => {
+      const { repos } = await depots();
+      await expect(
+        repos.recurringCharges.save({ ...abonnement, frequency: 'weekly', day: 8 }),
+      ).rejects.toThrow();
+      expect(await repos.recurringCharges.all()).toEqual([]);
+    });
+  });
+
   describe('transactions', () => {
     it('chaque écriture passe dans une transaction', async () => {
       const base = createTestDb();
@@ -244,6 +296,7 @@ describe('dépôts', () => {
         ['week_result', () => repos.weekResults.add(resultat)],
         ['week_result', () => repos.weekResults.markCeremonySeen(['2026-W45'])],
         ['owned_item', () => repos.ownedItems.save(objet)],
+        ['recurring_charge', () => repos.recurringCharges.save(abonnement)],
       ];
       for (const [table, ecrire] of ecritures) {
         sql.length = 0;

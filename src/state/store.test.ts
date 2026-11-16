@@ -456,6 +456,11 @@ describe('store de l’état', () => {
           effective_from: '2026-11-02',
         },
       ]);
+      // Comme à la bienvenue, les charges fixes sont une première dépense récurrente : une charge
+      // ajoutée ensuite s'y ajoute, au lieu de les remplacer.
+      expect(await repos.recurringCharges.all()).toMatchObject([
+        { label: 'Charges fixes', amount: 60000, frequency: 'monthly', day: 1 },
+      ]);
       // 600 € par mois, 20 € par jour décompté : vendredi, samedi et dimanche.
       expect(enveloppeSemaine(store.getState().etat!, store.getState().maintenant!)).toMatchObject({
         enveloppe: 6000,

@@ -2,9 +2,13 @@
 // le domaine (process) et les dépôts. L'heure vient de l'horloge (clock.ts), jamais du système.
 import { createStore } from 'zustand/vanilla';
 
-import type { DayClosureRow, ExpenseRow, Repositories } from '../data/repositories';
+import type {
+  DayClosureRow,
+  ExpenseRow,
+  RecurringChargeRow,
+  Repositories,
+} from '../data/repositories';
 import { MIGRATIONS } from '../data/migrations';
-import { weekDays, weekOf } from '../domain/calendrier';
 import { isValidNote } from '../domain/depense';
 import type { Catalog } from '../domain/objets';
 import type { LocalDateTime } from '../domain/scellement';
@@ -16,8 +20,9 @@ import {
   process,
 } from '../domain/traitement';
 import type { Horloge } from './clock';
+import { fr } from '../i18n/fr';
 import { type IdExplication, ecrireExplicationsVues, lireExplicationsVues } from './explications';
-import { type Charge, charger, persister } from './persistance';
+import { type Charge, chargeDepuisLigne, charger, persister } from './persistance';
 import { type ReglagesRappel, type ServiceRappels, rappelsAPlanifier } from './rappel';
 import { estRattrapable } from './selecteurs';
 import { dateLocale, heureLocale, instantLocal } from './temps';
@@ -47,8 +52,28 @@ export interface MontantsBudget {
   savingsGoal: number;
 }
 
+/** Dépense récurrente saisie (E10, E9) : elle commence le jour de sa saisie. */
+export interface NouvelleCharge {
+  label: string;
+  /** Montant d'une échéance, en centimes. */
+  amount: number;
+  frequency: RecurringChargeRow['frequency'];
+  /** Jour de la semaine (1 = lundi … 7 = dimanche) ou du mois (1 à 31). */
+  day: number;
+}
+
+/** Refus d'un changement de dépense récurrente : ceux du domaine, et une charge absente ou arrêtée. */
+export type RefusCharge = Refusal | 'unknown_charge' | 'charge_stopped';
+
 /** Refus d'une dépense : ceux du domaine, et une note trop longue. */
 export type RefusDepense = Refusal | 'note_too_long';
+
+/** Ce qu'une écriture acceptée change dans l'état de l'interface. */
+interface MiseAJour {
+  depenses?: ExpenseRow[];
+  clotures?: DayClosureRow[];
+  charges?: RecurringChargeRow[];
+}
 
 export interface EtatKakeibo {
   pret: boolean;
@@ -58,6 +83,8 @@ export interface EtatKakeibo {
   /** Dépenses complètes, dans l'ordre des jours. */
   depenses: ExpenseRow[];
   clotures: DayClosureRow[];
+  /** Dépenses récurrentes, arrêtées comprises (ends_on), dans l'ordre de leur début. */
+  charges: RecurringChargeRow[];
   /** Heure locale du dernier traitement. */
   maintenant: LocalDateTime | null;
   /** Rappel du soir : reminder_time et reminder_enabled des réglages. */
@@ -91,6 +118,21 @@ export interface EtatKakeibo {
    * sinon une nouvelle version du budget, jamais une modification.
    */
   confirmerBudget(montants: MontantsBudget): Promise<Refusal | null>;
+  /**
+   * Budget de la bienvenue (E1), une seule fois : les charges fixes saisies deviennent une
+   * première charge mensuelle « Charges fixes » (le 1er, depuis le début du mois d'installation),
+   * et la première version du budget vaut dès le lundi de la semaine d'installation.
+   */
+  poserBudgetInitial(montants: MontantsBudget): Promise<Refusal | null>;
+  /**
+   * Ajoute une dépense récurrente, qui commence aujourd'hui, et une version du budget : elle
+   * s'applique à l'enveloppe à partir de la semaine suivante. Rend son identifiant.
+   */
+  ajouterCharge(charge: NouvelleCharge): Promise<{ id: string; refusal: RefusCharge | null }>;
+  /** Modifie une dépense récurrente en cours, et ajoute une version du budget. */
+  modifierCharge(id: string, charge: NouvelleCharge): Promise<RefusCharge | null>;
+  /** Arrête une dépense récurrente aujourd'hui (ends_on) : la ligne reste, une version s'ajoute. */
+  arreterCharge(id: string): Promise<RefusCharge | null>;
   /** Une carte de première fois s'affiche : elle ne reviendra plus, même après redémarrage. */
   marquerExplicationVue(id: IdExplication): Promise<void>;
   /**
@@ -159,7 +201,7 @@ export function createKakeiboStore(deps: DependancesStore) {
         await r.settings.save(settings);
         await persister(r, null, etat, { clotures: [] });
       });
-      return { settings, etat, depenses: [], clotures: [] };
+      return { settings, etat, depenses: [], clotures: [], charges: [] };
     }
 
     /** Charge l'état au premier appel, sans traitement. */
@@ -171,6 +213,7 @@ export function createKakeiboStore(deps: DependancesStore) {
         etat: charge.etat,
         depenses: charge.depenses,
         clotures: charge.clotures,
+        charges: charge.charges,
         reglagesRappel: reglagesDepuis(charge.settings),
         explicationsVues: lireExplicationsVues(charge.settings.seen_explanations),
       });
@@ -222,26 +265,17 @@ export function createKakeiboStore(deps: DependancesStore) {
      * `ecrire` seulement s'il est accepté.
      */
     function traiter(
-      evenement: AppEvent | ((etat: AppState) => AppEvent),
-      ecrire?: (
-        r: Repositories,
-        instant: string,
-        maintenant: LocalDateTime,
-      ) => Promise<{
-        depenses?: ExpenseRow[];
-        clotures?: DayClosureRow[];
-      }>,
-      avantTraitement?: (etat: AppState) => AppState,
+      evenement: AppEvent | ((etat: AppState, maintenant: LocalDateTime) => AppEvent),
+      ecrire?: (r: Repositories, instant: string, maintenant: LocalDateTime) => Promise<MiseAJour>,
     ): Promise<Refusal | null> {
       return enFile(async () => {
         const r = await repos();
         const charge = await etatCourant(r);
         const t = deps.horloge.now();
         const maintenant = heureLocale(t);
-        const avant = avantTraitement ? avantTraitement(charge) : charge;
-        const ev = typeof evenement === 'function' ? evenement(avant) : evenement;
-        const { state, refusal } = process(avant, ev, maintenant, deps.catalogue);
-        let maj: { depenses?: ExpenseRow[]; clotures?: DayClosureRow[] } = {};
+        const ev = typeof evenement === 'function' ? evenement(charge, maintenant) : evenement;
+        const { state, refusal } = process(charge, ev, maintenant, deps.catalogue);
+        let maj: MiseAJour = {};
         await r.transaction(async () => {
           if (refusal === null && ecrire) maj = await ecrire(r, instantLocal(t), maintenant);
           await persister(r, charge, state, {
@@ -254,11 +288,60 @@ export function createKakeiboStore(deps: DependancesStore) {
           maintenant,
           depenses: maj.depenses ?? s.depenses,
           clotures: maj.clotures ? [...s.clotures, ...maj.clotures] : s.clotures,
+          charges: maj.charges ?? s.charges,
         }));
         await planifierRappels();
         return refusal;
       });
     }
+
+    /**
+     * Enregistre une dépense récurrente (ajout ou changement) avec la version du budget qu'elle
+     * entraîne, dans une seule transaction ; rien ne s'écrit si le domaine refuse.
+     */
+    function changerCharge(
+      ligne: (maintenant: LocalDateTime) => RecurringChargeRow,
+    ): Promise<Refusal | null> {
+      let nouvelle: RecurringChargeRow | null = null;
+      return traiter(
+        (_etat, maintenant) => {
+          const l = ligne(maintenant);
+          nouvelle = l;
+          const autres = get().charges.filter((c) => c.id !== l.id);
+          return {
+            type: 'revise_fixed_costs',
+            id: deps.nouvelId(),
+            charges: [...autres, l].map(chargeDepuisLigne),
+          };
+        },
+        async (r) => {
+          const l = nouvelle;
+          if (l === null) return {};
+          await r.recurringCharges.save(l);
+          const charges = get().charges;
+          return {
+            charges: charges.some((c) => c.id === l.id)
+              ? charges.map((c) => (c.id === l.id ? l : c))
+              : [...charges, l],
+          };
+        },
+      );
+    }
+
+    /** La charge à changer, une fois l'état chargé et les actions en cours terminées. */
+    async function chargeEnCours(id: string): Promise<RecurringChargeRow | RefusCharge> {
+      await enFile(async () => etatCourant(await repos()));
+      const c = get().charges.find((x) => x.id === id);
+      if (c === undefined) return 'unknown_charge';
+      return c.ends_on === null ? c : 'charge_stopped';
+    }
+
+    const champsCharge = (c: NouvelleCharge) => ({
+      label: c.label.trim(),
+      amount: c.amount,
+      frequency: c.frequency,
+      day: c.day,
+    });
 
     return {
       pret: false,
@@ -266,6 +349,7 @@ export function createKakeiboStore(deps: DependancesStore) {
       etat: null,
       depenses: [],
       clotures: [],
+      charges: [],
       maintenant: null,
       reglagesRappel: null,
       explicationsVues: [],
@@ -338,6 +422,65 @@ export function createKakeiboStore(deps: DependancesStore) {
       confirmerBudget: (montants) =>
         traiter({ type: 'confirm_budget', id: deps.nouvelId(), ...montants }),
 
+      poserBudgetInitial: (m) => {
+        if (!Number.isSafeInteger(m.fixedCosts) || m.fixedCosts < 0) {
+          return Promise.resolve('invalid_budget');
+        }
+        let ligne: RecurringChargeRow | null = null;
+        return traiter(
+          (etat) => {
+            ligne =
+              m.fixedCosts === 0
+                ? null
+                : {
+                    id: deps.nouvelId(),
+                    label: fr.budget.chargesFixes,
+                    amount: m.fixedCosts,
+                    frequency: 'monthly',
+                    day: 1,
+                    starts_on: `${etat.installDay.slice(0, 7)}-01`,
+                    ends_on: null,
+                  };
+            return {
+              type: 'set_initial_budget',
+              id: deps.nouvelId(),
+              income: m.income,
+              savingsGoal: m.savingsGoal,
+              charges: ligne === null ? [] : [chargeDepuisLigne(ligne)],
+            };
+          },
+          async (r) => {
+            const l: RecurringChargeRow | null = ligne;
+            if (l === null) return {};
+            await r.recurringCharges.save(l);
+            return { charges: [...get().charges, l] };
+          },
+        );
+      },
+
+      ajouterCharge: async (c) => {
+        const id = deps.nouvelId();
+        const refusal = await changerCharge((maintenant) => ({
+          id,
+          ...champsCharge(c),
+          starts_on: maintenant.day,
+          ends_on: null,
+        }));
+        return { id, refusal };
+      },
+
+      modifierCharge: async (id, c) => {
+        const actuelle = await chargeEnCours(id);
+        if (typeof actuelle === 'string') return actuelle;
+        return changerCharge(() => ({ ...actuelle, ...champsCharge(c) }));
+      },
+
+      arreterCharge: async (id) => {
+        const actuelle = await chargeEnCours(id);
+        if (typeof actuelle === 'string') return actuelle;
+        return changerCharge((maintenant) => ({ ...actuelle, ends_on: maintenant.day }));
+      },
+
       marquerExplicationVue: (id) =>
         enFile(async () => {
           const r = await repos();
@@ -366,28 +509,11 @@ export function createKakeiboStore(deps: DependancesStore) {
         return accordee;
       },
 
+      // Même chemin que la bienvenue (E1) : une première charge « Charges fixes », puis la
+      // première version du budget, en vigueur dès le lundi de la semaine d'installation.
       poserBudgetDemo: async () => {
         if (!deps.horloge.actif) return false;
-        let pose = false;
-        await traiter({ type: 'open' }, undefined, (etat) => {
-          if (etat.budgets.length > 0) return etat;
-          pose = true;
-          // En vigueur dès le lundi de la semaine d'installation : l'enveloppe d'une semaine
-          // suit la version en vigueur le lundi 00:00, et seuls les jours décomptés comptent.
-          const lundi = weekDays(weekOf(etat.installDay))[0];
-          return {
-            ...etat,
-            budgets: [
-              {
-                id: deps.nouvelId(),
-                month: etat.installDay.slice(0, 7),
-                ...BUDGET_DEMO,
-                effectiveFrom: lundi,
-              },
-            ],
-          };
-        });
-        return pose;
+        return (await get().poserBudgetInitial(BUDGET_DEMO)) === null;
       },
     };
   });
