@@ -123,6 +123,18 @@ export function EcranBienvenue({ store, onArrivee }: PropsEcranBienvenue) {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ padding: ESPACE, gap: ESPACE }}
       >
+        {/* En haut : les parcours le touchent dès le lancement, sans faire défiler. */}
+        {horlogeTest && (
+          <Pressable
+            testID="passer-bienvenue"
+            accessibilityRole="button"
+            accessibilityLabel={b.passer}
+            onPress={passer}
+            style={styleBouton}
+          >
+            <Text style={{ color: c.texteDiscret }}>{b.passer}</Text>
+          </Pressable>
+        )}
         <Text style={{ color: c.texteDiscret }}>{b.etape(etape, ETAPES)}</Text>
         <Text
           accessibilityRole="header"
@@ -277,17 +289,6 @@ export function EcranBienvenue({ store, onArrivee }: PropsEcranBienvenue) {
               style={styleBouton}
             >
               <Text style={{ color: c.texte }}>{b.retour}</Text>
-            </Pressable>
-          )}
-          {horlogeTest && (
-            <Pressable
-              testID="passer-bienvenue"
-              accessibilityRole="button"
-              accessibilityLabel={b.passer}
-              onPress={passer}
-              style={styleBouton}
-            >
-              <Text style={{ color: c.texteDiscret }}>{b.passer}</Text>
             </Pressable>
           )}
         </View>

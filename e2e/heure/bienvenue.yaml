@@ -65,7 +65,7 @@ appId: app.kakeibo
       text: 'Mon épargne visée, en euros'
     direction: DOWN
 - tapOn: 'Mon épargne visée, en euros'
-- inputText: '1700'
+- inputText: '900'
 # Budget nul : on ne continue pas.
 - scrollUntilVisible:
     element:
