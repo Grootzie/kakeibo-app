@@ -1391,7 +1391,7 @@ describe('parcours Maestro « album » (J4.8, #87)', () => {
   const motif = (texte: string) => texte.replace(/\./g, '\\.').replace(/ /g, '.');
 
   it('est joué par le script de l’émulateur, appli effacée, le 4 novembre 2026 à 9:00', () => {
-    expect(script).toMatch(/for parcours in [^;]*\balbum; do/);
+    expect(script).toMatch(/for parcours in [^;]*\balbum\b[^;]*; do/);
     expect(parcours).toMatch(/appId: app\.kakeibo/);
     expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
   });
@@ -1751,5 +1751,72 @@ describe('bienvenue (E1, #101) dans les parcours Maestro', () => {
   it('est joué par le script, appli effacée, le mercredi 4 novembre 2026 à 9:00', () => {
     const script = readFileSync(join(__dirname, 'parcours-android.sh'), 'utf8');
     expect(script).toMatch(/for parcours in bienvenue journee-type/);
+  });
+});
+
+describe('parcours Maestro « comprendre » (J5.7, #106)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'heure', 'comprendre.yaml'), 'utf8');
+  const script = readFileSync(join(__dirname, 'parcours-android.sh'), 'utf8');
+  const k = fr.comprendre;
+  const ce = fr.carteExplication;
+  const motif = (texte: string) => texte.replace(/\./g, '\\.').replace(/\u00a0/g, '.');
+
+  it('est joué par le script de l’émulateur, appli effacée, le 4 novembre 2026 à 9:00', () => {
+    expect(script).toMatch(/for parcours in [^;]*\bcomprendre\b[^;]*; do/);
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+
+  it('calcule les textes attendus avec ceux de l’appli', () => {
+    expect(k.piece(1, 'Genkan, l’entrée')).toBe('Janvier · Genkan, l’entrée');
+    expect(k.piece(11, 'Kura, la réserve')).toBe('Novembre · Kura, la réserve');
+    expect(k.objet({ nom: 'échelle', article: "l'", genre: 'f' })).toBe('L’échelle');
+    expect(fr.explications.bienvenueMethode).toMatch(
+      /^Le kakeibo, le .livre de comptes du foyer., est né au Japon en 1904/,
+    );
+    expect(fr.explications.premiereDepense).toMatch(
+      /^Noter soi-même chaque dépense, c’est le cœur du kakeibo/,
+    );
+    expect(ce.enSavoirPlusLibelle(ce.titres.first_expense)).toMatch(
+      /^En savoir plus sur .*Première dépense.*$/,
+    );
+  });
+
+  it('visite la liste, la méthode, les fêtes et les objets, avec une capture par étape', () => {
+    dansLOrdre(parcours, [
+      "- openLink: 'kakeibo://comprendre'",
+      `visible: '${k.retourLibelle}'`,
+      `- assertVisible: '${k.titre}'`,
+      '- takeScreenshot: captures/comprendre',
+      `- tapOn: '${k.fiches.methode}'`,
+      `visible: '${k.toutesLesFichesLibelle}'`,
+      '- takeScreenshot: captures/comprendre-methode',
+      `- tapOn: '${k.toutesLesFichesLibelle}'`,
+      `- tapOn: '${k.fiches.fetes}'`,
+      `visible: '${k.piece(1, 'Genkan, l’entrée')}'`,
+      '- takeScreenshot: captures/comprendre-fetes',
+      `text: '${k.piece(11, 'Kura, la réserve')}'`,
+      `- tapOn: '${k.fiches.objets}'`,
+      `- assertVisible: '${k.objet({ nom: 'échelle', article: "l'", genre: 'f' })}'`,
+      '- takeScreenshot: captures/comprendre-objets',
+      `visible: '${motif(fr.ficheObjet.japonaisLibelle({ kanji: '梯子', romaji: 'hashigo' }))}'`,
+      `- tapOn: '${fr.ficheObjet.retourLibelle}'`,
+      `- tapOn: '${k.retourLibelle}'`,
+    ]);
+  });
+
+  it('« En savoir plus » de la première dépense ouvre la fiche de la méthode ; la carte ne revient pas', () => {
+    dansLOrdre(parcours, [
+      `- tapOn: '${fr.accueil.noterDepense}'`,
+      `visible: '${ce.titres.first_expense}'`,
+      `- assertVisible: '${ce.enSavoirPlus}'`,
+      '- takeScreenshot: captures/comprendre-carte',
+      "- tapOn: 'En savoir plus sur .*Première dépense.*'",
+      `visible: '${k.toutesLesFichesLibelle}'`,
+      `- assertVisible: '${k.fiches.methode}'`,
+      '- takeScreenshot: captures/comprendre-en-savoir-plus',
+      `- tapOn: '${k.retourLibelle}'`,
+      `- assertNotVisible: '${ce.titres.first_expense}'`,
+    ]);
   });
 });

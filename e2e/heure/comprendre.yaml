@@ -1,0 +1,112 @@
+# Comprendre (E12, J5.7, #106) : la liste des fiches, la méthode, les fêtes de chaque mois, les
+# objets de la maison qui ouvrent leur fiche (J4.7). Puis la première dépense : sa carte propose
+# « En savoir plus », qui ouvre Comprendre à la fiche de la méthode. Comprendre s'ouvre par son
+# lien (kakeibo://comprendre), comme le font les parcours Maestro ; les réglages y mèneront (J5.6).
+# Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
+# du téléphone au mercredi 4 novembre 2026 à 9:00.
+appId: app.kakeibo
+---
+- launchApp
+# Bienvenue (E1, #101) : l'APK de développement la passe (réglage caché), sans budget.
+- extendedWaitUntil:
+    visible: 'Passer la bienvenue \(horloge de test\)'
+    timeout: 60000
+- tapOn: 'Passer la bienvenue \(horloge de test\)'
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 60000
+# 1. La liste des fiches.
+- openLink: 'kakeibo://comprendre'
+- extendedWaitUntil:
+    visible: 'Fermer Comprendre'
+    timeout: 10000
+- assertVisible: 'Comprendre'
+- assertVisible: 'La méthode kakeibo'
+- assertVisible: 'Les fêtes de chaque mois'
+- takeScreenshot: captures/comprendre
+# 2. La méthode : les textes de la spec.
+- tapOn: 'La méthode kakeibo'
+- extendedWaitUntil:
+    visible: 'Revenir à toutes les fiches de Comprendre'
+    timeout: 10000
+- assertVisible: 'Le kakeibo, le .livre de comptes du foyer., est né au Japon en 1904.*'
+- takeScreenshot: captures/comprendre-methode
+# 3. Les fêtes de chaque mois : de janvier à décembre, avec l'explication de chaque pièce.
+- tapOn: 'Revenir à toutes les fiches de Comprendre'
+- tapOn: 'Les fêtes de chaque mois'
+- extendedWaitUntil:
+    visible: 'Janvier · Genkan, l’entrée'
+    timeout: 10000
+- assertVisible: 'Shōgatsu, le Nouvel An'
+- takeScreenshot: captures/comprendre-fetes
+- scrollUntilVisible:
+    element:
+      text: 'Novembre · Kura, la réserve'
+    direction: DOWN
+- assertVisible: 'Tori no ichi et Shichi-go-san'
+# 4. Tes objets : les 3 objets de base de la pièce de novembre ; l'échelle ouvre sa fiche.
+- scrollUntilVisible:
+    element:
+      text: 'Revenir à toutes les fiches de Comprendre'
+    direction: UP
+- tapOn: 'Revenir à toutes les fiches de Comprendre'
+- tapOn: 'Tes objets'
+- extendedWaitUntil:
+    visible: 'Novembre · Kura, la réserve'
+    timeout: 10000
+- assertVisible: 'Les étagères'
+- assertVisible: 'Le coffre nagamochi'
+- assertVisible: 'L’échelle'
+- takeScreenshot: captures/comprendre-objets
+- tapOn: 'L’échelle'
+- extendedWaitUntil:
+    visible: 'En japonais.: hashigo, 梯子'
+    timeout: 10000
+- tapOn: 'Retour à ta maison'
+- extendedWaitUntil:
+    visible: 'Fermer Comprendre'
+    timeout: 10000
+- tapOn: 'Fermer Comprendre'
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 10000
+# 5. Première dépense : sa carte propose « En savoir plus », qui ouvre la fiche de la méthode.
+- longPressOn: 'mercredi.4.novembre'
+- extendedWaitUntil:
+    visible: 'Horloge de test'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Poser un budget de démonstration.*'
+    direction: DOWN
+- tapOn: 'Poser un budget de démonstration.*'
+- assertVisible: 'Budget de démonstration posé'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.4.novembre'
+    direction: UP
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Essentiel'
+- inputText: '12'
+# Pas de « hideKeyboard » : sur Android, Maestro envoie « Retour », qui ferme la feuille (Modal).
+- tapOn: 'Enregistrer en Essentiel'
+- extendedWaitUntil:
+    visible: 'Première dépense'
+    timeout: 10000
+- assertVisible: 'En savoir plus'
+- takeScreenshot: captures/comprendre-carte
+- tapOn: 'En savoir plus sur .*Première dépense.*'
+- extendedWaitUntil:
+    visible: 'Revenir à toutes les fiches de Comprendre'
+    timeout: 10000
+- assertVisible: 'La méthode kakeibo'
+- assertVisible: 'Noter soi-même chaque dépense, c’est le cœur du kakeibo.*'
+- takeScreenshot: captures/comprendre-en-savoir-plus
+# 6. Retour à l'accueil : la carte vue ne revient pas.
+- tapOn: 'Fermer Comprendre'
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 10000
+- assertNotVisible: 'Première dépense'
+- launchApp:
+    clearState: true
