@@ -3,6 +3,9 @@
 // la poussière ; parfois un objet qui se fêle), puis l'objet et une phrase de conclusion. On
 // passe d'un temps à l'autre d'une touche ; chaque temps est lu par le lecteur d'écran. Quitté
 // en route, le bilan se rouvre au même endroit ; « Terminer » le marque vu.
+// Depuis J4.5 (#84), la maison remplace le dessin provisoire : à l'ouverture de la capsule,
+// l'objet rejoint son emplacement dans sa pièce ; la fêlure se voit sur l'objet dans la pièce ;
+// un objet en attente de sa pièce garde son message.
 // Au temps 3, la première fois : « Première capsule », « Première poussière », « Première
 // fêlure » (#66), une carte à la fois.
 import { type ReactNode, useEffect, useState } from 'react';
@@ -11,12 +14,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { fr } from '../../i18n/fr';
 import { EXPLICATIONS_J3, type MomentsEcran } from '../../state/explications';
+import type { PieceDuBilan } from '../../state/maison';
 import type { VueBilanSemaine } from '../../state/selecteurs';
 import type { KakeiboStore } from '../../state/store';
 import { CarteDuMoment } from '../explication/CarteExplication';
+import { Maison } from '../maison/Maison';
 import { theme } from '../theme';
 import { Gashapon } from './Gashapon';
-import { ObjetProvisoire } from './ObjetProvisoire';
 import {
   type EtapeBilan,
   type Temps,
@@ -33,6 +37,8 @@ const NBSP = ' ';
 
 export interface PropsEcranBilanUneSemaine {
   vue: VueBilanSemaine;
+  /** Pièces où l'objet de la capsule entre et où un objet se fêle ; aucune par défaut. */
+  pieces?: readonly PieceDuBilan[];
   /** Pour les cartes de première fois ; sans store, aucune carte. */
   store?: KakeiboStore;
   /** Le téléphone demande moins d'animations. */
@@ -202,8 +208,35 @@ function Poussiere() {
   );
 }
 
+/**
+ * Les pièces au temps 3 : celle de l'objet fêlé dès le résultat, la fêlure se faisant sous les
+ * yeux ; celle de l'objet de la capsule à son ouverture, l'objet rejoignant son emplacement.
+ */
+function PiecesDuResultat({
+  pieces,
+  ouverte,
+}: {
+  pieces: readonly PieceDuBilan[];
+  ouverte: boolean;
+}) {
+  return (
+    <>
+      {pieces
+        .filter((p) => p.fele || (p.objet && ouverte))
+        .map((p) => (
+          <Maison
+            key={p.piece}
+            vue={p.objet && ouverte ? p.apres : p.avantCapsule}
+            depuis={p.avant.scene}
+          />
+        ))}
+    </>
+  );
+}
+
 function TempsResultat({
   vue,
+  pieces,
   store,
   etape,
   reduit,
@@ -211,6 +244,7 @@ function TempsResultat({
   onOuverte,
 }: {
   vue: VueBilanSemaine;
+  pieces: readonly PieceDuBilan[];
   store?: KakeiboStore;
   etape: EtapeBilan;
   reduit: boolean;
@@ -235,23 +269,22 @@ function TempsResultat({
           {ouverture}
         </Text>
       )}
-      {vue.fele !== null && (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <ObjetProvisoire objet={vue.fele} taille={48} fele libelle={fr.messages.fele(vue.fele)} />
-          <Text style={{ flex: 1, color: c.texteDiscret }}>{b.nomObjet(vue.fele)}</Text>
-        </View>
-      )}
+      <PiecesDuResultat pieces={pieces} ouverte={ouverte} />
     </View>
   );
 }
 
-function TempsMaison({ vue }: { vue: VueBilanSemaine }) {
+function TempsMaison({ vue, pieces }: { vue: VueBilanSemaine; pieces: readonly PieceDuBilan[] }) {
+  // La pièce où l'objet est entré ; aucune s'il attend la sienne.
+  const piece = pieces.find((p) => {
+    return p.objet;
+  });
   return (
     <View style={{ gap: 12, alignItems: 'center' }}>
       <SousTitre>{b.maisonTitre}</SousTitre>
+      {piece !== undefined && <Maison vue={piece.apres} />}
       {vue.objet !== null && (
         <>
-          <ObjetProvisoire objet={vue.objet} taille={128} libelle={b.objetLibelle(vue.objet)} />
           <Text style={{ fontSize: 20, fontWeight: '600', color: c.texte }}>
             {b.nomObjet(vue.objet)}
           </Text>
@@ -266,6 +299,7 @@ function TempsMaison({ vue }: { vue: VueBilanSemaine }) {
 
 export function EcranBilanUneSemaine({
   vue,
+  pieces = [],
   store,
   reduit,
   onTerminer,
@@ -325,6 +359,7 @@ export function EcranBilanUneSemaine({
       contenu = (
         <TempsResultat
           vue={vue}
+          pieces={pieces}
           store={store}
           etape={etape}
           reduit={reduit}
@@ -345,7 +380,7 @@ export function EcranBilanUneSemaine({
         );
       break;
     case 4:
-      contenu = <TempsMaison vue={vue} />;
+      contenu = <TempsMaison vue={vue} pieces={pieces} />;
       action = (
         <Bouton
           texte={b.terminer}

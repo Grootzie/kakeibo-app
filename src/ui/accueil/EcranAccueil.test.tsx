@@ -279,3 +279,33 @@ describe('bilan de la semaine à l’ouverture (E6, J3.2, #62)', () => {
     expect(onBilanMois).not.toHaveBeenCalled();
   });
 });
+
+describe('la maison de l’accueil, reliée au store (J4.5, #84)', () => {
+  it('montre la pièce de novembre, avec sa poussière dite, et s’ouvre sur E8', async () => {
+    const db = createTestDb();
+    await migrate(db);
+    const repos = createRepositories(db);
+    let reel = new Date(2026, 10, 2, 8, 0);
+    const deps = {
+      depots: async () => repos,
+      catalogue: catalogueJson as Catalog,
+      horloge: createClock({ actif: true, reel: () => reel }),
+      nouvelId: () => 'id',
+    };
+    await createKakeiboStore(deps).getState().ouvrir();
+    // Aucune clôture depuis l'installation : vendredi 6, la maison prend la poussière.
+    reel = new Date(2026, 10, 6, 12, 0);
+    const store = createKakeiboStore(deps);
+    await store.getState().ouvrir();
+    const onMaison = jest.fn();
+    await render(<EcranAccueil store={store} onMaison={onMaison} />);
+    const maison = screen.getByTestId('maison-accueil');
+    expect(maison).toHaveAccessibleName(
+      'Kura, la réserve, novembre 2026. Les étagères. Le coffre nagamochi. L’échelle. ' +
+        '4 emplacements libres. De la poussière, une toile d’araignée et la lumière baissée.',
+    );
+    expect(screen.getByText(fr.messages.poussiereJours)).toBeOnTheScreen();
+    await fireEvent(maison, 'accessibilityAction', { nativeEvent: { actionName: 'activate' } });
+    expect(onMaison).toHaveBeenCalledTimes(1);
+  });
+});

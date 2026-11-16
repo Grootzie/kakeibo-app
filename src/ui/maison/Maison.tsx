@@ -21,6 +21,11 @@ import { useAnimationsMaison } from './useAnimationsMaison';
 
 export interface PropsMaison {
   vue: VueMaison;
+  /**
+   * Scène d'où part l'animation au montage : le bilan de la semaine (E6) montre ainsi l'objet de
+   * la capsule qui rejoint son emplacement, et la fêlure qui se fait.
+   */
+  depuis?: HouseScene;
 }
 
 /** Tous les visuels dont la scène peut avoir besoin, animations comprises. */
@@ -35,11 +40,11 @@ function visuelsDeScene(scene: HouseScene): string[] {
   return visuels;
 }
 
-export function Maison({ vue }: PropsMaison) {
+export function Maison({ vue, depuis }: PropsMaison) {
   const { scene, description } = vue;
   const [largeur, setLargeur] = useState(0);
   const reduit = useMoinsAnimations();
-  const animations = useAnimationsMaison(scene, reduit);
+  const animations = useAnimationsMaison(scene, reduit, depuis);
   const plan = useMemo(() => planDeScene(scene, catalogue, animations), [scene, animations]);
   const visuels = useMemo(() => {
     return visuelsDeScene(scene);

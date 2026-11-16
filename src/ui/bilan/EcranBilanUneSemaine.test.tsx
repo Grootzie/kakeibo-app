@@ -2,6 +2,8 @@
 // (tampons, dépensé face à l'enveloppe, résultat, objet et conclusion), la tirette quand la
 // semaine a tous ses jetons, les quatre cas du tableau, l'objet en attente, les animations
 // réduites, le lecteur d'écran, la reprise au même endroit et `week_reviews_seen` à la fin.
+// Depuis J4.5 (#84) : l'objet de la capsule rejoint son emplacement dans la vraie pièce, et la
+// fêlure se voit sur l'objet dans la pièce.
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { AccessibilityInfo, StyleSheet } from 'react-native';
 
@@ -17,10 +19,17 @@ import { type KakeiboStore, createKakeiboStore } from '../../state/store';
 import { EcranBilanSemaine } from './EcranBilanSemaine';
 import { oublierEtapes } from './etapesBilan';
 
+// Les animations de la maison (apparition, fêlure) sont vérifiées dans Maison.test.tsx ; ici, la
+// pièce s'affiche dans son état, sans images qui avancent hors des tests.
+jest.mock('../maison/useAnimationsMaison', () => ({ useAnimationsMaison: () => new Map() }));
+
 const N = ' ';
 const b = fr.bilanSemaine;
 const rateau = { nom: 'râteau porte-bonheur kumade', article: 'le', genre: 'm' } as const;
-const echelle = { nom: 'échelle', article: "l'", genre: 'f' } as const;
+/** Pièces dessinées par le composant de rendu : leur description est lue au lecteur d'écran. */
+const pieces = () =>
+  screen.queryAllByTestId('maison').map((m) => m.props.accessibilityLabel as string);
+const KUMADE = 'Le râteau porte-bonheur kumade.';
 
 interface Preparation {
   repos: Repositories;
@@ -148,12 +157,19 @@ describe('temps 3 : les quatre cas du tableau', () => {
     const bouton = screen.getByRole('button', { name: b.tirerLibelle });
     expect(screen.getByText(b.tirer)).toBeOnTheScreen();
     expect(StyleSheet.flatten(bouton.props.style).minHeight).toBeGreaterThanOrEqual(44);
+    // Pas encore de pièce : l'objet la rejoindra à l'ouverture de la capsule.
+    expect(pieces()).toEqual([]);
     await tirer();
     expect(
       screen.getByText('Un râteau porte-bonheur kumade entre dans ta maison.'),
     ).toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: b.tirerLibelle })).toBeNull();
     expect(screen.queryByText(/fêl/)).toBeNull();
+    // L'objet a rejoint son emplacement dans la pièce de novembre.
+    expect(pieces()).toHaveLength(1);
+    expect(pieces()[0]).toMatch(/^Kura, la réserve, novembre 2026\./);
+    expect(pieces()[0]).toContain(KUMADE);
+    expect(pieces()[0]).toContain('3 emplacements libres');
   });
 
   it('tous les tampons, hors budget : la capsule, et l’échelle se fêle', async () => {
@@ -165,9 +181,15 @@ describe('temps 3 : les quatre cas du tableau', () => {
         `Tu as tout noté, c’est l’essentiel${N}: tes jetons sont prêts, tire la tirette. L’échelle s’est fêlée${N}; 7 jours de clôture d’affilée, et elle sera réparée à l’or.`,
       ),
     ).toBeOnTheScreen();
-    expect(screen.getByLabelText(fr.messages.fele(echelle))).toBeOnTheScreen();
+    // La fêlure se voit sur l'échelle, dans sa pièce ; le râteau n'y est pas encore.
+    expect(pieces()).toHaveLength(1);
+    expect(pieces()[0]).toContain('L’échelle, fêlée');
+    expect(pieces()[0]).not.toContain(KUMADE);
     await tirer();
     expect(screen.getByText(fr.messages.ouvertureCapsule(rateau))).toBeOnTheScreen();
+    expect(pieces()).toHaveLength(1);
+    expect(pieces()[0]).toContain('L’échelle, fêlée');
+    expect(pieces()[0]).toContain(KUMADE);
   });
 
   it('tampons manquants, dans le budget : la poussière, ni tirette ni capsule', async () => {
@@ -176,6 +198,7 @@ describe('temps 3 : les quatre cas du tableau', () => {
     await suivant();
     expect(screen.getByText(fr.bilan.manqueDansBudget)).toBeOnTheScreen();
     expect(screen.getByLabelText(b.poussiereLibelle)).toBeOnTheScreen();
+    expect(pieces()).toEqual([]);
     expect(screen.queryByRole('button', { name: b.tirerLibelle })).toBeNull();
     expect(screen.queryByLabelText(b.machineLibelle)).toBeNull();
     expect(screen.getByRole('button', { name: b.suivantLibelle })).toBeOnTheScreen();
@@ -189,7 +212,8 @@ describe('temps 3 : les quatre cas du tableau', () => {
         `Pas de capsule cette semaine, et l’échelle s’est fêlée. Rien n’est perdu${N}: 7 jours de clôture d’affilée, et elle sera réparée à l’or.`,
       ),
     ).toBeOnTheScreen();
-    expect(screen.getByLabelText(fr.messages.fele(echelle))).toBeOnTheScreen();
+    expect(pieces()).toHaveLength(1);
+    expect(pieces()[0]).toContain('L’échelle, fêlée');
     expect(screen.queryByRole('button', { name: b.tirerLibelle })).toBeNull();
   });
 
@@ -213,10 +237,15 @@ describe('la tirette et la capsule', () => {
     await jusquAuResultat();
     await tirer();
     expect(screen.getByLabelText(b.machineLibelle)).toBeOnTheScreen();
+    // L'objet sort de la capsule avec son visuel, plus le dessin provisoire de J3.
+    expect(screen.getByTestId('objet-rateau-porte-bonheur-kumade')).toBeOnTheScreen();
+    expect(pieces()).toEqual([]);
     expect(
       await screen.findByText(fr.messages.ouvertureCapsule(rateau), {}, { timeout: 4000 }),
     ).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: b.suivantLibelle })).toBeOnTheScreen();
+    // Puis il rejoint son emplacement dans la pièce.
+    expect(pieces()[0]).toContain(KUMADE);
   });
 
   it('moins d’animations : l’objet s’affiche tout de suite, sans attendre', async () => {
@@ -225,11 +254,12 @@ describe('la tirette et la capsule', () => {
     await jusquAuResultat();
     await tirer();
     expect(screen.getByText(fr.messages.ouvertureCapsule(rateau))).toBeOnTheScreen();
+    expect(pieces()[0]).toContain(KUMADE);
   });
 });
 
 describe('temps 4 et fin', () => {
-  it('l’objet seul, avec son dessin provisoire, et une phrase de conclusion', async () => {
+  it('l’objet à son emplacement dans sa pièce, son nom et une phrase de conclusion', async () => {
     moinsAnimations();
     await monter(await preparer({ depense: 12000 }));
     await jusquAuResultat();
@@ -237,7 +267,9 @@ describe('temps 4 et fin', () => {
     await suivant();
     expect(screen.getByText(b.temps(4))).toBeOnTheScreen();
     expect(screen.getByRole('header', { name: b.maisonTitre })).toBeOnTheScreen();
-    expect(screen.getByLabelText(b.objetLibelle(rateau))).toBeOnTheScreen();
+    expect(pieces()).toHaveLength(1);
+    expect(pieces()[0]).toContain(KUMADE);
+    expect(screen.queryByLabelText(/dessin provisoire/)).toBeNull();
     expect(screen.getByText('Le râteau porte-bonheur kumade')).toBeOnTheScreen();
     expect(screen.getByText(b.conclusionObjet)).toBeOnTheScreen();
   });
@@ -324,8 +356,11 @@ describe('objet en attente de sa pièce (scénario 18)', () => {
       ),
     ).toBeOnTheScreen();
     expect(screen.queryByText(/entrent? dans ta maison/)).toBeNull();
+    // Sa pièce n'est pas encore là : aucune pièce ne s'affiche, le message reste.
+    expect(pieces()).toEqual([]);
     await suivant();
     expect(screen.getByText('Le mortier et maillet à mochi')).toBeOnTheScreen();
+    expect(pieces()).toEqual([]);
   });
 });
 
