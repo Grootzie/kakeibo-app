@@ -42,6 +42,11 @@ appId: app.kakeibo
 # Après redémarrage, aucune des deux ne revient.
 - stopApp
 - launchApp
+# Toujours sans budget : la bienvenue revient (E1, #101), on la passe de nouveau.
+- extendedWaitUntil:
+    visible: 'Passer la bienvenue \(horloge de test\)'
+    timeout: 60000
+- tapOn: 'Passer la bienvenue \(horloge de test\)'
 - extendedWaitUntil:
     visible: 'Journée clôturée'
     timeout: 60000

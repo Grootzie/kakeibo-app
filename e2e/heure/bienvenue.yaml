@@ -54,18 +54,24 @@ appId: app.kakeibo
     direction: DOWN
 - tapOn: 'Mes revenus du mois, en euros'
 - inputText: '2000'
+# Entrée valide le champ et ferme le clavier, qui cachait le budget.
+- pressKey: Enter
 - scrollUntilVisible:
     element:
       text: 'Mes charges fixes du mois, en euros'
     direction: DOWN
 - tapOn: 'Mes charges fixes du mois, en euros'
 - inputText: '1100'
+# Entrée valide le champ et ferme le clavier, qui cachait le budget.
+- pressKey: Enter
 - scrollUntilVisible:
     element:
       text: 'Mon épargne visée, en euros'
     direction: DOWN
 - tapOn: 'Mon épargne visée, en euros'
 - inputText: '900'
+# Entrée valide le champ et ferme le clavier, qui cachait le budget.
+- pressKey: Enter
 # Budget nul : on ne continue pas.
 - scrollUntilVisible:
     element:
@@ -80,6 +86,8 @@ appId: app.kakeibo
 - tapOn: 'Mon épargne visée, en euros'
 - eraseText: 10
 - inputText: '300'
+# Entrée valide le champ et ferme le clavier, qui cachait le budget.
+- pressKey: Enter
 - scrollUntilVisible:
     element:
       text: 'Enveloppe de cette semaine.: 100.€'
