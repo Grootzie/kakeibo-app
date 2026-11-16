@@ -1,7 +1,7 @@
 // Plan de dessin de la maison (J4.4) : ce que le composant de rendu dessine, calque par calque,
 // pour une scène de J4.1. Les pixels sont vérifiés à part, par Maison.rendu.test.ts.
 import { catalogue } from '../../content/catalogue';
-import { type CalqueObjet, calquesDeLObjet, planDeScene } from './plan';
+import { type CalqueObjet, calquesDeLObjet, planDeScene, visuelsDeScene } from './plan';
 import { objetScene, sceneNovembre } from './scenesDeTest';
 import { CADRE_OBJET, SCENE, cadreDansLaScene, emplacement } from './emplacements';
 
@@ -184,6 +184,31 @@ describe('planDeScene', () => {
     for (const dust of [0, 1, 2] as const)
       for (const v of visuels(planDeScene(sceneNovembre({ dust }), catalogue)))
         expect(Object.keys(VISUELS_PROVISOIRES)).toContain(v);
+  });
+});
+
+describe('visuelsDeScene', () => {
+  it('tous les visuels que la scène peut dessiner, animations comprises', () => {
+    const scene = sceneNovembre({ dust: 0 });
+    const v = visuelsDeScene(scene, catalogue);
+    expect(v.slice(0, 2)).toEqual(['rooms/room-11/view', 'rooms/room-11/background']);
+    for (const item of scene.items)
+      for (const etat of ['base', 'crack', 'gold'])
+        expect(v).toContain(`items/${item.itemId}/${etat}`);
+    // Le plan ne dessine jamais un visuel que cette liste n'annonce pas.
+    for (const dust of [0, 1, 2] as const)
+      for (const visuel of visuels(planDeScene(sceneNovembre({ dust }), catalogue)))
+        expect(visuelsDeScene(sceneNovembre({ dust }), catalogue)).toContain(visuel);
+  });
+
+  it('le voile dès le niveau 1, la toile d’araignée au niveau 2 seulement', () => {
+    const de = (dust: 0 | 1 | 2) => visuelsDeScene(sceneNovembre({ dust }), catalogue);
+    expect(de(0)).not.toContain('dust/veil');
+    expect(de(0)).not.toContain('dust/cobweb');
+    expect(de(1)).toContain('dust/veil');
+    expect(de(1)).not.toContain('dust/cobweb');
+    expect(de(2)).toContain('dust/veil');
+    expect(de(2)).toContain('dust/cobweb');
   });
 });
 

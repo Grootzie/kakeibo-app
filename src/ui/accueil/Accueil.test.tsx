@@ -1,5 +1,5 @@
 // Accueil (E2, #43) : en-tête, enveloppe, carte de tampons, boutons et bandeau ; la maison (#84).
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { StyleSheet } from 'react-native';
@@ -442,6 +442,30 @@ describe('la maison sur l’accueil (J4.5, #84)', () => {
     expect(screen.queryByTestId('maison')).toBeNull();
     expect(pages.props.importantForAccessibility).toBe('no-hide-descendants');
     expect(pages.props.accessibilityElementsHidden).toBe(true);
+  });
+
+  it('signale aux parcours de captures que la pièce affichée est entièrement dessinée', async () => {
+    await render(
+      <Accueil
+        vue={vue()}
+        maison={maison({ pieces: [piece('room-11', '2026-11')], courante: 0 })}
+      />,
+    );
+    await poser();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const repere = screen.getByTestId('maison-dessinee');
+    // Un simple repère pour Maestro : rien à lire ni à toucher pour le lecteur d'écran.
+    expect(repere.props.accessible).not.toBe(true);
+    expect(repere.props.accessibilityLabel).toBeUndefined();
+    expect(repere).toBeEmptyElement();
+    expect(repere.props.collapsable).toBe(false);
+  });
+
+  it('pas de repère « dessinée » tant que la maison n’a pas sa largeur', async () => {
+    await render(<Accueil vue={vue()} maison={maison()} />);
+    expect(screen.queryByTestId('maison-dessinee')).toBeNull();
   });
 
   it('une seule pièce : pas de repères de pièces', async () => {

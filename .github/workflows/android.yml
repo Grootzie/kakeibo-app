@@ -99,7 +99,8 @@ jobs:
     if: ${{ !cancelled() && (needs.apk.result == 'success' || needs.apk.result == 'skipped') }}
     name: Parcours Maestro et captures
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # 22 minutes de parcours avant J4.9 ; le parcours « maison » (#88) joue 19 clôtures.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4

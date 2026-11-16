@@ -1462,3 +1462,206 @@ describe('parcours Maestro « album » (J4.8, #87)', () => {
     expect(parcours).not.toMatch(/^- takeScreenshot: captures\/semaine-hors-budget/m);
   });
 });
+
+/**
+ * Critère de J4 (#88) : un motif de Maestro est une expression régulière qui doit couvrir tout le
+ * texte affiché. Chaque motif vérifié par les parcours « maison » et « poussière » est confronté
+ * au texte que l'appli produit, et doit figurer dans le parcours.
+ */
+function motifCouvre(parcours: string, ligne: string, texte: string): void {
+  const motif = /'(.*)'$/.exec(ligne)?.[1];
+  if (motif === undefined) throw new Error(`Ligne sans motif : ${ligne}`);
+  expect(parcours).toContain(ligne);
+  expect(texte).toMatch(new RegExp(`^${motif}$`));
+}
+
+const KURA = 'Kura, la réserve, novembre 2026. Les étagères. Le coffre nagamochi. L’échelle. ';
+const RATEAU = { nom: 'râteau porte-bonheur kumade', article: 'le', genre: 'm' } as const;
+const CHAT = { nom: 'chat porte-bonheur', article: 'le', genre: 'm' } as const;
+const BOULIER = { nom: 'boulier soroban', article: 'le', genre: 'm' } as const;
+
+describe('parcours Maestro « maison » : intact, fêlé, réparé à l’or (J4, #88)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'heure', 'maison.yaml'), 'utf8');
+  const script = readFileSync(join(__dirname, 'parcours-android.sh'), 'utf8');
+  const m = fr.ecranMaison;
+  const plusUnJour = `- tapOn: '${fr.dev.plusUnJour.replace('+', '\\+')}'`;
+
+  it('est joué par le script de l’émulateur, appli effacée, le 4 novembre 2026 à 9:00', () => {
+    expect(script).toMatch(/for parcours in [^;]*\bmaison\b[^;]*; do/);
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+
+  it('clôture chaque jour du mercredi 4 au dimanche 22, un jour de plus à chaque fois', () => {
+    // Après chaque clôture qui ne scelle pas la semaine, on attend le retour à l'accueil.
+    expect(
+      parcours.split(
+        "    visible: 'Journée clôturée'\n    timeout: 10000\n- extendedWaitUntil:\n    visible: 'Noter une dépense'",
+      ).length - 1,
+    ).toBe(15);
+    expect(parcours.split(plusUnJour).length - 1).toBe(18);
+    expect(parcours.split(`- tapOn: '${fr.accueil.cloturerJournee}'`).length - 1).toBe(19);
+    expect(parcours).toContain("- assertVisible: 'Décalage.: 18 jours'");
+    expect(fr.dev.horlogeEtat(18)).toMatch(/^Décalage.: 18 jours$/);
+  });
+
+  it('les textes vérifiés sont ceux de l’appli', () => {
+    const v = (l: string) => `- assertVisible: '${l}'`;
+    const attendre = (l: string) => `    visible: '${l}'`;
+    motifCouvre(parcours, v('Tu as dépassé de 10.€ cette semaine'), fr.accueil.depassement(1000));
+    motifCouvre(
+      parcours,
+      attendre('Un râteau porte-bonheur kumade entre dans ta maison\\.'),
+      fr.messages.ouvertureCapsule(RATEAU),
+    );
+    motifCouvre(
+      parcours,
+      attendre('Un chat porte-bonheur entre dans ta maison\\.'),
+      fr.messages.ouvertureCapsule(CHAT),
+    );
+    motifCouvre(
+      parcours,
+      attendre('Un boulier soroban entre dans ta maison\\.'),
+      fr.messages.ouvertureCapsule(BOULIER),
+    );
+    motifCouvre(
+      parcours,
+      v(
+        'Tu as tout noté, c’est l’essentiel.: tes jetons sont prêts, tire la tirette\\. Le râteau porte-bonheur kumade s’est fêlé.; 7 jours de clôture d’affilée, et il sera réparé à l’or\\.',
+      ),
+      fr.bilan.toutTamponsHorsBudget(RATEAU),
+    );
+    motifCouvre(
+      parcours,
+      attendre(
+        'Réparé à l’or, le râteau porte-bonheur kumade garde la trace de cette semaine-là\\.',
+      ),
+      fr.messages.reparation(RATEAU),
+    );
+    motifCouvre(parcours, `- tapOn: '${fr.cloture.continuerLibelle}'`, fr.cloture.continuerLibelle);
+    // Les trois états, dans la liste de E8 et dans la description de la scène (vérifiées avec
+    // le vrai store dans src/state/parcoursMaison.test.ts).
+    motifCouvre(
+      parcours,
+      v('Le râteau porte-bonheur kumade, intact'),
+      m.objetLibelle(RATEAU, 'intact', null),
+    );
+    motifCouvre(
+      parcours,
+      v('Le râteau porte-bonheur kumade, fêlé, réparation.: 3 jours sur 7'),
+      m.objetLibelle(RATEAU, 'cracked', { type: 'enCours', jours: 3 }),
+    );
+    motifCouvre(parcours, v('Réparation.: 3 jours sur 7'), m.reparation(3));
+    motifCouvre(
+      parcours,
+      v('Le râteau porte-bonheur kumade, réparé à l’or'),
+      m.objetLibelle(RATEAU, 'repaired', null),
+    );
+    motifCouvre(
+      parcours,
+      v(
+        'Kura, la réserve, novembre 2026\\. .*Le râteau porte-bonheur kumade\\. 3 emplacements libres\\. La maison est propre\\.',
+      ),
+      `${KURA}Le râteau porte-bonheur kumade. 3 emplacements libres. La maison est propre.`,
+    );
+    motifCouvre(
+      parcours,
+      v(
+        'Kura, la réserve, novembre 2026\\. .*Le râteau porte-bonheur kumade, fêlé, réparation.: 3 jours sur 7\\. Le chat porte-bonheur\\. 2 emplacements libres\\..*',
+      ),
+      `${KURA}${fr.maison.objet(RATEAU, 'cracked', 3)}. Le chat porte-bonheur. 2 emplacements libres. La maison est propre.`,
+    );
+    motifCouvre(
+      parcours,
+      v(
+        'Kura, la réserve, novembre 2026\\. .*Le râteau porte-bonheur kumade, réparé à l’or\\. Le chat porte-bonheur\\. Le boulier soroban\\. 1 emplacement libre\\..*',
+      ),
+      `${KURA}${fr.maison.objet(RATEAU, 'repaired', null)}. Le chat porte-bonheur. Le boulier soroban. 1 emplacement libre. La maison est propre.`,
+    );
+  });
+
+  it('une capture par état, dans la maison (E8), dans l’ordre intact, fêlé, réparé', () => {
+    dansLOrdre(parcours, [
+      "- tapOn: 'Fermer l’explication .*Première capsule.*'",
+      "- openLink: 'kakeibo://maison'",
+      "- assertVisible: 'Le râteau porte-bonheur kumade, intact'",
+      '- takeScreenshot: captures/maison-intact',
+      `- tapOn: '${m.retourLibelle}'`,
+      "- inputText: '150'",
+      "- tapOn: 'Fermer l’explication .*Première fêlure.*'",
+      "visible: 'mercredi.18.novembre'",
+      // « Journée clôturée » est aussi le bouton de E4 : la maison s'ouvre depuis l'accueil.
+      `    visible: '${fr.accueil.noterDepense}'`,
+      "- openLink: 'kakeibo://maison'",
+      "- assertVisible: 'Le râteau porte-bonheur kumade, fêlé, réparation.: 3 jours sur 7'",
+      "- assertVisible: 'Réparation.: 3 jours sur 7'",
+      '- takeScreenshot: captures/maison-fele',
+      `- tapOn: '${m.retourLibelle}'`,
+      "visible: 'dimanche.22.novembre'",
+      "- tapOn: 'Fermer l’explication .*Première réparation.*'",
+      `- tapOn: '${fr.cloture.continuerLibelle}'`,
+      "- tapOn: 'Tirer la tirette.*'",
+      "- openLink: 'kakeibo://maison'",
+      "- assertVisible: 'Le râteau porte-bonheur kumade, réparé à l’or'",
+      '- takeScreenshot: captures/maison-repare',
+    ]);
+  });
+});
+
+describe('parcours Maestro « poussière » : niveaux 0, 1 et 2 (J4, #88)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'heure', 'poussiere.yaml'), 'utf8');
+  const script = readFileSync(join(__dirname, 'parcours-android.sh'), 'utf8');
+  const piece = 'Kura, la réserve, novembre 2026\\. .*';
+  const niveau = (n: 0 | 1 | 2) =>
+    `- assertVisible: '${piece}${fr.maison.poussiere[n].replace(/\./g, '\\.')}\\.'`;
+  const cause = `- assertVisible: '${fr.messages.poussiereJours.replace(/\./g, '\\.')}'`;
+
+  it('est joué par le script de l’émulateur, appli effacée, le 4 novembre 2026 à 9:00', () => {
+    expect(script).toMatch(/for parcours in [^;]*\bpoussiere\b[^;]*; do/);
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+
+  it('les textes vérifiés sont ceux de l’appli', () => {
+    const description = (n: 0 | 1 | 2) =>
+      `${KURA}4 emplacements libres. ${fr.maison.poussiere[n]}.`;
+    for (const n of [0, 1, 2] as const) motifCouvre(parcours, niveau(n), description(n));
+    motifCouvre(parcours, cause, fr.messages.poussiereJours);
+  });
+
+  it('une capture par niveau, puis la clôture qui aère la maison', () => {
+    dansLOrdre(parcours, [
+      niveau(0),
+      '- takeScreenshot: captures/poussiere-0',
+      "visible: 'jeudi.5.novembre'",
+      "- tapOn: 'Fermer l’explication .*Premier jour à rattraper.*'",
+      niveau(0),
+      "visible: 'vendredi.6.novembre'",
+      niveau(1),
+      cause,
+      '- takeScreenshot: captures/poussiere-1',
+      "visible: 'dimanche.8.novembre'",
+      niveau(2),
+      cause,
+      '- takeScreenshot: captures/poussiere-2',
+      `- tapOn: '${fr.accueil.cloturerJournee}'`,
+      "- tapOn: 'Rien dépensé aujourd’hui'",
+      `- assertVisible: '${fr.accueil.journeeCloturee}'`,
+      niveau(0),
+      '- takeScreenshot: captures/poussiere-aeree',
+    ]);
+    // Maison propre : la cause de la poussière n'est pas affichée.
+    expect(parcours.split("- assertNotVisible: 'La maison prend la poussière\\..*'").length).toBe(
+      4,
+    );
+  });
+
+  it('chaque capture attend que la pièce soit entièrement dessinée, toile d’araignée comprise', () => {
+    // Le libellé d'accessibilité change avant que Skia ait décodé les visuels : sans cette
+    // attente, la capture « poussiere-2 » est partie sans sa toile d'araignée.
+    const attente =
+      "- extendedWaitUntil:\n    visible:\n      id: 'maison-dessinee'\n    timeout: 10000\n- waitForAnimationToEnd\n";
+    for (const capture of ['poussiere-0', 'poussiere-1', 'poussiere-2', 'poussiere-aeree'])
+      expect(parcours).toContain(`${attente}- takeScreenshot: captures/${capture}\n`);
+  });
+});
