@@ -117,6 +117,18 @@ function calqueObjet(
  * Calques d'une scène, du fond vers l'avant : vue, fond, emplacements libres, objets (dans
  * l'ordre d'affichage de leurs emplacements), puis la poussière par-dessus tout.
  */
+/** Tous les visuels dont la scène peut avoir besoin, animations comprises. */
+export function visuelsDeScene(scene: HouseScene, catalogue: ContentCatalog): string[] {
+  const visuels = [`rooms/${scene.room}/view`, `rooms/${scene.room}/background`];
+  for (const item of scene.items) {
+    const v = catalogue.items.find((i) => i.id === item.itemId)?.visuals;
+    if (v !== undefined) visuels.push(v.base, v.crack, v.gold);
+  }
+  if (scene.dust >= 1) visuels.push('dust/veil');
+  if (scene.dust === 2) visuels.push('dust/cobweb');
+  return visuels;
+}
+
 export function planDeScene(
   scene: HouseScene,
   catalogue: ContentCatalog,

@@ -7,6 +7,8 @@
 # - Dimanche 8 : J = 4, niveau 2, toile d'araignée et lumière baissée (capture « poussiere-2 »).
 # - Dimanche 8, après « Clôturer ma journée » : clôturer aujourd'hui remet la maison à 0
 #   (capture « poussiere-aeree ») ; la semaine n'est pas encore scellée, pas de plancher.
+# Avant chaque capture, le parcours attend le repère « maison-dessinee » : tous les visuels de la
+# pièce sont décodés (toile d'araignée comprise), puis la fin des animations.
 # Le même enchaînement est rejoué avec le vrai store dans src/state/parcoursMaison.test.ts.
 # Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
 # du téléphone au mercredi 4 novembre 2026 à 9:00. L'horloge de test avance les jours.
@@ -38,6 +40,11 @@ appId: app.kakeibo
     centerElement: true
 - assertVisible: 'Kura, la réserve, novembre 2026\. .*La maison est propre\.'
 - assertNotVisible: 'La maison prend la poussière\..*'
+- extendedWaitUntil:
+    visible:
+      id: 'maison-dessinee'
+    timeout: 10000
+- waitForAnimationToEnd
 - takeScreenshot: captures/poussiere-0
 # Jeudi 5 : mercredi est à rattraper (la carte « Premier jour à rattraper ») ; J = 1, encore propre.
 - scrollUntilVisible:
@@ -88,6 +95,11 @@ appId: app.kakeibo
     centerElement: true
 - assertVisible: 'Kura, la réserve, novembre 2026\. .*Un voile de poussière\.'
 - assertVisible: 'La maison prend la poussière\. Une clôture suffit à l’aérer\.'
+- extendedWaitUntil:
+    visible:
+      id: 'maison-dessinee'
+    timeout: 10000
+- waitForAnimationToEnd
 - takeScreenshot: captures/poussiere-1
 # Niveau 2 : dimanche 8.
 - scrollUntilVisible:
@@ -116,6 +128,11 @@ appId: app.kakeibo
     centerElement: true
 - assertVisible: 'Kura, la réserve, novembre 2026\. .*De la poussière, une toile d’araignée et la lumière baissée\.'
 - assertVisible: 'La maison prend la poussière\. Une clôture suffit à l’aérer\.'
+- extendedWaitUntil:
+    visible:
+      id: 'maison-dessinee'
+    timeout: 10000
+- waitForAnimationToEnd
 - takeScreenshot: captures/poussiere-2
 # Une clôture aujourd'hui aère la maison : retour au niveau 0.
 - scrollUntilVisible:
@@ -139,6 +156,11 @@ appId: app.kakeibo
     centerElement: true
 - assertVisible: 'Kura, la réserve, novembre 2026\. .*La maison est propre\.'
 - assertNotVisible: 'La maison prend la poussière\..*'
+- extendedWaitUntil:
+    visible:
+      id: 'maison-dessinee'
+    timeout: 10000
+- waitForAnimationToEnd
 - takeScreenshot: captures/poussiere-aeree
 - launchApp:
     clearState: true

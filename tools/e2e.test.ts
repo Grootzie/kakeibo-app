@@ -1644,4 +1644,13 @@ describe('parcours Maestro « poussière » : niveaux 0, 1 et 2 (J4, #88)', () =
       4,
     );
   });
+
+  it('chaque capture attend que la pièce soit entièrement dessinée, toile d’araignée comprise', () => {
+    // Le libellé d'accessibilité change avant que Skia ait décodé les visuels : sans cette
+    // attente, la capture « poussiere-2 » est partie sans sa toile d'araignée.
+    const attente =
+      "- extendedWaitUntil:\n    visible:\n      id: 'maison-dessinee'\n    timeout: 10000\n- waitForAnimationToEnd\n";
+    for (const capture of ['poussiere-0', 'poussiere-1', 'poussiere-2', 'poussiere-aeree'])
+      expect(parcours).toContain(`${attente}- takeScreenshot: captures/${capture}\n`);
+  });
 });

@@ -16,7 +16,7 @@ import { useMoinsAnimations } from '../cloture/Tampon';
 import { CalquesMaison } from './CalquesMaison';
 import { SCENE } from './emplacements';
 import { useImagesMaison } from './images';
-import { planDeScene } from './plan';
+import { planDeScene, visuelsDeScene } from './plan';
 import { useAnimationsMaison } from './useAnimationsMaison';
 
 export interface PropsMaison {
@@ -28,18 +28,6 @@ export interface PropsMaison {
   depuis?: HouseScene;
 }
 
-/** Tous les visuels dont la scène peut avoir besoin, animations comprises. */
-function visuelsDeScene(scene: HouseScene): string[] {
-  const visuels = [`rooms/${scene.room}/view`, `rooms/${scene.room}/background`];
-  for (const item of scene.items) {
-    const v = catalogue.items.find((i) => i.id === item.itemId)?.visuals;
-    if (v !== undefined) visuels.push(v.base, v.crack, v.gold);
-  }
-  if (scene.dust >= 1) visuels.push('dust/veil');
-  if (scene.dust === 2) visuels.push('dust/cobweb');
-  return visuels;
-}
-
 export function Maison({ vue, depuis }: PropsMaison) {
   const { scene, description } = vue;
   const [largeur, setLargeur] = useState(0);
@@ -47,7 +35,7 @@ export function Maison({ vue, depuis }: PropsMaison) {
   const animations = useAnimationsMaison(scene, reduit, depuis);
   const plan = useMemo(() => planDeScene(scene, catalogue, animations), [scene, animations]);
   const visuels = useMemo(() => {
-    return visuelsDeScene(scene);
+    return visuelsDeScene(scene, catalogue);
   }, [scene]);
   const images = useImagesMaison(visuels);
   const hauteur = (largeur * SCENE.hauteur) / SCENE.largeur;

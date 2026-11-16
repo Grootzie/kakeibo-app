@@ -5,7 +5,7 @@
 // Au lecteur d'écran, la maison est un curseur : sa description, « Pièce 2 sur 3 », les gestes
 // « augmenter » et « diminuer » pour changer de pièce, et l'activation pour ouvrir E8. Les pages
 // dessinées ne sont pas lues une seconde fois.
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   type AccessibilityActionEvent,
   Pressable,
@@ -15,10 +15,13 @@ import {
   View,
 } from 'react-native';
 
+import { catalogue } from '../../content/catalogue';
 import { fr } from '../../i18n/fr';
 import type { VueMaisonAccueil } from '../../state/maison';
 import { Maison } from '../maison/Maison';
 import { SCENE } from '../maison/emplacements';
+import { useVisuelsDecodes } from '../maison/images';
+import { visuelsDeScene } from '../maison/plan';
 import { theme } from '../theme';
 
 const c = theme.couleurs;
@@ -48,6 +51,11 @@ export function MaisonAccueil({ maison, onOuvrir }: PropsMaisonAccueil) {
   const vue = pieces[index];
   const [largeur, setLargeur] = useState(0);
   const defilement = useRef<ScrollViewInstance>(null);
+  const visuels = useMemo(
+    () => (vue === undefined ? [] : visuelsDeScene(vue.scene, catalogue)),
+    [vue],
+  );
+  const decodes = useVisuelsDecodes(visuels);
 
   // La page affichée suit la pièce choisie (au montage, par le lecteur d'écran, ou au glissement).
   useEffect(() => {
@@ -150,6 +158,11 @@ export function MaisonAccueil({ maison, onOuvrir }: PropsMaisonAccueil) {
             />
           ))}
         </View>
+      )}
+      {largeur > 0 && decodes && (
+        // Repère des parcours de captures (#88) : la pièce affichée a tous ses visuels décodés,
+        // toile d'araignée comprise. Vide et sans libellé, le lecteur d'écran l'ignore.
+        <View testID="maison-dessinee" collapsable={false} style={{ height: 1 }} />
       )}
       {phrasesPoussiere(maison).map((phrase) => (
         <Text key={phrase} style={{ color: c.texte }}>
