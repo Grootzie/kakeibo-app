@@ -1,13 +1,15 @@
 // Carte de première fois (E12) : le moment en titre, le texte de la spec, fermée d'une touche.
-// « En savoir plus » et l'écran Comprendre viennent en J5 (décision du propriétaire, #48).
-// `CarteDuMoment` choisit la carte d'un écran et la montre.
-import { useEffect } from 'react';
+// « En savoir plus » ferme la carte et ouvre Comprendre à la fiche qui reprend son texte (J5.7,
+// #106 ; décision du propriétaire, #48). `CarteDuMoment` choisit la carte d'un écran et la montre.
+import { useContext, useEffect } from 'react';
 import { AccessibilityInfo, Pressable, Text, View } from 'react-native';
 
 import { fr } from '../../i18n/fr';
+import { FICHE_DE_CARTE } from '../../state/comprendre';
 import type { IdExplication, MomentsEcran } from '../../state/explications';
 import type { KakeiboStore } from '../../state/store';
 import { theme } from '../theme';
+import { EnSavoirPlus } from './EnSavoirPlus';
 import { useCarteExplication } from './useCarteExplication';
 
 const c = theme.couleurs;
@@ -25,6 +27,14 @@ export const TEXTES_EXPLICATION: Record<IdExplication, string> = {
   new_room: fr.explications.nouvellePiece,
 };
 
+const styleBouton = {
+  minHeight: theme.zoneTactileMin,
+  minWidth: theme.zoneTactileMin,
+  paddingHorizontal: 12,
+  justifyContent: 'center' as const,
+  alignItems: 'center' as const,
+};
+
 export interface PropsCarteExplication {
   id: IdExplication;
   onFermer: () => void;
@@ -35,6 +45,7 @@ export interface PropsCarteExplication {
 export function CarteExplication({ id, onFermer, complement }: PropsCarteExplication) {
   const titre = fr.carteExplication.titres[id];
   const texte = complement ? `${TEXTES_EXPLICATION[id]} ${complement}` : TEXTES_EXPLICATION[id];
+  const ouvrirComprendre = useContext(EnSavoirPlus);
 
   // Le lecteur d'écran lit la carte dès qu'elle apparaît.
   useEffect(() => {
@@ -58,21 +69,32 @@ export function CarteExplication({ id, onFermer, complement }: PropsCarteExplica
         {titre}
       </Text>
       <Text style={{ color: c.texte, lineHeight: 22 }}>{texte}</Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={fr.carteExplication.fermerLibelle(titre)}
-        onPress={onFermer}
-        style={{
-          alignSelf: 'flex-end',
-          minHeight: theme.zoneTactileMin,
-          minWidth: theme.zoneTactileMin,
-          paddingHorizontal: 12,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Text style={{ color: c.texte, fontWeight: '600' }}>{fr.carteExplication.fermer}</Text>
-      </Pressable>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 8 }}>
+        {ouvrirComprendre !== null && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={fr.carteExplication.enSavoirPlusLibelle(titre)}
+            accessibilityHint={fr.carteExplication.enSavoirPlusIndice}
+            onPress={() => {
+              onFermer();
+              ouvrirComprendre(FICHE_DE_CARTE[id]);
+            }}
+            style={styleBouton}
+          >
+            <Text style={{ color: c.texte, textDecorationLine: 'underline' }}>
+              {fr.carteExplication.enSavoirPlus}
+            </Text>
+          </Pressable>
+        )}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={fr.carteExplication.fermerLibelle(titre)}
+          onPress={onFermer}
+          style={styleBouton}
+        >
+          <Text style={{ color: c.texte, fontWeight: '600' }}>{fr.carteExplication.fermer}</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
