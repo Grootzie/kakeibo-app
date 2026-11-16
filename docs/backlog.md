@@ -82,6 +82,24 @@ Visuels provisoires seulement : le premier lot en style estampe est l'affaire de
 - **J4.8 · Album.** (#87) Une vignette par année passée, chaque pièce telle qu'elle était à la fin de l'année. Sections : E8, Fiche des visuels, Objets et pièces, Décisions ouvertes (Nouvelle année).
 - **J4.9 · Captures des états et de la poussière (Testeur).** (#88) Parcours Maestro « maison » et « poussière » sur l'émulateur, avec l'horloge de test, une capture par état et par niveau. Sections : Jalons, E2, E8, Poussière, Fêlure et réparation, Horloge de test.
 
+Validé le 16 novembre 2026 : captures des 3 états d'objet (intact, fêlé, réparé à l'or) et des 3 niveaux de poussière prises sur l'émulateur Android avec l'horloge de test (`docs/captures/88`), intégration continue verte sur `main`.
+
+## J5 · Bienvenue et réglages
+
+Validé quand : parcours Maestro « installation » au vert sur l'émulateur Android ; chaque explication de première fois ne s'affiche qu'une fois.
+
+Le budget de démonstration du réglage caché reste pour les parcours existants. Abonnement, écran d'achat et publicité sont l'affaire de J7 : leurs lignes des réglages n'apparaissent pas encore. Les textes de confidentialité et les mentions légales sont des brouillons tant que le propriétaire ne les a pas validés (texte légal).
+
+- **J5.1 · Dépenses récurrentes dans l'état.** (#100) Dépôt et store : ajouter, modifier, arrêter une charge (`ends_on`, historique gardé) ; chaque changement ajoute une version du budget dont les charges fixes sont la somme des échéances du mois ; le montant saisi en E1 devient la charge mensuelle « Charges fixes ». Hors enveloppe et hors dépensé. Sections : Budget et enveloppe, Modèle de données, E10, scénarios 8, 16, 23 et 24.
+- **J5.2 · Bienvenue (E1).** (#101) Quatre étapes : la méthode, les quatre catégories avec deux exemples chacune, mon mois (revenus, charges fixes, épargne visée, budget du mois et enveloppe de la semaine affichés, suite possible seulement si le budget est supérieur à zéro), mon rappel du soir (21 h par défaut, puis autorisation ; un refus n'empêche rien). Arrivée sur l'accueil avec la pièce du mois et ses 3 objets de base. Sections : E1, Budget et enveloppe, Notifications, Messages d'explication, Accessibilité.
+- **J5.3 · Carnet (E9).** (#102) Dépenses par semaine groupées par jour, totaux par catégorie, filtre par mois, résultat des semaines scellées (tampons, budget) ; ouvert depuis l'en-tête de l'accueil. Sections : E9, E2, Modèle de données, Performance et fiabilité, Accessibilité.
+- **J5.4 · Modifier ou supprimer une dépense.** (#103) Depuis le carnet, avec la même feuille que E3 ; l'enveloppe et les totaux suivent. Si la spec ne dit pas ce qu'il advient d'une dépense d'une semaine scellée, appliquer « S'arrêter et demander ». Sections : E9, E3, Périmètre de la V1, Résultat d'une semaine, Modèle de données.
+- **J5.5 · Calendrier des dépenses récurrentes (E9).** (#104) Échéances du mois et leur total dans le carnet ; toucher une échéance ouvre sa fiche pour la modifier ou l'arrêter ; jour 31 ramené au dernier jour des mois courts. Après J5.1. Sections : E9, Budget et enveloppe, Modèle de données.
+- **J5.6 · Réglages (E10).** (#105) Budget du mois (revenus, épargne visée, charges récurrentes détaillées), rappel du soir (heure, activé ou non, comment l'autoriser s'il a été refusé), tout effacer avec double confirmation, À propos (la méthode, la confidentialité, les mentions, le contact, « ne donne pas de conseil financier »). Après J5.1. Sections : E10, Notifications, Confidentialité, Mentions, Accessibilité.
+- **J5.7 · Comprendre (E12).** (#106) L'écran : méthode, quatre catégories, quatre questions, règles de la maison, kintsugi, gashapon, fêtes de chaque mois, fiche de chaque objet obtenu ; « En savoir plus » sur chaque carte de première fois ; accès depuis les réglages. Sections : E12, Messages d'explication, E8, Modèle de données (Catalogue).
+- **J5.8 · Dernières cartes de première fois.** (#107) Méthode, catégories et budget et enveloppe (pendant E1), nouvelle année ; un test qui prouve, pour chacune des 13 cartes, qu'elle ne s'affiche qu'une fois, même après redémarrage. Sections : E12, Messages d'explication, Principes du produit (10), Objets et pièces.
+- **J5.9 · Parcours « installation » (Testeur).** (#108) Parcours Maestro sur l'émulateur, appli neuve, avec l'horloge de test : bienvenue complète jusqu'à l'accueil, puis vérification que les cartes déjà vues ne reviennent pas ; une capture par étape de E1, du carnet, des réglages et de Comprendre. Sections : Jalons, E1, E2, E9, E10, E12, Horloge de test.
+
 ## Ensuite
 
 J5 à J9 : voir « Jalons » dans la spec. L'agent Produit découpe chaque jalon en tickets quand le précédent est validé.
