@@ -618,6 +618,40 @@ export const fr = {
     },
     fermer: 'Fermer',
     fermerLibelle: (titre: string) => `Fermer l’explication «${NBSP}${titre}${NBSP}»`,
+    /** Ouvre Comprendre (E12) à la fiche de la carte (#106). */
+    enSavoirPlus: 'En savoir plus',
+    enSavoirPlusLibelle: (titre: string) => `En savoir plus sur «${NBSP}${titre}${NBSP}»`,
+    enSavoirPlusIndice: 'Ouvre Comprendre',
+  },
+
+  /**
+   * Comprendre (E12, #106) : les fiches reprennent les textes de « Messages d'explication ». Titres
+   * des fiches tirés de la liste de E12 ; les autres textes, absents de « Textes et ton », sont
+   * proposés au propriétaire dans la demande de fusion.
+   */
+  comprendre: {
+    titre: 'Comprendre',
+    retour: 'Retour',
+    retourLibelle: 'Fermer Comprendre',
+    toutesLesFiches: 'Toutes les fiches',
+    toutesLesFichesLibelle: 'Revenir à toutes les fiches de Comprendre',
+    ficheIndice: 'Ouvre la fiche',
+    fiches: {
+      methode: 'La méthode kakeibo',
+      categories: 'Les quatre catégories',
+      questions: 'Les quatre questions',
+      maison: 'Les règles de la maison',
+      kintsugi: 'Le kintsugi',
+      gashapon: 'Les gashapon',
+      fetes: 'Les fêtes de chaque mois',
+      objets: 'Tes objets',
+    },
+    /** Mois 1 à 12 et nom de la pièce : « Novembre · Kura, la réserve ». */
+    piece: (mois: number, nomPiece: string) => `${majuscule(MOIS[mois - 1])} · ${nomPiece}`,
+    /** Un objet de la maison, à toucher pour ouvrir sa fiche (J4.7) : « L’échelle ». */
+    objet: (objet: NomObjet) => debut(objet),
+    objetIndice: 'Ouvre sa fiche',
+    objetsVide: 'Tes objets apparaîtront ici dès qu’ils entreront dans ta maison.',
   },
 
   explications: {

@@ -1,8 +1,10 @@
 import { Stack, useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { AppState } from 'react-native';
 import { kakeibo } from '@/state/appStore';
+import type { FicheComprendre } from '@/state/comprendre';
 import { serviceRappels } from '@/state/notifications';
+import { EnSavoirPlus } from '@/ui/explication/EnSavoirPlus';
 import { useOuvrirDepuisRappel } from '@/ui/useOuvrirDepuisRappel';
 
 /** Chaque ouverture, et chaque retour au premier plan, passe par process (ordre de traitement). */
@@ -28,6 +30,15 @@ export default function RootLayout() {
     });
     return () => abonnement.remove();
   }, []);
+  // « En savoir plus » d'une carte de première fois ouvre Comprendre à sa fiche (E12, #106).
+  const ouvrirComprendre = useCallback(
+    (fiche: FicheComprendre) => router.push({ pathname: '/comprendre', params: { fiche } }),
+    [router],
+  );
   // L'accueil a son propre en-tête (E2) : pas de barre de titre du routeur.
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <EnSavoirPlus.Provider value={ouvrirComprendre}>
+      <Stack screenOptions={{ headerShown: false }} />
+    </EnSavoirPlus.Provider>
+  );
 }
