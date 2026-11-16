@@ -111,6 +111,18 @@ function indefini(objet: NomObjet): string {
   return `${article} ${objet.nom}`;
 }
 
+/**
+ * Jour 'AAAA-MM-JJ' -> « 2 novembre », « 1er mars » (insécable avant le mois) ; « 15 » seul quand
+ * la date précédente de la phrase est du même mois.
+ */
+function dateDansLeMois(jour: string, precedent: string | null): string {
+  const [, m, j] = jour.split('-').map(Number);
+  const numero = j === 1 ? '1er' : String(j);
+  return precedent !== null && precedent.slice(0, 7) === jour.slice(0, 7)
+    ? numero
+    : `${numero}${NBSP}${MOIS[m - 1]}`;
+}
+
 /** Accord en genre et en nombre : masculin, féminin, puis leurs pluriels. */
 function accord(
   objet: NomObjet,
@@ -495,8 +507,47 @@ export const fr = {
     libres: (n: number) =>
       `${n} emplacement${n > 1 ? 's' : ''} libre${n > 1 ? 's' : ''} pour les objets à gagner`,
     enAttenteTitre: 'En attente de leur pièce',
-    /** Fiche d'objet provisoire, jusqu'à J4.7 (#86) : son nom et le retour à la maison. */
-    ficheRetourLibelle: 'Retour à ta maison',
+  },
+
+  /**
+   * Fiche d'objet (E8, J4.7, #86) : l'histoire suit « Textes et ton › Fiche d'objet ». Titres,
+   * phrase d'un objet de base et libellés proposés au propriétaire dans la demande de fusion.
+   */
+  ficheObjet: {
+    retour: 'Retour',
+    retourLibelle: 'Retour à ta maison',
+    /** Titre de la fiche : « L’échelle », « Le daruma ». */
+    titre: (objet: NomObjet) => debut(objet),
+    /** Nom japonais lu d'un seul tenant : la transcription, puis l'écriture japonaise. */
+    japonaisLibelle: (japonais: { kanji: string; romaji: string }) =>
+      `En japonais${NBSP}: ${japonais.romaji}, ${japonais.kanji}`,
+    auJapon: 'Au Japon',
+    sonHistoire: 'Son histoire',
+    /**
+     * « Gagné la semaine du 2 novembre. Fêlé le 15, réparé à l’or le 22. » Chaque partie n'apparaît
+     * que si elle a eu lieu ; le mois n'est redit que s'il change d'une date à la suivante. Un objet
+     * de base dit depuis quand il est là.
+     */
+    histoire: (
+      objet: NomObjet,
+      histoire: {
+        arrivee: { type: 'gagne'; lundi: string } | { type: 'base'; jour: string };
+        felure: string | null;
+        reparation: string | null;
+      },
+    ): string => {
+      const { arrivee, felure, reparation } = histoire;
+      const debutHistoire =
+        arrivee.type === 'gagne'
+          ? `${accord(objet, 'Gagné', 'Gagnée', 'Gagnés', 'Gagnées')} la semaine du ${dateDansLeMois(arrivee.lundi, null)}.`
+          : `Dans ta maison depuis le ${dateDansLeMois(arrivee.jour, null)}.`;
+      if (felure === null) return debutHistoire;
+      const precedent = arrivee.type === 'gagne' ? arrivee.lundi : arrivee.jour;
+      const fele = `${accord(objet, 'Fêlé', 'Fêlée', 'Fêlés', 'Fêlées')} le ${dateDansLeMois(felure, precedent)}`;
+      if (reparation === null) return `${debutHistoire} ${fele}.`;
+      const repare = `${accord(objet, 'réparé', 'réparée', 'réparés', 'réparées')} à l’or le ${dateDansLeMois(reparation, felure)}`;
+      return `${debutHistoire} ${fele}, ${repare}.`;
+    },
   },
 
   /**

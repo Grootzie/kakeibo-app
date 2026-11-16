@@ -1,10 +1,10 @@
-// Fiche d'objet (E8) : `?id=` l'identifiant de l'objet du catalogue. Ouverte depuis la maison
-// (J4.6, #85) ; son contenu arrive avec J4.7 (#86).
+// Fiche d'objet (E8, J4.7, #86) : `?id=` l'identifiant de l'objet du catalogue. Ouverte depuis la
+// maison (J4.6, #85).
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback } from 'react';
 
 import { kakeibo } from '@/state/appStore';
-import { FicheObjetProvisoire } from '@/ui/maison/FicheObjetProvisoire';
+import { EcranFicheObjet } from '@/ui/maison/EcranFicheObjet';
 
 export default function Objet() {
   const router = useRouter();
@@ -14,7 +14,7 @@ export default function Objet() {
     else router.replace('/maison');
   }, [router]);
   return (
-    <FicheObjetProvisoire
+    <EcranFicheObjet
       store={kakeibo}
       itemId={typeof id === 'string' ? id : undefined}
       onRetour={retour}

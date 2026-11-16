@@ -1,7 +1,7 @@
 // Plan de dessin de la maison (J4.4) : ce que le composant de rendu dessine, calque par calque,
 // pour une scène de J4.1. Les pixels sont vérifiés à part, par Maison.rendu.test.ts.
 import { catalogue } from '../../content/catalogue';
-import { type CalqueObjet, planDeScene, visuelsDeScene } from './plan';
+import { type CalqueObjet, calquesDeLObjet, planDeScene, visuelsDeScene } from './plan';
 import { objetScene, sceneNovembre } from './scenesDeTest';
 import { CADRE_OBJET, SCENE, cadreDansLaScene, emplacement } from './emplacements';
 
@@ -209,5 +209,14 @@ describe('visuelsDeScene', () => {
     expect(de(1)).not.toContain('dust/cobweb');
     expect(de(2)).toContain('dust/veil');
     expect(de(2)).toContain('dust/cobweb');
+  });
+});
+
+describe('calques d’un objet seul (fiche d’objet, J4.7)', () => {
+  const visuels = { base: 'items/x/base', crack: 'items/x/crack', gold: 'items/x/gold' };
+  it('intact : la base ; fêlé : la base et la fêlure ; réparé : la base et les veines d’or', () => {
+    expect(calquesDeLObjet(visuels, 'intact')).toEqual(['items/x/base']);
+    expect(calquesDeLObjet(visuels, 'cracked')).toEqual(['items/x/base', 'items/x/crack']);
+    expect(calquesDeLObjet(visuels, 'repaired')).toEqual(['items/x/base', 'items/x/gold']);
   });
 });
