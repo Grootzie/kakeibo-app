@@ -239,7 +239,15 @@ export function createRepositories(db: Db) {
 
     recurringCharges: {
       all: (): Promise<RecurringChargeRow[]> =>
-        db.getAllAsync<RecurringChargeRow>('SELECT * FROM recurring_charge ORDER BY starts_on'),
+        db.getAllAsync<RecurringChargeRow>(
+          'SELECT * FROM recurring_charge ORDER BY starts_on, rowid',
+        ),
+      /**
+       * Ajout, ou modification si l'identifiant existe déjà. Une charge arrêtée garde sa ligne et
+       * son historique (ends_on) : aucune méthode ne la supprime.
+       */
+      save: (row: RecurringChargeRow) =>
+        ecrire(...upsertSql('recurring_charge', { ...row }, ['id'])),
     },
   };
 }

@@ -67,6 +67,23 @@ export function chargeDueDays(month: MonthKey, charge: RecurringCharge): DayKey[
   );
 }
 
+/**
+ * Charge récurrente valide : libellé non vide, montant entier strictement positif, jour de la
+ * semaine (1 à 7) ou du mois (1 à 31) selon la fréquence, arrêt jamais avant le début.
+ */
+export function isValidCharge(charge: RecurringCharge): boolean {
+  const maxJour = charge.frequency === 'weekly' ? 7 : charge.frequency === 'monthly' ? 31 : 0;
+  return (
+    charge.label.trim().length > 0 &&
+    Number.isSafeInteger(charge.amount) &&
+    charge.amount > 0 &&
+    Number.isInteger(charge.day) &&
+    charge.day >= 1 &&
+    charge.day <= maxJour &&
+    (charge.endsOn === null || charge.endsOn >= charge.startsOn)
+  );
+}
+
 /** Charges fixes d'un mois : somme des échéances de ses dépenses récurrentes. */
 export function monthFixedCosts(month: MonthKey, charges: RecurringCharge[]): Cents {
   return charges.reduce((total, c) => total + c.amount * chargeDueDays(month, c).length, 0);

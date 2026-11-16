@@ -1,8 +1,17 @@
 // Ordre de traitement : enchaînement des règles à chaque ouverture et à chaque clôture (J1.8).
 // Pur : l'heure courante et le catalogue sont passés en paramètre ; l'état reçu n'est jamais modifié.
 import { type MonthReview, isValidResolution, monthReviewOf, monthToReview } from './bilanMois';
-import { type BudgetVersion, type Cents, type Expense, budgetInForce, budgetOf } from './budget';
-import { type MonthKey, type WeekId, addDays, previousMonth, weekDays } from './calendrier';
+import {
+  type BudgetVersion,
+  type Cents,
+  type Expense,
+  type RecurringCharge,
+  budgetInForce,
+  budgetOf,
+  isValidCharge,
+  monthFixedCosts,
+} from './budget';
+import { type MonthKey, type WeekId, addDays, previousMonth, weekDays, weekOf } from './calendrier';
 import {
   type RepairEvent,
   applyCrack,
@@ -81,7 +90,23 @@ export type AppEvent =
       income: Cents;
       fixedCosts: Cents;
       savingsGoal: Cents;
-    };
+    }
+  /**
+   * Budget posé à la bienvenue (E1), quand aucun n'existe : version du mois d'installation, en
+   * vigueur dès le lundi de la semaine d'installation, charges fixes tirées de `charges`.
+   */
+  | {
+      type: 'set_initial_budget';
+      id: string;
+      income: Cents;
+      savingsGoal: Cents;
+      charges: RecurringCharge[];
+    }
+  /**
+   * Les dépenses récurrentes ont changé (ajout, modification, arrêt) : `charges` est leur liste
+   * complète après le changement. Ajoute une version du budget, identifiée par `id`.
+   */
+  | { type: 'revise_fixed_costs'; id: string; charges: RecurringCharge[] };
 
 export type Refusal =
   | RefusalReason
@@ -92,7 +117,13 @@ export type Refusal =
   /** Le bilan du mois précédent n'est pas validé : pas de budget du nouveau mois à confirmer. */
   | 'budget_not_open'
   /** Montant négatif ou non entier, ou budget du mois nul ou négatif. */
-  | 'invalid_budget';
+  | 'invalid_budget'
+  /** Un budget existe déjà : la bienvenue ne le pose qu'une fois. */
+  | 'budget_already_set'
+  /** Aucune version du budget : pas de charges fixes à réviser. */
+  | 'budget_not_set'
+  /** Une dépense récurrente invalide (libellé, montant, fréquence, jour ou dates). */
+  | 'invalid_charge';
 
 export interface ProcessResult {
   state: AppState;
@@ -222,6 +253,55 @@ function confirmedBudgetStart(now: LocalDateTime): DayKey {
 
 const isValidCents = (n: Cents): boolean => Number.isSafeInteger(n) && n >= 0;
 
+/**
+ * Nouvelle version après un changement des dépenses récurrentes : celle du mois où elle commence
+ * (demain, comme une confirmation, pour ne jamais changer la semaine en cours), avec les revenus
+ * et l'épargne de la version qui s'appliquerait sans elle et les charges fixes de ce mois.
+ */
+function revisedBudget(
+  state: AppState,
+  id: string,
+  charges: RecurringCharge[],
+  now: LocalDateTime,
+): { version: BudgetVersion } | { refusal: Refusal } {
+  if (!charges.every(isValidCharge)) return { refusal: 'invalid_charge' };
+  const effectiveFrom = confirmedBudgetStart(now);
+  const month = effectiveFrom.slice(0, 7);
+  const base = budgetInForce(month, state.budgets, effectiveFrom);
+  if (base === null) return { refusal: 'budget_not_set' };
+  const version: BudgetVersion = {
+    id,
+    month,
+    income: base.income,
+    fixedCosts: monthFixedCosts(month, charges),
+    savingsGoal: base.savingsGoal,
+    effectiveFrom,
+  };
+  return budgetOf(version) > 0 ? { version } : { refusal: 'invalid_budget' };
+}
+
+/** Budget de la bienvenue (E1) : version du mois d'installation, en vigueur dès son lundi. */
+function initialBudget(
+  state: AppState,
+  event: Extract<AppEvent, { type: 'set_initial_budget' }>,
+): { version: BudgetVersion } | { refusal: Refusal } {
+  if (state.budgets.length > 0) return { refusal: 'budget_already_set' };
+  if (!event.charges.every(isValidCharge)) return { refusal: 'invalid_charge' };
+  const month = state.installDay.slice(0, 7);
+  const version: BudgetVersion = {
+    id: event.id,
+    month,
+    income: event.income,
+    fixedCosts: monthFixedCosts(month, event.charges),
+    savingsGoal: event.savingsGoal,
+    effectiveFrom: weekDays(weekOf(state.installDay))[0],
+  };
+  if (![event.income, event.savingsGoal].every(isValidCents) || budgetOf(version) <= 0) {
+    return { refusal: 'invalid_budget' };
+  }
+  return { version };
+}
+
 function record(
   catalog: Catalog,
   state: AppState,
@@ -310,6 +390,15 @@ function record(
       // On n'écrase jamais une version : on en ajoute une, et seulement si un montant change.
       if (unchanged) return { state, refusal: null };
       return { state: { ...state, budgets: [...state.budgets, version] }, refusal: null };
+    }
+    case 'set_initial_budget':
+    case 'revise_fixed_costs': {
+      const r =
+        event.type === 'set_initial_budget'
+          ? initialBudget(state, event)
+          : revisedBudget(state, event.id, event.charges, now);
+      if ('refusal' in r) return { state, refusal: r.refusal };
+      return { state: { ...state, budgets: [...state.budgets, r.version] }, refusal: null };
     }
   }
 }

@@ -193,6 +193,11 @@ export const fr = {
     album: 'Album',
   },
 
+  budget: {
+    /** Première dépense récurrente, tirée du montant de charges fixes saisi à la bienvenue (E1). */
+    chargesFixes: 'Charges fixes',
+  },
+
   categories: {
     essentiel: { nom: 'Essentiel', libelleAccessibilite: 'Catégorie Essentiel' },
     envies: { nom: 'Envies', libelleAccessibilite: 'Catégorie Envies' },

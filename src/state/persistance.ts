@@ -5,12 +5,13 @@ import type {
   DayClosureRow,
   ExpenseRow,
   OwnedItemRow,
+  RecurringChargeRow,
   Repositories,
   SettingsRow,
   WeekResultRow,
 } from '../data/repositories';
 import { monthReviewOf } from '../domain/bilanMois';
-import type { BudgetVersion } from '../domain/budget';
+import type { BudgetVersion, RecurringCharge } from '../domain/budget';
 import type { Catalog, OwnedItem } from '../domain/objets';
 import type { LocalDateTime, WeekResult } from '../domain/scellement';
 import type { AppState } from '../domain/traitement';
@@ -22,6 +23,8 @@ export interface Charge {
   /** Dépenses complètes (catégorie, note), pour le carnet et la clôture. */
   depenses: ExpenseRow[];
   clotures: DayClosureRow[];
+  /** Dépenses récurrentes, arrêtées comprises (ends_on). */
+  charges: RecurringChargeRow[];
 }
 
 const versInstant = (t: LocalDateTime): string => `${t.day}T${t.time}`;
@@ -46,6 +49,16 @@ export const budgetVersLigne = (b: BudgetVersion): BudgetVersionRow => ({
   fixed_costs: b.fixedCosts,
   savings_goal: b.savingsGoal,
   effective_from: b.effectiveFrom,
+});
+
+export const chargeDepuisLigne = (r: RecurringChargeRow): RecurringCharge => ({
+  id: r.id,
+  label: r.label,
+  amount: r.amount,
+  frequency: r.frequency,
+  day: r.day,
+  startsOn: r.starts_on,
+  endsOn: r.ends_on,
 });
 
 const resultatDepuisLigne = (r: WeekResultRow): WeekResult => ({
@@ -99,15 +112,17 @@ function objetVersLigne(o: OwnedItem, etat: AppState): OwnedItemRow {
 export async function charger(repos: Repositories, catalogue: Catalog): Promise<Charge | null> {
   const settings = await repos.settings.get();
   if (settings === null) return null;
-  const [budgets, depenses, clotures, resultats, objets, pieces, bilans] = await Promise.all([
-    repos.budgetVersions.all(),
-    repos.expenses.all(),
-    repos.dayClosures.all(),
-    repos.weekResults.all(),
-    repos.ownedItems.all(),
-    repos.unlockedRooms.all(),
-    repos.monthReviews.all(),
-  ]);
+  const [budgets, depenses, clotures, resultats, objets, pieces, bilans, charges] =
+    await Promise.all([
+      repos.budgetVersions.all(),
+      repos.expenses.all(),
+      repos.dayClosures.all(),
+      repos.weekResults.all(),
+      repos.ownedItems.all(),
+      repos.unlockedRooms.all(),
+      repos.monthReviews.all(),
+      repos.recurringCharges.all(),
+    ]);
   const rang = new Map(catalogue.items.map((item, i) => [item.id, i]));
   const piece = new Map(catalogue.items.map((item) => [item.id, item.room]));
   // Ordre d'obtention, puis ordre du catalogue : celui dans lequel le domaine les a ajoutés.
@@ -148,7 +163,13 @@ export async function charger(repos: Repositories, catalogue: Catalog): Promise<
     monthToReview: null,
     monthReview: null,
   };
-  return { settings, etat, depenses: [...depenses], clotures: [...clotures] };
+  return {
+    settings,
+    etat,
+    depenses: [...depenses],
+    clotures: [...clotures],
+    charges: [...charges],
+  };
 }
 
 const cleObjet = (o: { year: number; itemId: string }) => `${o.year}/${o.itemId}`;
