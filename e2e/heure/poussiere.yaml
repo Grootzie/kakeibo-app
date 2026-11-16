@@ -1,0 +1,144 @@
+# Parcours « poussière » (critère de J4, #88) : la maison de l'accueil aux trois niveaux de
+# poussière, une capture par niveau, puis une clôture qui l'aère (Poussière).
+# Installée le mercredi 4 novembre 2026 : sans clôture, on compte depuis la veille, mardi 3.
+# - Mercredi 4 : J = 0, niveau 0, maison propre (capture « poussiere-0 »).
+# - Jeudi 5 : J = 1, toujours propre ; mercredi est à rattraper.
+# - Vendredi 6 : mercredi et jeudi sans clôture, J = 2, niveau 1, voile (capture « poussiere-1 »).
+# - Dimanche 8 : J = 4, niveau 2, toile d'araignée et lumière baissée (capture « poussiere-2 »).
+# - Dimanche 8, après « Clôturer ma journée » : clôturer aujourd'hui remet la maison à 0
+#   (capture « poussiere-aeree ») ; la semaine n'est pas encore scellée, pas de plancher.
+# Le même enchaînement est rejoué avec le vrai store dans src/state/parcoursMaison.test.ts.
+# Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
+# du téléphone au mercredi 4 novembre 2026 à 9:00. L'horloge de test avance les jours.
+appId: app.kakeibo
+---
+- launchApp
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 60000
+- longPressOn: 'mercredi.4.novembre'
+- extendedWaitUntil:
+    visible: 'Horloge de test'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Poser un budget de démonstration.*'
+    direction: DOWN
+- tapOn: 'Poser un budget de démonstration.*'
+- assertVisible: 'Budget de démonstration posé'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.4.novembre'
+    direction: UP
+# Niveau 0 : mercredi 4, jour d'installation.
+- scrollUntilVisible:
+    element:
+      text: 'Kura, la réserve, novembre 2026\. .*La maison est propre\.'
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Kura, la réserve, novembre 2026\. .*La maison est propre\.'
+- assertNotVisible: 'La maison prend la poussière\..*'
+- takeScreenshot: captures/poussiere-0
+# Jeudi 5 : mercredi est à rattraper (la carte « Premier jour à rattraper ») ; J = 1, encore propre.
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 1 jour'
+- scrollUntilVisible:
+    element:
+      text: 'jeudi.5.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'jeudi.5.novembre'
+    timeout: 10000
+- extendedWaitUntil:
+    visible: 'Premier jour à rattraper'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Premier jour à rattraper.*'
+- extendedWaitUntil:
+    notVisible: 'Premier jour à rattraper'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Kura, la réserve, novembre 2026\. .*La maison est propre\.'
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Kura, la réserve, novembre 2026\. .*La maison est propre\.'
+- assertNotVisible: 'La maison prend la poussière\..*'
+# Niveau 1 : vendredi 6, mercredi et jeudi sans clôture.
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 2 jours'
+- scrollUntilVisible:
+    element:
+      text: 'vendredi.6.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'vendredi.6.novembre'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Kura, la réserve, novembre 2026\. .*Un voile de poussière\.'
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Kura, la réserve, novembre 2026\. .*Un voile de poussière\.'
+- assertVisible: 'La maison prend la poussière\. Une clôture suffit à l’aérer\.'
+- takeScreenshot: captures/poussiere-1
+# Niveau 2 : dimanche 8.
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 3 jours'
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- assertVisible: 'Décalage.: 4 jours'
+- scrollUntilVisible:
+    element:
+      text: 'dimanche.8.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'dimanche.8.novembre'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Kura, la réserve, novembre 2026\. .*De la poussière, une toile d’araignée et la lumière baissée\.'
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Kura, la réserve, novembre 2026\. .*De la poussière, une toile d’araignée et la lumière baissée\.'
+- assertVisible: 'La maison prend la poussière\. Une clôture suffit à l’aérer\.'
+- takeScreenshot: captures/poussiere-2
+# Une clôture aujourd'hui aère la maison : retour au niveau 0.
+- scrollUntilVisible:
+    element:
+      text: 'dimanche.8.novembre'
+    direction: UP
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'Rien dépensé aujourd’hui'
+- extendedWaitUntil:
+    visible: 'Premier tampon'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Premier tampon.*'
+- extendedWaitUntil:
+    notVisible: 'Premier tampon'
+    timeout: 10000
+- assertVisible: 'Journée clôturée'
+- scrollUntilVisible:
+    element:
+      text: 'Kura, la réserve, novembre 2026\. .*La maison est propre\.'
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Kura, la réserve, novembre 2026\. .*La maison est propre\.'
+- assertNotVisible: 'La maison prend la poussière\..*'
+- takeScreenshot: captures/poussiere-aeree
+- launchApp:
+    clearState: true
