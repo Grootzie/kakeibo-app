@@ -210,7 +210,7 @@ export const fr = {
     noterDepenseLibelle: 'Noter une dépense',
     date: jourEtDate,
     carnet: 'Carnet',
-    carnetLibelle: 'Carnet',
+    carnetLibelle: 'Ouvrir le carnet',
     reglages: 'Réglages',
     reglagesLibelle: 'Réglages',
     budgetSemaine: (centimes: number) => `Budget de la semaine${NBSP}: ${formatEuros(centimes)}`,
@@ -576,6 +576,57 @@ export const fr = {
     toutesLesAnneesLibelle: 'Revenir à toutes les années de l’album',
     /** « Novembre · Kura, la réserve ». */
     piece: (mois: string, nomPiece: string) => `${majuscule(nomDuMois(mois))} · ${nomPiece}`,
+  },
+
+  /**
+   * Carnet (E9, #102) : les dépenses passées. Textes absents de « Textes et ton », proposés au
+   * propriétaire dans la demande de fusion ; le résultat reprend les mots du récapitulatif (E6).
+   */
+  carnet: {
+    titre: 'Carnet',
+    retour: 'Retour',
+    retourLibelle: 'Fermer le carnet',
+    /** Mois 'AAAA-MM' -> « Novembre 2026 ». */
+    mois: (mois: string) => `${majuscule(nomDuMois(mois))} ${mois.slice(0, 4)}`,
+    moisPrecedent: '‹',
+    moisPrecedentLibelle: (mois: string | null) =>
+      mois === null
+        ? 'Mois précédent'
+        : `Mois précédent${NBSP}: ${nomDuMois(mois)} ${mois.slice(0, 4)}`,
+    moisSuivant: '›',
+    moisSuivantLibelle: (mois: string | null) =>
+      mois === null
+        ? 'Mois suivant'
+        : `Mois suivant${NBSP}: ${nomDuMois(mois)} ${mois.slice(0, 4)}`,
+    /** Le filtre, lu comme un curseur : le mois affiché parmi ceux du carnet. */
+    filtreLibelle: (mois: string, rang: number, total: number) =>
+      `${nomDuMois(mois)} ${mois.slice(0, 4)}, mois ${rang} sur ${total}`,
+    /** Lundi et dimanche 'AAAA-MM-JJ' -> « Semaine du 2 au 8 novembre », « du 30 novembre au 6 décembre ». */
+    semaine: (lundi: string, dimanche: string) =>
+      `Semaine du ${dateDansLeMois(lundi, lundi.slice(0, 7) === dimanche.slice(0, 7) ? dimanche : null)} au ${dateDansLeMois(dimanche, null)}`,
+    semaineOuverte: 'Semaine ouverte',
+    tampons: (tampons: number, jours: number) =>
+      `${tampons} tampon${tampons > 1 ? 's' : ''} sur ${jours}`,
+    depense: (depense: number, enveloppe: number) =>
+      `Dépensé${NBSP}: ${formatEuros(depense)} sur ${formatEuros(enveloppe)}`,
+    dansEnveloppe: 'Dans ton enveloppe',
+    horsEnveloppe: 'Au-delà de ton enveloppe',
+    /** Le résultat d'une semaine scellée, lu d'un seul tenant. */
+    resultatLibelle: (morceaux: readonly string[]) => `Résultat${NBSP}: ${morceaux.join(', ')}.`,
+    parCategorie: 'Par catégorie',
+    totalCategorie: (categorie: string, centimes: number) =>
+      `${categorie}${NBSP}: ${formatEuros(centimes)}`,
+    totalSemaine: (centimes: number) => `Total de la semaine${NBSP}: ${formatEuros(centimes)}`,
+    aucuneDepense: 'Aucune dépense notée cette semaine.',
+    /** Jour 'AAAA-MM-JJ' -> « Mercredi 4 novembre ». */
+    jour: (jour: string) => majuscule(jourEtDate(jour)),
+    totalJour: (centimes: number) => formatEuros(centimes),
+    jourLibelle: (jour: string, centimes: number) =>
+      `${jourEtDate(jour)}, total${NBSP}: ${formatEuros(centimes)}`,
+    montant: (centimes: number) => formatEuros(centimes),
+    /** « 12,50 € en Envies, note : cinéma ». */
+    depenseLibelle: (centimes: number, categorie: string, note: string) =>
+      `${formatEuros(centimes)} en ${categorie}${note === '' ? '' : `, note${NBSP}: ${note}`}`,
   },
 
   messages: {

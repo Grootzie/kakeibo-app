@@ -1372,7 +1372,7 @@ describe('parcours Maestro « album » (J4.8, #87)', () => {
   const motif = (texte: string) => texte.replace(/\./g, '\\.').replace(/ /g, '.');
 
   it('est joué par le script de l’émulateur, appli effacée, le 4 novembre 2026 à 9:00', () => {
-    expect(script).toMatch(/for parcours in [^;]*\balbum; do/);
+    expect(script).toMatch(/for parcours in [^;]*\balbum\b[^;]*; do/);
     expect(parcours).toMatch(/appId: app\.kakeibo/);
     expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
   });
@@ -1663,5 +1663,50 @@ describe('parcours Maestro « poussière » : niveaux 0, 1 et 2 (J4, #88)', () =
       "- extendedWaitUntil:\n    visible:\n      id: 'maison-dessinee'\n    timeout: 10000\n- waitForAnimationToEnd\n";
     for (const capture of ['poussiere-0', 'poussiere-1', 'poussiere-2', 'poussiere-aeree'])
       expect(parcours).toContain(`${attente}- takeScreenshot: captures/${capture}\n`);
+  });
+});
+
+describe('parcours Maestro « carnet » (J5.3, #102)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'heure', 'carnet.yaml'), 'utf8');
+  const script = readFileSync(join(__dirname, 'parcours-android.sh'), 'utf8');
+  const t = fr.carnet;
+  /** Texte de l'appli -> motif Maestro : points échappés, espaces insécables en « . ». */
+  const motif = (texte: string) => texte.replace(/\./g, '\\.').replace(/ /g, '.');
+
+  it('est joué par le script de l’émulateur, appli effacée, le 4 novembre 2026 à 9:00', () => {
+    expect(script).toMatch(/for parcours in [^;]*\bcarnet\b[^;]*; do/);
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+
+  it('ouvre le carnet depuis l’en-tête de l’accueil, puis revient à l’accueil', () => {
+    dansLOrdre(parcours, [
+      `- tapOn: '${fr.accueil.carnetLibelle}'`,
+      `visible: '${t.mois('2026-11')}'`,
+      `- tapOn: '${t.retourLibelle}'`,
+      "visible: 'mercredi.11.novembre'",
+    ]);
+  });
+
+  it('montre la semaine ouverte, puis le résultat figé de la semaine scellée, avec une capture par étape', () => {
+    dansLOrdre(parcours, [
+      `- assertVisible: '${motif(t.semaine('2026-11-09', '2026-11-15'))}'`,
+      `- assertVisible: '${t.semaineOuverte}'`,
+      `- assertVisible: '${motif(t.jourLibelle('2026-11-11', 800))}'`,
+      `- assertVisible: '${motif(t.depenseLibelle(800, 'Culture', ''))}'`,
+      `- assertVisible: '${motif(t.totalSemaine(800))}'`,
+      '- takeScreenshot: captures/carnet',
+      `text: '${motif(t.semaine('2026-11-02', '2026-11-08'))}'`,
+      `- assertVisible: '${motif(
+        t.resultatLibelle([t.tampons(1, 5), t.depense(4750, 10000), t.dansEnveloppe]),
+      )}'`,
+      `- assertVisible: '${motif(t.totalCategorie('Essentiel', 3500))}'`,
+      `- assertVisible: '${motif(t.totalCategorie('Envies', 1250))}'`,
+      '- takeScreenshot: captures/carnet-semaine-scellee',
+      `text: '${motif(t.jourLibelle('2026-11-04', 4750))}'`,
+      `- assertVisible: '${motif(t.depenseLibelle(3500, 'Essentiel', ''))}'`,
+      `- assertVisible: '${motif(t.depenseLibelle(1250, 'Envies', ''))}'`,
+      '- takeScreenshot: captures/carnet-jours',
+    ]);
   });
 });

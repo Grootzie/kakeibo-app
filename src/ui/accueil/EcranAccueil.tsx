@@ -37,6 +37,8 @@ export interface PropsEcranAccueil {
   onBilanMois?: () => void;
   /** Ouvre la maison (E8) : toucher la maison de l'accueil. */
   onMaison?: () => void;
+  /** Ouvre le carnet (E9), depuis l'en-tête. */
+  onCarnet?: () => void;
   /** Faux quand un autre écran est par-dessus : les cartes de première fois attendent. */
   visible?: boolean;
   children?: ReactNode;
@@ -50,6 +52,7 @@ export function EcranAccueil({
   onBilanSemaine,
   onBilanMois,
   onMaison,
+  onCarnet,
   visible = true,
   children,
 }: PropsEcranAccueil) {
@@ -119,6 +122,7 @@ export function EcranAccueil({
       vue={vue}
       maison={maison}
       onMaison={onMaison}
+      onCarnet={onCarnet}
       onAppuiLongDate={onAppuiLongDate}
       onNoterDepense={() => setFeuille(true)}
       onCloturer={onCloturer}

@@ -1,0 +1,118 @@
+# Carnet (E9, J5.3, #102) : ouvert depuis l'en-tête de l'accueil, il montre les semaines du mois,
+# de la plus récente à la plus ancienne, les dépenses groupées par jour avec les totaux par
+# catégorie, et le résultat de la semaine scellée (tampons, enveloppe et dépensé), sans reproche.
+# Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
+# du téléphone au mercredi 4 novembre 2026 à 9:00. L'horloge de test avance d'une semaine.
+# Budget de démonstration : 600 € par mois, soit 100 € pour les 5 jours décomptés de la semaine 45.
+appId: app.kakeibo
+---
+- launchApp
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 60000
+- longPressOn: 'mercredi.4.novembre'
+- extendedWaitUntil:
+    visible: 'Horloge de test'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Poser un budget de démonstration.*'
+    direction: DOWN
+- tapOn: 'Poser un budget de démonstration.*'
+- assertVisible: 'Budget de démonstration posé'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.4.novembre'
+    direction: UP
+# 1. Mercredi 4 novembre : 35 € en Essentiel et 12,50 € en Envies, puis « J’ai tout noté ».
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Essentiel'
+- inputText: '35'
+# Pas de « hideKeyboard » : sur Android, Maestro envoie « Retour », qui ferme la feuille (Modal).
+- tapOn: 'Enregistrer en Essentiel'
+- extendedWaitUntil:
+    visible: 'Première dépense'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Première dépense.*'
+- extendedWaitUntil:
+    notVisible: 'Première dépense'
+    timeout: 10000
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Envies'
+- inputText: '12.50'
+- tapOn: 'Enregistrer en Envies'
+- assertVisible: '12,50.€ noté en Envies\.'
+- tapOn: 'Clôturer ma journée'
+- tapOn: 'J’ai tout noté'
+- extendedWaitUntil:
+    visible: 'Premier tampon'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Premier tampon.*'
+- assertVisible: 'Journée clôturée'
+# 2. Mercredi 11 novembre : la semaine 45 est scellée depuis lundi 12:00, avec 1 tampon sur 5.
+#    Son bilan (E6) s'ouvre de lui-même ; on revient à l'accueil sans le faire.
+- scrollUntilVisible:
+    element:
+      text: '\+1 semaine'
+    direction: DOWN
+- tapOn: '\+1 semaine'
+- extendedWaitUntil:
+    visible: 'Temps 1 sur 4'
+    timeout: 10000
+- tapOn: 'Retour à l’accueil'
+- assertVisible: 'Décalage.: 7 jours'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.11.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'mercredi.11.novembre'
+    timeout: 10000
+- tapOn:
+    text: 'Fermer l’explication .*Premier jour à rattraper.*'
+    optional: true
+# 3. 8 € en Culture ce mercredi 11, dans la semaine ouverte.
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Culture'
+- inputText: '8'
+- tapOn: 'Enregistrer en Culture'
+- assertVisible: '8.€ noté en Culture\.'
+# 4. L'en-tête de l'accueil ouvre le carnet, sur le mois en cours.
+- tapOn: 'Ouvrir le carnet'
+- extendedWaitUntil:
+    visible: 'Novembre 2026'
+    timeout: 10000
+- assertVisible: 'Carnet'
+- assertVisible: 'Semaine du 9 au 15.novembre'
+- assertVisible: 'Semaine ouverte'
+- assertVisible: 'mercredi 11.novembre, total.: 8.€'
+- assertVisible: '8.€ en Culture'
+- assertVisible: 'Total de la semaine.: 8.€'
+- takeScreenshot: captures/carnet
+# 5. La semaine 45, scellée : son résultat figé, puis ses dépenses du mercredi 4.
+- scrollUntilVisible:
+    element:
+      text: 'Semaine du 2 au 8.novembre'
+    direction: DOWN
+- assertVisible: 'Résultat.: 1 tampon sur 5, Dépensé.: 47,50.€ sur 100.€, Dans ton enveloppe\.'
+- assertVisible: 'Essentiel.: 35.€'
+- assertVisible: 'Envies.: 12,50.€'
+- takeScreenshot: captures/carnet-semaine-scellee
+- scrollUntilVisible:
+    element:
+      text: 'mercredi 4.novembre, total.: 47,50.€'
+    direction: DOWN
+- assertVisible: '35.€ en Essentiel'
+- assertVisible: '12,50.€ en Envies'
+- takeScreenshot: captures/carnet-jours
+# 6. Retour à l'accueil.
+- scrollUntilVisible:
+    element:
+      text: 'Fermer le carnet'
+    direction: UP
+- tapOn: 'Fermer le carnet'
+- extendedWaitUntil:
+    visible: 'mercredi.11.novembre'
+    timeout: 10000
+- launchApp:
+    clearState: true
