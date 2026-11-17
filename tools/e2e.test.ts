@@ -1890,3 +1890,92 @@ describe('parcours Maestro « carnet » (J5.3, #102)', () => {
     ]);
   });
 });
+
+describe('parcours Maestro des dernières cartes de première fois (J5.8, #107)', () => {
+  const racine = join(__dirname, '..', 'e2e', 'heure');
+  const bienvenue = readFileSync(join(racine, 'bienvenue.yaml'), 'utf8');
+  const parcours = readFileSync(join(racine, 'nouvelle-annee.yaml'), 'utf8');
+  const script = readFileSync(join(__dirname, 'parcours-android.sh'), 'utf8');
+  const titres = fr.carteExplication.titres;
+  const fermer = (titre: string) => `'Fermer l’explication .*${titre}.*'`;
+
+  it('calcule les textes attendus avec ceux de l’appli', () => {
+    expect(fr.carteExplication.fermerLibelle(titres.welcome_method)).toMatch(
+      /^Fermer l’explication .*Bienvenue, la méthode.*$/,
+    );
+    expect(fr.explications.bienvenueCategories).toMatch(
+      /^Chaque dépense va dans l’une des quatre catégories/,
+    );
+    expect(fr.explications.bienvenueMois).toMatch(
+      /^Ton budget, c’est ce qui reste une fois payées tes charges fixes/,
+    );
+    expect(fr.explications.nouvelleAnnee).toMatch(
+      /^Au Japon, on fait le grand ménage de fin d’année/,
+    );
+  });
+
+  it('la bienvenue montre, capture puis ferme la carte de chacune des trois premières étapes', () => {
+    dansLOrdre(bienvenue, [
+      '- takeScreenshot: captures/bienvenue-1-methode',
+      `text: ${fermer(titres.welcome_method)}`,
+      `- assertVisible: '${titres.welcome_method}'`,
+      '- takeScreenshot: captures/bienvenue-carte-methode',
+      `- tapOn: ${fermer(titres.welcome_method)}`,
+      `notVisible: '${titres.welcome_method}'`,
+      `visible: '${fr.bienvenue.categories.titre}'`,
+      `- assertVisible: '${titres.welcome_categories}'`,
+      '- takeScreenshot: captures/bienvenue-carte-categories',
+      `- tapOn: ${fermer(titres.welcome_categories)}`,
+      `notVisible: '${titres.welcome_categories}'`,
+      '- takeScreenshot: captures/bienvenue-2-categories',
+      `visible: '${fr.bienvenue.mois.titre}'`,
+      `- assertVisible: '${titres.welcome_month}'`,
+      '- takeScreenshot: captures/bienvenue-carte-mois',
+      `- tapOn: ${fermer(titres.welcome_month)}`,
+      `notVisible: '${titres.welcome_month}'`,
+      '- takeScreenshot: captures/bienvenue-3-mois',
+    ]);
+  });
+
+  it('« Nouvelle année » est jouée par le script, appli effacée, le 4 novembre 2026 à 9:00', () => {
+    expect(script).toMatch(/for parcours in [^;]*\bnouvelle-annee\b[^;]*; do/);
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    expect(parcours).toContain(PASSER_BIENVENUE);
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+
+  it('pas de carte en décembre ; le lundi 4 janvier 2027, la carte, capturée puis fermée ; plus le lendemain', () => {
+    dansLOrdre(parcours, [
+      "- tapOn: 'Poser un budget de démonstration.*'",
+      "- tapOn: '\\+1 mois'",
+      "text: 'vendredi.4.décembre'",
+      `visible: '${titres.first_catch_up}'`,
+      `- assertNotVisible: '${titres.new_year}'`,
+      `- tapOn: ${fermer(titres.first_catch_up)}`,
+      "- tapOn: '\\+1 mois'",
+      "text: 'lundi.4.janvier'",
+      `text: '${titres.new_year}'`,
+      "- assertVisible: 'Au Japon, on fait le grand ménage de fin d’année.*'",
+      '- takeScreenshot: captures/nouvelle-annee',
+      `- tapOn: ${fermer(titres.new_year)}`,
+      `notVisible: '${titres.new_year}'`,
+      '- takeScreenshot: captures/nouvelle-annee-fermee',
+      "- tapOn: '\\+1 jour'",
+      // La semaine 53 est scellée le lundi 4 à 12:00, et « Retour » n'a pas marqué les semaines
+      // vues : le récapitulatif (E6) se rouvre le mardi. Le parcours le referme.
+      `visible: '${fr.recapitulatif.titre}'`,
+      `- tapOn: '${fr.bilan.retourLibelle}'`,
+      "text: 'mardi.5.janvier'",
+      "visible: 'mardi.5.janvier'",
+      `- assertNotVisible: '${titres.new_year}'`,
+    ]);
+  });
+
+  it('le mardi 5 janvier, le récapitulatif est refermé avant de chercher la date', () => {
+    const mardi = parcours.slice(parcours.indexOf("- tapOn: '\\+1 jour'"));
+    expect(mardi.indexOf(`visible: '${fr.recapitulatif.titre}'`)).toBeGreaterThan(0);
+    expect(mardi.indexOf(`visible: '${fr.recapitulatif.titre}'`)).toBeLessThan(
+      mardi.indexOf("text: 'mardi.5.janvier'"),
+    );
+  });
+});

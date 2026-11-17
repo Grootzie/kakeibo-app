@@ -25,6 +25,9 @@ export type FicheComprendre = (typeof FICHES_COMPRENDRE)[number];
 
 /** La fiche que « En savoir plus » ouvre, carte par carte : celle qui reprend son texte. */
 export const FICHE_DE_CARTE: Record<IdExplication, FicheComprendre> = {
+  welcome_method: 'methode',
+  welcome_categories: 'categories',
+  welcome_month: 'methode',
   first_expense: 'methode',
   first_stamp: 'maison',
   first_catch_up: 'maison',
@@ -34,6 +37,7 @@ export const FICHE_DE_CARTE: Record<IdExplication, FicheComprendre> = {
   first_repair: 'kintsugi',
   first_month_review: 'questions',
   new_room: 'fetes',
+  new_year: 'maison',
 };
 
 const e = fr.explications;
