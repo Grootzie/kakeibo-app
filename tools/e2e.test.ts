@@ -1780,4 +1780,25 @@ describe('parcours Maestro « carnet » (J5.3, #102)', () => {
       '- takeScreenshot: captures/carnet-jours',
     ]);
   });
+
+  it('montre la semaine 49 coupée aux jours de décembre, puis de novembre (#102, option 2)', () => {
+    const semaine49 = motif(t.semaine('2026-11-30', '2026-12-06'));
+    dansLOrdre(parcours, [
+      '- takeScreenshot: captures/carnet-jours',
+      "- tapOn: '\\+1 mois'",
+      "visible: 'vendredi.11.décembre'",
+      "- openLink: 'kakeibo://carnet'",
+      `visible: '${t.mois('2026-12')}'`,
+      `text: '${semaine49}'`,
+      `- assertVisible: '${motif(t.joursDuMois('2026-12-01', '2026-12-06'))}'`,
+      `- assertVisible: '${motif(`${t.resultatLibelle([t.tampons(0, 7)]).slice(0, -1)}`)}.*'`,
+      `- assertVisible: '${motif(t.aucuneDepenseJours)}'`,
+      '- takeScreenshot: captures/carnet-semaine-coupee-decembre',
+      `- tapOn: '${motif(t.moisPrecedentLibelle('2026-11'))}'`,
+      `visible: '${t.mois('2026-11')}'`,
+      `- assertVisible: '${semaine49}'`,
+      `- assertVisible: '${motif(t.joursDuMois('2026-11-30', '2026-11-30'))}'`,
+      '- takeScreenshot: captures/carnet-semaine-coupee-novembre',
+    ]);
+  });
 });

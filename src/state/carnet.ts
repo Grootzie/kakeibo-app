@@ -7,10 +7,9 @@ import {
   type DayKey,
   type MonthKey,
   type WeekId,
+  addDays,
   weekDays,
-  weekMonth,
   weekOf,
-  weeksOfMonth,
 } from '../domain/calendrier';
 import type { LocalDateTime, WeekResult } from '../domain/scellement';
 
@@ -56,12 +55,17 @@ export interface SemaineCarnet {
   semaine: WeekId;
   lundi: DayKey;
   dimanche: DayKey;
+  /** Premier et dernier jours de la semaine qui tombent dans le mois affiché. */
+  debut: DayKey;
+  fin: DayKey;
+  /** Vrai si la semaine déborde sur un autre mois : jours et totaux ne portent que sur debut..fin. */
+  coupee: boolean;
   /** Jours qui ont au moins une dépense, du plus récent au plus ancien. */
   jours: JourCarnet[];
-  /** Les quatre catégories, dans l'ordre fixe, avec les montants actuels des dépenses. */
+  /** Les quatre catégories, dans l'ordre fixe, avec les montants actuels des dépenses du mois. */
   totaux: TotalCategorie[];
   total: Cents;
-  /** Null tant que la semaine n'est pas scellée. */
+  /** Null tant que la semaine n'est pas scellée. Porte sur la semaine entière, même coupée. */
   resultat: ResultatCarnet | null;
 }
 
@@ -69,17 +73,14 @@ export interface VueCarnet {
   mois: MonthKey;
   /** Mois proposés par le filtre, du plus ancien au plus récent. */
   moisDisponibles: MonthKey[];
-  /** Semaines du mois, de la plus récente à la plus ancienne. */
+  /** Semaines qui ont au moins un jour dans le mois, de la plus récente à la plus ancienne. */
   semaines: SemaineCarnet[];
 }
 
-/**
- * Mois du filtre : de celui de la semaine d'installation à celui de la semaine en cours. Une
- * semaine appartient au mois qui contient son jeudi (Objets et pièces).
- */
+/** Mois du filtre : du mois du jour d'installation à celui d'aujourd'hui. */
 export function moisDuCarnet(installDay: DayKey, today: DayKey): MonthKey[] {
-  const premier = weekMonth(weekOf(installDay));
-  const dernier = weekMonth(weekOf(today));
+  const premier = installDay.slice(0, 7);
+  const dernier = today.slice(0, 7);
   const mois: MonthKey[] = [];
   for (let m = premier; m <= dernier; m = moisSuivant(m)) mois.push(m);
   return mois;
@@ -92,9 +93,14 @@ function moisSuivant(mois: MonthKey): MonthKey {
     : `${String(annee).padStart(4, '0')}-${String(numero + 1).padStart(2, '0')}`;
 }
 
-/** Mois affiché par défaut : celui de la semaine en cours. */
+/** Mois affiché par défaut : celui d'aujourd'hui. */
 export function moisCourantDuCarnet(today: DayKey): MonthKey {
-  return weekMonth(weekOf(today));
+  return today.slice(0, 7);
+}
+
+/** Dernier jour du mois. */
+function finDuMois(mois: MonthKey): DayKey {
+  return addDays(`${moisSuivant(mois)}-01`, -1);
 }
 
 /** Première dépense du jour `jour` ou après, dans des dépenses triées par jour. */
@@ -111,17 +117,22 @@ function premierIndex(depenses: readonly ExpenseRow[], jour: DayKey): number {
 
 function semaineDuCarnet(
   semaine: WeekId,
+  mois: MonthKey,
   depenses: readonly ExpenseRow[],
   resultat: WeekResult | undefined,
 ): SemaineCarnet {
   const jours = weekDays(semaine);
   const lundi = jours[0];
   const dimanche = jours[6];
+  const premierDuMois = `${mois}-01`;
+  const dernierDuMois = finDuMois(mois);
+  const debut = lundi < premierDuMois ? premierDuMois : lundi;
+  const fin = dimanche > dernierDuMois ? dernierDuMois : dimanche;
   const parCategorie = new Map<CategorieCarnet, Cents>(CATEGORIES_CARNET.map((c) => [c, 0]));
   const parJour: JourCarnet[] = [];
-  for (let i = premierIndex(depenses, lundi); i < depenses.length; i++) {
+  for (let i = premierIndex(depenses, debut); i < depenses.length; i++) {
     const d = depenses[i];
-    if (d.day > dimanche) break;
+    if (d.day > fin) break;
     let jour = parJour[parJour.length - 1];
     if (jour === undefined || jour.jour !== d.day) {
       jour = { jour: d.day, depenses: [], total: 0 };
@@ -139,6 +150,9 @@ function semaineDuCarnet(
     semaine,
     lundi,
     dimanche,
+    debut,
+    fin,
+    coupee: debut !== lundi || fin !== dimanche,
     jours: parJour.reverse(),
     totaux,
     total: totaux.reduce((somme, t) => somme + t.total, 0),
@@ -156,8 +170,10 @@ function semaineDuCarnet(
 }
 
 /**
- * Le carnet d'un mois : ses semaines (celles dont le jeudi tombe dans le mois), de la semaine
- * d'installation à la semaine en cours, chacune entière. Les dépenses doivent être triées par
+ * Le carnet d'un mois : les semaines qui ont au moins un jour dans le mois, de la semaine
+ * d'installation à la semaine en cours. Une semaine à cheval sur deux mois apparaît sous les
+ * deux, coupée aux jours du mois ; son résultat figé, qui porte sur la semaine entière, s'affiche
+ * sous les deux (#102). Les dépenses doivent être triées par
  * jour, comme le store les garde ; les montants affichés sont les montants actuels, et le
  * résultat des semaines scellées reste celui du scellement (scénario 15).
  */
@@ -172,9 +188,17 @@ export function vueCarnet(
   const premiere = weekOf(installDay);
   const derniere = weekOf(now.day);
   const parSemaine = new Map(resultats.map((r) => [r.week, r]));
-  const semaines = weeksOfMonth(mois)
-    .filter((s) => s >= premiere && s <= derniere)
-    .reverse()
-    .map((s) => semaineDuCarnet(s, depenses, parSemaine.get(s)));
+  const semaines: SemaineCarnet[] = [];
+  const dernierDuMois = finDuMois(mois);
+  for (let jour = `${mois}-01`; jour <= dernierDuMois; jour = addDays(jour, 7)) {
+    const s = weekOf(jour);
+    if (s >= premiere && s <= derniere)
+      semaines.push(semaineDuCarnet(s, mois, depenses, parSemaine.get(s)));
+  }
+  // La dernière semaine du mois, si le pas de 7 jours l'a sautée.
+  const s = weekOf(dernierDuMois);
+  if (s >= premiere && s <= derniere && semaines.at(-1)?.semaine !== s)
+    semaines.push(semaineDuCarnet(s, mois, depenses, parSemaine.get(s)));
+  semaines.reverse();
   return { mois, moisDisponibles, semaines };
 }

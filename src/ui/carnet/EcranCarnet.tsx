@@ -1,5 +1,6 @@
 // Carnet (E9, J5.3, #102) : les dépenses passées par semaine, groupées par jour, avec les totaux
-// par catégorie et un filtre par mois. Les semaines scellées affichent leur résultat figé
+// par catégorie et un filtre par mois. Une semaine à cheval sur deux mois est coupée aux jours
+// du mois affiché, et le dit (#102). Les semaines scellées affichent leur résultat figé
 // (tampons, enveloppe et dépensé, dans l'enveloppe ou au-delà), sans ton de reproche. L'écran
 // défile et les lignes passent à la ligne : rien ne se perd à 200 %. Ne parle qu'au store.
 import { useMemo, useState } from 'react';
@@ -138,7 +139,9 @@ function Totaux({ semaine }: { semaine: SemaineCarnet }) {
           </View>
         );
       })}
-      <Text style={{ color: c.texte, fontWeight: '600' }}>{t.totalSemaine(semaine.total)}</Text>
+      <Text style={{ color: c.texte, fontWeight: '600' }}>
+        {semaine.coupee ? t.totalJours(semaine.total) : t.totalSemaine(semaine.total)}
+      </Text>
     </View>
   );
 }
@@ -190,9 +193,14 @@ function Semaine({ semaine }: { semaine: SemaineCarnet }) {
       <Text accessibilityRole="header" style={{ fontSize: 18, fontWeight: '600', color: c.texte }}>
         {t.semaine(semaine.lundi, semaine.dimanche)}
       </Text>
+      {semaine.coupee && (
+        <Text style={{ color: c.texteDiscret }}>{t.joursDuMois(semaine.debut, semaine.fin)}</Text>
+      )}
       <Resultat semaine={semaine} />
       {semaine.jours.length === 0 ? (
-        <Text style={{ color: c.texteDiscret }}>{t.aucuneDepense}</Text>
+        <Text style={{ color: c.texteDiscret }}>
+          {semaine.coupee ? t.aucuneDepenseJours : t.aucuneDepense}
+        </Text>
       ) : (
         <>
           <Totaux semaine={semaine} />

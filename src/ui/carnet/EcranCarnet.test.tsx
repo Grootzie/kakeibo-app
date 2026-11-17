@@ -130,17 +130,26 @@ describe('Carnet (E9, #102)', () => {
     expect(screen.queryByText(/dépassé|trop|attention/i)).toBeNull();
   });
 
-  it('filtre par mois : décembre, puis retour à novembre', async () => {
+  it('filtre par mois : la semaine à cheval est coupée aux jours de chaque mois (#102)', async () => {
     const p = await preparer();
-    p.horloge.avancerJours(21); // mercredi 2 décembre : semaine 49, celle du jeudi 3 décembre
+    p.horloge.avancerJours(21); // mercredi 2 décembre : semaine 49, du 30 novembre au 6 décembre
     await act(async () => {
+      await p.store.getState().noterDepense({
+        day: '2026-11-30',
+        amount: 2000,
+        category: 'essentiel',
+        note: '',
+      });
       await p.store.getState().ouvrir();
     });
     await monter(p);
     expect(screen.getByText('Décembre 2026')).toBeOnTheScreen();
     expect(screen.getAllByText(/^Semaine du /)).toHaveLength(1);
-    expect(screen.getByText(`Semaine du 30${NBSP}novembre au 6${NBSP}décembre`)).toBeOnTheScreen();
-    expect(screen.getByText(t.aucuneDepense)).toBeOnTheScreen();
+    const d49 = within(screen.getByTestId('semaine-2026-W49'));
+    expect(d49.getByText(`Semaine du 30${NBSP}novembre au 6${NBSP}décembre`)).toBeOnTheScreen();
+    expect(d49.getByText(`Dans ce mois${NBSP}: du 1er au 6${NBSP}décembre`)).toBeOnTheScreen();
+    // La dépense du lundi 30 reste sous novembre.
+    expect(d49.getByText(t.aucuneDepenseJours)).toBeOnTheScreen();
     const suivant = screen.getByRole('button', { name: 'Mois suivant' });
     expect(suivant).toBeDisabled();
 
@@ -149,7 +158,17 @@ describe('Carnet (E9, #102)', () => {
     );
     expect(screen.getByText('Novembre 2026')).toBeOnTheScreen();
     expect(screen.getByRole('header', { name: `novembre 2026, mois 1 sur 2` })).toBeOnTheScreen();
-    expect(screen.getAllByText(/^Semaine du /)).toHaveLength(4);
+    expect(screen.getAllByText(/^Semaine du /)).toHaveLength(5);
+    const n49 = within(screen.getByTestId('semaine-2026-W49'));
+    expect(n49.getByText(`Dans ce mois${NBSP}: le 30${NBSP}novembre`)).toBeOnTheScreen();
+    expect(n49.getByText(`Total de ces jours${NBSP}: 20${NBSP}€`)).toBeOnTheScreen();
+    expect(n49.getByLabelText(`20${NBSP}€ en Essentiel`)).toBeOnTheScreen();
+    // Une semaine entière garde son titre de total.
+    expect(
+      within(screen.getByTestId('semaine-2026-W45')).getByText(
+        `Total de la semaine${NBSP}: 150${NBSP}€`,
+      ),
+    ).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'Mois précédent' })).toBeDisabled();
     await fireEvent.press(
       screen.getByRole('button', { name: `Mois suivant${NBSP}: décembre 2026` }),

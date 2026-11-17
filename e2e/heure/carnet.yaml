@@ -123,5 +123,49 @@ appId: app.kakeibo
 - extendedWaitUntil:
     visible: 'mercredi.11.novembre'
     timeout: 10000
+# 7. Un mois plus tard (vendredi 11 décembre), la semaine 49, du 30 novembre au 6 décembre, est
+#    coupée aux jours de chaque mois (#102, option 2) : sous décembre du 1er au 6, sous novembre
+#    le lundi 30 seul ; son résultat figé s'affiche sous les deux.
+- scrollUntilVisible:
+    element:
+      text: '\+1 mois'
+    direction: DOWN
+- tapOn: '\+1 mois'
+- extendedWaitUntil:
+    visible: 'Tes dernières semaines'
+    timeout: 10000
+- tapOn: 'Retour à l’accueil'
+- scrollUntilVisible:
+    element:
+      text: 'vendredi.11.décembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'vendredi.11.décembre'
+    timeout: 10000
+- openLink: 'kakeibo://carnet'
+- extendedWaitUntil:
+    visible: 'Décembre 2026'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Semaine du 30.novembre au 6.décembre'
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Dans ce mois.: du 1er au 6.décembre'
+- assertVisible: 'Résultat.: 0 tampon sur 7.*'
+- assertVisible: 'Aucune dépense notée ces jours-là\.'
+- takeScreenshot: captures/carnet-semaine-coupee-decembre
+- scrollUntilVisible:
+    element:
+      text: 'Mois précédent.: novembre 2026'
+    direction: UP
+- tapOn: 'Mois précédent.: novembre 2026'
+- extendedWaitUntil:
+    visible: 'Novembre 2026'
+    timeout: 10000
+- assertVisible: 'Semaine du 30.novembre au 6.décembre'
+- assertVisible: 'Dans ce mois.: le 30.novembre'
+- assertVisible: 'Résultat.: 0 tampon sur 7.*'
+- takeScreenshot: captures/carnet-semaine-coupee-novembre
 - launchApp:
     clearState: true

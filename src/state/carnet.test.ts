@@ -98,26 +98,55 @@ describe('vueCarnet', () => {
     expect(vue.semaines.every((s) => s.jours.length === 0 && s.total === 0)).toBe(true);
   });
 
-  it('filtre par mois : une semaine appartient au mois de son jeudi, et reste entière', () => {
-    // Semaine 49, du lundi 30 novembre au dimanche 6 décembre : son jeudi 3 est en décembre.
+  it('filtre par mois : une semaine à cheval est coupée aux jours de chaque mois (#102, option 2)', () => {
+    // Semaine 49, du lundi 30 novembre au dimanche 6 décembre.
     const lignes = [
       ligne('n', '2026-11-27', 1000, 'envies'),
       ligne('x', '2026-11-30', 2000, 'essentiel'),
       ligne('y', '2026-12-02', 3000, 'culture'),
     ];
-    const jeudi3 = { day: '2026-12-03', time: '09:00' };
-    const novembre = vueCarnet(lignes, [], '2026-11-02', jeudi3, '2026-11');
+    const resultat49: WeekResult = { ...resultat45, week: '2026-W49', spent: 5000 };
+    const lundi7 = { day: '2026-12-07', time: '09:00' };
+    const novembre = vueCarnet(lignes, [resultat49], '2026-11-02', lundi7, '2026-11');
     expect(novembre.semaines.map((s) => s.semaine)).toEqual([
+      '2026-W49',
       '2026-W48',
       '2026-W47',
       '2026-W46',
       '2026-W45',
     ]);
-    expect(novembre.semaines[0].total).toBe(1000);
-    const decembre = vueCarnet(lignes, [], '2026-11-02', jeudi3, '2026-12');
-    expect(decembre.semaines.map((s) => s.semaine)).toEqual(['2026-W49']);
-    expect(decembre.semaines[0].jours.map((j) => j.jour)).toEqual(['2026-12-02', '2026-11-30']);
-    expect(decembre.semaines[0].total).toBe(5000);
+    const n49 = novembre.semaines[0];
+    expect([n49.lundi, n49.dimanche, n49.debut, n49.fin, n49.coupee]).toEqual([
+      '2026-11-30',
+      '2026-12-06',
+      '2026-11-30',
+      '2026-11-30',
+      true,
+    ]);
+    expect(n49.jours.map((j) => j.jour)).toEqual(['2026-11-30']);
+    expect(n49.total).toBe(2000);
+    expect(n49.totaux[0]).toEqual({ categorie: 'essentiel', total: 2000 });
+    expect(n49.totaux[2]).toEqual({ categorie: 'culture', total: 0 });
+    expect(novembre.semaines[1].total).toBe(1000);
+    expect(novembre.semaines[1].coupee).toBe(false);
+
+    const decembre = vueCarnet(lignes, [resultat49], '2026-11-02', lundi7, '2026-12');
+    expect(decembre.semaines.map((s) => s.semaine)).toEqual(['2026-W50', '2026-W49']);
+    const d49 = decembre.semaines[1];
+    expect([d49.debut, d49.fin, d49.coupee]).toEqual(['2026-12-01', '2026-12-06', true]);
+    expect(d49.jours.map((j) => j.jour)).toEqual(['2026-12-02']);
+    expect(d49.total).toBe(3000);
+    // Le résultat figé porte sur la semaine entière : il s'affiche sous les deux mois.
+    expect(n49.resultat).toEqual(d49.resultat);
+    expect(d49.resultat?.depense).toBe(5000);
+    // Rien ne se perd ni ne se compte deux fois entre les deux mois.
+    const tout = [...novembre.semaines, ...decembre.semaines].reduce((s, x) => s + x.total, 0);
+    expect(tout).toBe(6000);
+  });
+
+  it('une semaine entière dans le mois n’est pas coupée', () => {
+    const s46 = vueCarnet([], [], '2026-11-02', lundi16, '2026-11').semaines[1];
+    expect([s46.debut, s46.fin, s46.coupee]).toEqual(['2026-11-09', '2026-11-15', false]);
   });
 
   it('ne montre ni les semaines avant l’installation ni les semaines à venir', () => {
@@ -133,17 +162,18 @@ describe('vueCarnet', () => {
       '2027-01',
       '2027-02',
     ]);
-    // Le dimanche 1er novembre 2026 est dans la semaine 44, celle du jeudi 29 octobre.
-    expect(moisDuCarnet('2026-11-01', '2026-11-01')).toEqual(['2026-10']);
+    // Les mois sont ceux des jours, pas ceux des jeudis : le dimanche 1er novembre est en novembre.
+    expect(moisDuCarnet('2026-11-01', '2026-11-01')).toEqual(['2026-11']);
+    expect(moisDuCarnet('2026-10-29', '2026-11-01')).toEqual(['2026-10', '2026-11']);
     expect(vueCarnet([], [], '2026-11-02', lundi16, '2026-11').moisDisponibles).toEqual([
       '2026-11',
     ]);
   });
 
-  it('ouvre par défaut le mois de la semaine en cours', () => {
+  it('ouvre par défaut le mois d’aujourd’hui', () => {
     expect(moisCourantDuCarnet('2026-11-16')).toBe('2026-11');
-    expect(moisCourantDuCarnet('2026-11-30')).toBe('2026-12');
-    expect(moisCourantDuCarnet('2027-01-02')).toBe('2026-12');
+    expect(moisCourantDuCarnet('2026-11-30')).toBe('2026-11');
+    expect(moisCourantDuCarnet('2027-01-02')).toBe('2027-01');
   });
 });
 
@@ -235,7 +265,7 @@ describe('performance du carnet', () => {
     // Toutes les dépenses du mois sont là : rien ne se perd au filtre.
     const juin = vueCarnet(depenses, resultats, '2025-11-17', maintenant, '2026-06');
     const attendu = depenses
-      .filter((d) => d.day >= juin.semaines.at(-1)!.lundi && d.day <= juin.semaines[0].dimanche)
+      .filter((d) => d.day.startsWith('2026-06-'))
       .reduce((s, d) => s + d.amount, 0);
     expect(juin.semaines.reduce((s, x) => s + x.total, 0)).toBe(attendu);
   });

@@ -604,6 +604,11 @@ export const fr = {
     /** Lundi et dimanche 'AAAA-MM-JJ' -> « Semaine du 2 au 8 novembre », « du 30 novembre au 6 décembre ». */
     semaine: (lundi: string, dimanche: string) =>
       `Semaine du ${dateDansLeMois(lundi, lundi.slice(0, 7) === dimanche.slice(0, 7) ? dimanche : null)} au ${dateDansLeMois(dimanche, null)}`,
+    /** Semaine coupée au mois affiché (#102) : « Dans ce mois : le 30 novembre », « … : du 1er au 6 décembre ». */
+    joursDuMois: (debut: string, fin: string) =>
+      debut === fin
+        ? `Dans ce mois${NBSP}: le ${dateDansLeMois(debut, null)}`
+        : `Dans ce mois${NBSP}: du ${dateDansLeMois(debut, fin)} au ${dateDansLeMois(fin, null)}`,
     semaineOuverte: 'Semaine ouverte',
     tampons: (tampons: number, jours: number) =>
       `${tampons} tampon${tampons > 1 ? 's' : ''} sur ${jours}`,
@@ -617,7 +622,10 @@ export const fr = {
     totalCategorie: (categorie: string, centimes: number) =>
       `${categorie}${NBSP}: ${formatEuros(centimes)}`,
     totalSemaine: (centimes: number) => `Total de la semaine${NBSP}: ${formatEuros(centimes)}`,
+    /** Total d'une semaine coupée : il ne porte que sur les jours du mois affiché. */
+    totalJours: (centimes: number) => `Total de ces jours${NBSP}: ${formatEuros(centimes)}`,
     aucuneDepense: 'Aucune dépense notée cette semaine.',
+    aucuneDepenseJours: 'Aucune dépense notée ces jours-là.',
     /** Jour 'AAAA-MM-JJ' -> « Mercredi 4 novembre ». */
     jour: (jour: string) => majuscule(jourEtDate(jour)),
     totalJour: (centimes: number) => formatEuros(centimes),
