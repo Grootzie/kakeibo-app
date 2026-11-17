@@ -5,8 +5,11 @@ import type { Catalog } from '../domain/objets';
 import type { LocalDateTime } from '../domain/scellement';
 import { type AppState, createAppState } from '../domain/traitement';
 import {
+  EXPLICATIONS_ACCUEIL,
+  EXPLICATIONS_BIENVENUE,
   EXPLICATIONS_J2,
   EXPLICATIONS_J3,
+  TOUTES_LES_EXPLICATIONS,
   explicationAAfficher,
   lireExplicationsVues,
   ecrireExplicationsVues,
@@ -115,6 +118,84 @@ describe('cartes de J3 (#66) : leur moment vient de l’écran', () => {
     expect(
       explicationAAfficher(e, now, [...EXPLICATIONS_J2], undefined, { first_repair: true }),
     ).toBeNull();
+  });
+});
+
+describe('cartes de J5 (#107) : la bienvenue et la nouvelle année', () => {
+  test('les 13 cartes de la spec, dans l’ordre de E12', () => {
+    expect([...TOUTES_LES_EXPLICATIONS]).toEqual([
+      'welcome_method',
+      'welcome_categories',
+      'welcome_month',
+      'first_expense',
+      'first_stamp',
+      'first_capsule',
+      'first_catch_up',
+      'first_dust',
+      'first_crack',
+      'first_repair',
+      'first_month_review',
+      'new_room',
+      'new_year',
+    ]);
+    expect(new Set(TOUTES_LES_EXPLICATIONS).size).toBe(13);
+  });
+
+  test('les trois cartes de la bienvenue : leur moment vient de l’étape de E1', () => {
+    expect([...EXPLICATIONS_BIENVENUE]).toEqual([
+      'welcome_method',
+      'welcome_categories',
+      'welcome_month',
+    ]);
+    const now = at('2026-11-02');
+    expect(explicationAAfficher(etat(), now, [], EXPLICATIONS_BIENVENUE)).toBeNull();
+    for (const id of EXPLICATIONS_BIENVENUE) {
+      expect(explicationAAfficher(etat(), now, [], EXPLICATIONS_BIENVENUE, { [id]: true })).toBe(
+        id,
+      );
+      expect(explicationAAfficher(etat(), now, [id], EXPLICATIONS_BIENVENUE, { [id]: true })).toBe(
+        null,
+      );
+    }
+  });
+
+  test('« Nouvelle année » le lundi de la semaine 1, pas avant', () => {
+    // 2026 compte 53 semaines : la semaine 1 de 2027 commence le lundi 4 janvier 2027.
+    const e = etat({ closedDays: ['2026-11-02'] });
+    const vues = [...EXPLICATIONS_J2];
+    expect(explicationAAfficher(e, at('2026-12-31'), vues, EXPLICATIONS_ACCUEIL)).toBeNull();
+    expect(
+      explicationAAfficher(e, at('2027-01-03', '23:59'), vues, EXPLICATIONS_ACCUEIL),
+    ).toBeNull();
+    expect(explicationAAfficher(e, at('2027-01-04', '00:00'), vues, EXPLICATIONS_ACCUEIL)).toBe(
+      'new_year',
+    );
+  });
+
+  test('« Nouvelle année » encore là si l’appli n’est ouverte que plus tard, puis plus jamais', () => {
+    const vues = [...EXPLICATIONS_J2];
+    expect(explicationAAfficher(etat(), at('2027-03-10'), vues, EXPLICATIONS_ACCUEIL)).toBe(
+      'new_year',
+    );
+    expect(
+      explicationAAfficher(etat(), at('2027-03-10'), [...vues, 'new_year'], EXPLICATIONS_ACCUEIL),
+    ).toBeNull();
+  });
+
+  test('pas de « Nouvelle année » l’année de l’installation, même installé en semaine 1', () => {
+    const e = etat({ installDay: '2027-01-04' });
+    expect(
+      explicationAAfficher(e, at('2027-01-04'), [...EXPLICATIONS_J2], EXPLICATIONS_ACCUEIL),
+    ).toBeNull();
+  });
+
+  test('l’accueil propose « Nouvelle année » avant les cartes de J2', () => {
+    expect([...EXPLICATIONS_ACCUEIL]).toEqual(['new_year', ...EXPLICATIONS_J2]);
+    const e = etat({ expenses: [{ id: 'd1', day: '2027-01-04', amount: 500 }] });
+    expect(explicationAAfficher(e, at('2027-01-04'), [], EXPLICATIONS_ACCUEIL)).toBe('new_year');
+    expect(explicationAAfficher(e, at('2027-01-04'), ['new_year'], EXPLICATIONS_ACCUEIL)).toBe(
+      'first_expense',
+    );
   });
 });
 

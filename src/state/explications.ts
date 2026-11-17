@@ -1,9 +1,11 @@
 // Cartes de première fois (E12, Messages d'explication) : chacune s'affiche une seule fois, au
 // moment indiqué. Celles de J2 : première dépense, premier tampon, premier jour à rattraper ; leur
 // moment se lit dans l'état. Celles de J3 (#66) naissent d'un écran (bilan, clôture qui répare) :
-// c'est l'écran qui dit si leur moment est venu.
+// c'est l'écran qui dit si leur moment est venu. Celles de J5 (#107) : les trois de la bienvenue
+// naissent de l'étape de E1 ; « Nouvelle année » se lit dans l'état, dès le lundi de la semaine 1.
 // Les cartes déjà vues sont gardées dans settings.seen_explanations (tableau JSON d'identifiants).
 // Purs : l'état, l'heure et les cartes vues leur sont passés.
+import { houseYear } from '../domain/objets';
 import type { LocalDateTime } from '../domain/scellement';
 import type { AppState } from '../domain/traitement';
 import { jourARattraper } from './selecteurs';
@@ -21,7 +23,35 @@ export const EXPLICATIONS_J3 = [
   'new_room',
 ] as const;
 
-export type IdExplication = (typeof EXPLICATIONS_J2)[number] | (typeof EXPLICATIONS_J3)[number];
+/** Cartes de la bienvenue (E1), une par étape : c'est l'étape qui dit si leur moment est venu. */
+export const EXPLICATIONS_BIENVENUE = [
+  'welcome_method',
+  'welcome_categories',
+  'welcome_month',
+] as const;
+
+/** Cartes de l'accueil : « Nouvelle année » passe avant celles de J2. */
+export const EXPLICATIONS_ACCUEIL = ['new_year', ...EXPLICATIONS_J2] as const;
+
+export type IdExplication =
+  | (typeof EXPLICATIONS_BIENVENUE)[number]
+  | (typeof EXPLICATIONS_ACCUEIL)[number]
+  | (typeof EXPLICATIONS_J3)[number];
+
+/** Les 13 cartes de la spec (E12, Messages d'explication), dans leur ordre. */
+export const TOUTES_LES_EXPLICATIONS = [
+  ...EXPLICATIONS_BIENVENUE,
+  'first_expense',
+  'first_stamp',
+  'first_capsule',
+  'first_catch_up',
+  'first_dust',
+  'first_crack',
+  'first_repair',
+  'first_month_review',
+  'new_room',
+  'new_year',
+] as const satisfies readonly IdExplication[];
 
 /** Moments que l'écran constate : vrai si la carte a sa place maintenant. */
 export type MomentsEcran = Partial<Record<IdExplication, boolean>>;
@@ -30,6 +60,8 @@ const MOMENTS: Partial<Record<IdExplication, (etat: AppState, now: LocalDateTime
   first_expense: (etat) => etat.expenses.length > 0,
   first_stamp: (etat) => etat.closedDays.length > 0,
   first_catch_up: (etat, now) => jourARattraper(etat, now) !== null,
+  // Une nouvelle année a commencé depuis l'installation : la semaine 1 (ISO 8601) est arrivée.
+  new_year: (etat, now) => houseYear(now.day) > houseYear(etat.installDay),
 };
 
 /**

@@ -16,7 +16,7 @@ import {
   vueFetes,
   vueObjetsObtenus,
 } from './comprendre';
-import { EXPLICATIONS_J2, EXPLICATIONS_J3 } from './explications';
+import { TOUTES_LES_EXPLICATIONS } from './explications';
 import { createKakeiboStore } from './store';
 
 const e = fr.explications;
@@ -67,9 +67,13 @@ describe('les fiches de Comprendre', () => {
   });
 
   it('« En savoir plus » de chaque carte ouvre la fiche qui reprend son texte', () => {
-    const cartes = [...EXPLICATIONS_J2, ...EXPLICATIONS_J3];
+    // Les 13 cartes de la spec, dont les quatre de J5.8 (#107).
+    const cartes = [...TOUTES_LES_EXPLICATIONS];
     expect(Object.keys(FICHE_DE_CARTE).sort()).toEqual([...cartes].sort());
     const texteDeCarte = {
+      welcome_method: e.bienvenueMethode,
+      welcome_categories: e.bienvenueCategories,
+      welcome_month: e.bienvenueMois,
       first_expense: e.premiereDepense,
       first_stamp: e.premierTampon,
       first_catch_up: e.premierJourARattraper,
@@ -79,6 +83,7 @@ describe('les fiches de Comprendre', () => {
       first_repair: e.premiereReparation,
       first_month_review: e.premierBilanDuMois,
       new_room: e.nouvellePiece,
+      new_year: e.nouvelleAnnee,
     } as const;
     for (const carte of cartes) {
       expect(paragraphesDeFiche(FICHE_DE_CARTE[carte])).toContain(texteDeCarte[carte]);

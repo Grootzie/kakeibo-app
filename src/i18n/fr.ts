@@ -733,6 +733,9 @@ export const fr = {
   /** Carte de première fois (E12) : titre (le moment, tel que la spec le nomme), texte et fermeture. */
   carteExplication: {
     titres: {
+      welcome_method: 'Bienvenue, la méthode',
+      welcome_categories: 'Bienvenue, les catégories',
+      welcome_month: 'Bienvenue, mon mois',
       first_expense: 'Première dépense',
       first_stamp: 'Premier tampon',
       first_catch_up: 'Premier jour à rattraper',
@@ -742,6 +745,7 @@ export const fr = {
       first_repair: 'Première réparation',
       first_month_review: 'Premier bilan du mois',
       new_room: 'Nouvelle pièce',
+      new_year: 'Nouvelle année',
     },
     fermer: 'Fermer',
     fermerLibelle: (titre: string) => `Fermer l’explication «${NBSP}${titre}${NBSP}»`,

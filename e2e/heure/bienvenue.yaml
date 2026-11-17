@@ -1,5 +1,6 @@
 # Bienvenue (E1, #101) : appli neuve, mercredi 4 novembre 2026 à 9:00 (le script l'a effacée et a
-# réglé l'heure du téléphone). Les quatre étapes, une capture chacune : la méthode avec la maison,
+# réglé l'heure du téléphone). Les trois premières étapes ont leur carte de première fois (J5.8,
+# #107), capturée puis fermée. Les quatre étapes, une capture chacune : la méthode avec la maison,
 # les quatre catégories, mon mois (budget du mois et enveloppe de la semaine ; on ne continue que
 # si le budget est supérieur à zéro), mon rappel du soir (21:00 par défaut). Notifications
 # accordées d'avance : la demande d'autorisation répond sans boîte du système. Puis l'accueil,
@@ -19,6 +20,18 @@ appId: app.kakeibo
 - assertVisible: 'Faire le bilan'
 - assertVisible: 'Kura, la réserve, novembre 2026\..*'
 - takeScreenshot: captures/bienvenue-1-methode
+# Carte « Bienvenue, la méthode » (J5.8, #107), sous les trois gestes : capturée, puis fermée.
+- scrollUntilVisible:
+    element:
+      text: 'Fermer l’explication .*Bienvenue, la méthode.*'
+    direction: DOWN
+- assertVisible: 'Bienvenue, la méthode'
+- assertVisible: 'Le kakeibo, le .livre de comptes du foyer., est né au Japon en 1904.*'
+- takeScreenshot: captures/bienvenue-carte-methode
+- tapOn: 'Fermer l’explication .*Bienvenue, la méthode.*'
+- extendedWaitUntil:
+    notVisible: 'Bienvenue, la méthode'
+    timeout: 10000
 - scrollUntilVisible:
     element:
       text: 'Continuer.: étape suivante'
@@ -29,6 +42,18 @@ appId: app.kakeibo
     visible: 'Les quatre catégories'
     timeout: 10000
 - assertVisible: 'Étape 2 sur 4'
+# Carte « Bienvenue, les catégories » (J5.8, #107) : capturée, puis fermée.
+- assertVisible: 'Bienvenue, les catégories'
+- assertVisible: 'Chaque dépense va dans l’une des quatre catégories.*'
+- takeScreenshot: captures/bienvenue-carte-categories
+- scrollUntilVisible:
+    element:
+      text: 'Fermer l’explication .*Bienvenue, les catégories.*'
+    direction: DOWN
+- tapOn: 'Fermer l’explication .*Bienvenue, les catégories.*'
+- extendedWaitUntil:
+    notVisible: 'Bienvenue, les catégories'
+    timeout: 10000
 - assertVisible: 'Essentiel.: par exemple .*'
 - assertVisible: 'Envies.: par exemple .*'
 - assertVisible: 'Culture.: par exemple .*'
@@ -47,6 +72,18 @@ appId: app.kakeibo
     visible: 'Mon mois'
     timeout: 10000
 - assertVisible: 'Étape 3 sur 4'
+# Carte « Bienvenue, mon mois » (J5.8, #107) : capturée, puis fermée.
+- assertVisible: 'Bienvenue, mon mois'
+- assertVisible: 'Ton budget, c’est ce qui reste une fois payées tes charges fixes.*'
+- takeScreenshot: captures/bienvenue-carte-mois
+- scrollUntilVisible:
+    element:
+      text: 'Fermer l’explication .*Bienvenue, mon mois.*'
+    direction: DOWN
+- tapOn: 'Fermer l’explication .*Bienvenue, mon mois.*'
+- extendedWaitUntil:
+    notVisible: 'Bienvenue, mon mois'
+    timeout: 10000
 - assertVisible: 'Indique tes revenus pour voir ton budget du mois\.'
 - scrollUntilVisible:
     element:
