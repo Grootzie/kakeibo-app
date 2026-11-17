@@ -33,3 +33,17 @@ export function expenseDays(now: LocalDateTime, ctx: ClosureContext): DayKey[] {
   }
   return jours;
 }
+
+/**
+ * Jours où l'on peut dater une dépense qu'on modifie (#103), du plus ancien au plus récent : son
+ * jour actuel, même dans une semaine scellée, et les jours proposés pour une nouvelle dépense.
+ * Une dépense ne peut donc jamais entrer dans une semaine scellée ; le résultat figé ne bouge pas.
+ */
+export function editExpenseDays(
+  currentDay: DayKey,
+  now: LocalDateTime,
+  ctx: ClosureContext,
+): DayKey[] {
+  const jours = expenseDays(now, ctx);
+  return jours.includes(currentDay) ? jours : [currentDay, ...jours].sort();
+}

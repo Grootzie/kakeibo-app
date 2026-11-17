@@ -13,6 +13,7 @@ import { createTestDb } from '../../data/testDb';
 import type { Catalog } from '../../domain/objets';
 import { fr } from '../../i18n/fr';
 import { type Horloge, createClock } from '../../state/clock';
+import { enveloppeSemaine } from '../../state/selecteurs';
 import { type KakeiboStore, createKakeiboStore } from '../../state/store';
 import { theme } from '../theme';
 import { EcranCarnet } from './EcranCarnet';
@@ -73,6 +74,8 @@ async function preparer(): Promise<Preparation> {
   await store.getState().ouvrir();
   return { store, horloge };
 }
+
+const d = fr.depense;
 
 async function monter(p: Preparation) {
   const onRetour = jest.fn();
@@ -189,5 +192,102 @@ describe('Carnet (E9, #102)', () => {
     expect(readFileSync(join(__dirname, 'EcranCarnet.tsx'), 'utf8')).not.toMatch(
       /numberOfLines|allowFontScaling|maxFontSizeMultiplier|adjustsFontSizeToFit/,
     );
+  });
+
+  describe('modifier ou supprimer une dépense (J5.4, #103)', () => {
+    const ouvrir = (libelle: string) =>
+      fireEvent.press(screen.getByRole('button', { name: libelle }));
+
+    it('chaque dépense est un bouton qui ouvre la feuille de E3 pré-remplie', async () => {
+      await monter(await preparer());
+      const ligne = screen.getByRole('button', {
+        name: `120${NBSP}€ en Essentiel, note${NBSP}: courses`,
+      });
+      expect(ligne.props.accessibilityHint).toBe(t.depenseIndice);
+      await ouvrir(`120${NBSP}€ en Essentiel, note${NBSP}: courses`);
+      expect(screen.getByRole('header', { name: d.titreModifier })).toBeOnTheScreen();
+      expect(screen.getByLabelText(d.montantLibelle).props.value).toBe('120');
+      expect(screen.getByLabelText(d.noteLibelle).props.value).toBe('courses');
+      expect(
+        screen.getByRole('button', { name: d.categorieActuelleLibelle('Essentiel') }),
+      ).toBeSelected();
+      expect(screen.getByRole('radio', { name: d.jourLibelle('2026-11-03') })).toBeSelected();
+    });
+
+    it('semaine ouverte : la modification suit dans le carnet et dans l’enveloppe de l’accueil', async () => {
+      const p = await preparer();
+      await monter(p);
+      await ouvrir(`12,50${NBSP}€ en Culture`);
+      await fireEvent.changeText(screen.getByLabelText(d.montantLibelle), '40');
+      await fireEvent.press(screen.getByRole('button', { name: d.categorieLibelle('Imprévus') }));
+      expect(screen.queryByTestId('feuille-depense')).toBeNull();
+      const s46 = within(screen.getByTestId('semaine-2026-W46'));
+      expect(s46.getByRole('button', { name: `40${NBSP}€ en Imprévus` })).toBeOnTheScreen();
+      expect(s46.getByLabelText(t.totalCategorie('Imprévus', 4000))).toBeOnTheScreen();
+      expect(s46.getByLabelText(t.totalCategorie('Culture', 0))).toBeOnTheScreen();
+      const { etat, maintenant } = p.store.getState();
+      expect(enveloppeSemaine(etat!, maintenant!)).toMatchObject({ depense: 4000, reste: 10000 });
+    });
+
+    it('semaine scellée : le carnet affiche le nouveau montant, le résultat reste figé (scénario 15)', async () => {
+      await monter(await preparer());
+      const resultat = screen.getByTestId('resultat-2026-W45').props.accessibilityLabel;
+      await ouvrir(`30${NBSP}€ en Envies`);
+      // Son jour, puis ceux des semaines ouvertes ; aucun autre jour de la semaine scellée.
+      expect(screen.getAllByRole('radio').map((r) => r.props.accessibilityLabel)).toEqual([
+        d.jourLibelle('2026-11-11'),
+        d.jourLibelle('2026-11-10'),
+        d.jourLibelle('2026-11-09'),
+        d.jourLibelle('2026-11-03'),
+      ]);
+      await fireEvent.changeText(screen.getByLabelText(d.montantLibelle), '10');
+      await fireEvent.press(
+        screen.getByRole('button', { name: d.categorieActuelleLibelle('Envies') }),
+      );
+      const s45 = within(screen.getByTestId('semaine-2026-W45'));
+      expect(s45.getByRole('button', { name: `10${NBSP}€ en Envies` })).toBeOnTheScreen();
+      expect(s45.getByText(`Total de la semaine${NBSP}: 130${NBSP}€`)).toBeOnTheScreen();
+      expect(screen.getByTestId('resultat-2026-W45').props.accessibilityLabel).toBe(resultat);
+    });
+
+    it('supprimer demande confirmation, puis la dépense disparaît et l’enveloppe suit', async () => {
+      const p = await preparer();
+      await monter(p);
+      await ouvrir(`12,50${NBSP}€ en Culture`);
+      await fireEvent.press(screen.getByRole('button', { name: d.supprimerLibelle }));
+      expect(screen.getByText(d.confirmerSuppression)).toBeOnTheScreen();
+      await fireEvent.press(screen.getByRole('button', { name: d.garderLibelle }));
+      expect(screen.getByRole('header', { name: d.titreModifier })).toBeOnTheScreen();
+      await fireEvent.press(screen.getByRole('button', { name: d.supprimerLibelle }));
+      await fireEvent.press(screen.getByRole('button', { name: d.confirmerSupprimerLibelle }));
+      expect(screen.queryByTestId('feuille-depense')).toBeNull();
+      expect(
+        within(screen.getByTestId('semaine-2026-W46')).getByText(t.aucuneDepense),
+      ).toBeOnTheScreen();
+      const { etat, maintenant } = p.store.getState();
+      expect(enveloppeSemaine(etat!, maintenant!)).toMatchObject({ depense: 0, reste: 14000 });
+    });
+
+    it('supprimer une dépense d’une semaine scellée laisse son résultat figé', async () => {
+      await monter(await preparer());
+      const resultat = screen.getByTestId('resultat-2026-W45').props.accessibilityLabel;
+      await ouvrir(`120${NBSP}€ en Essentiel, note${NBSP}: courses`);
+      await fireEvent.press(screen.getByRole('button', { name: d.supprimerLibelle }));
+      await fireEvent.press(screen.getByRole('button', { name: d.confirmerSupprimerLibelle }));
+      const s45 = within(screen.getByTestId('semaine-2026-W45'));
+      expect(s45.queryByLabelText(/en Essentiel, note/)).toBeNull();
+      expect(s45.getByText(`Total de la semaine${NBSP}: 30${NBSP}€`)).toBeOnTheScreen();
+      expect(screen.getByTestId('resultat-2026-W45').props.accessibilityLabel).toBe(resultat);
+    });
+
+    it('fermer la feuille ne change rien', async () => {
+      const p = await preparer();
+      await monter(p);
+      const avant = p.store.getState().depenses;
+      await ouvrir(`30${NBSP}€ en Envies`);
+      await fireEvent.press(screen.getByRole('button', { name: d.fermerLibelle }));
+      expect(screen.queryByTestId('feuille-depense')).toBeNull();
+      expect(p.store.getState().depenses).toBe(avant);
+    });
   });
 });

@@ -333,6 +333,21 @@ export const fr = {
       `${formatEuros(centimes)} noté en ${categorie}.`,
     annuler: 'Annuler',
     annulerLibelle: 'Annuler cette dépense',
+    /** Depuis le carnet (J5.4, #103) : la même feuille, pré-remplie. */
+    titreModifier: 'Modifier la dépense',
+    modifierConsigne: 'Touche une catégorie pour enregistrer tes changements.',
+    categorieActuelle: '· actuelle',
+    categorieActuelleLibelle: (categorie: string) =>
+      `Enregistrer en ${categorie}, la catégorie actuelle`,
+    refusModification: 'Cette dépense n’a pas pu être modifiée. Vérifie la date et réessaie.',
+    supprimer: 'Supprimer',
+    supprimerLibelle: 'Supprimer cette dépense',
+    confirmerSuppression: `Supprimer cette dépense${NBSP}? Elle disparaîtra du carnet.`,
+    confirmerSupprimer: 'Oui, supprimer',
+    confirmerSupprimerLibelle: 'Oui, supprimer cette dépense',
+    garder: 'La garder',
+    garderLibelle: 'Garder cette dépense',
+    refusSuppression: 'Cette dépense n’a pas pu être supprimée. Réessaie.',
   },
 
   cloture: {
@@ -703,6 +718,8 @@ export const fr = {
     /** « 12,50 € en Envies, note : cinéma ». */
     depenseLibelle: (centimes: number, categorie: string, note: string) =>
       `${formatEuros(centimes)} en ${categorie}${note === '' ? '' : `, note${NBSP}: ${note}`}`,
+    /** Toucher une dépense ouvre la feuille de E3 pré-remplie (#103). */
+    depenseIndice: 'Ouvre la dépense pour la modifier ou la supprimer.',
   },
 
   messages: {

@@ -2,7 +2,7 @@
 import type { ExpenseRow } from '../data/repositories';
 import { type Cents, weekEnvelope, weekSpent } from '../domain/budget';
 import { addDays, previousMonth, weekDays, weekMonth, weekOf } from '../domain/calendrier';
-import { expenseDays } from '../domain/depense';
+import { editExpenseDays, expenseDays } from '../domain/depense';
 import { type DustLevel, dustDays, dustFloor } from '../domain/poussiere';
 import {
   type ClosureContext,
@@ -98,6 +98,14 @@ export function jourARattraper(etat: AppState, now: LocalDateTime): DayKey | nul
 /** Jours proposés pour dater une nouvelle dépense (E3), du plus récent au plus ancien. */
 export function joursDepense(etat: AppState, now: LocalDateTime): DayKey[] {
   return expenseDays(now, contexte(etat)).reverse();
+}
+
+/**
+ * Jours proposés pour modifier une dépense du carnet (#103), du plus récent au plus ancien : son
+ * jour actuel, même dans une semaine scellée, et ceux des semaines ouvertes.
+ */
+export function joursModification(etat: AppState, now: LocalDateTime, jour: DayKey): DayKey[] {
+  return editExpenseDays(jour, now, contexte(etat)).reverse();
 }
 
 /** Bilans que process a préparés (étape 5 de l'ordre de traitement) et pas encore faits. */

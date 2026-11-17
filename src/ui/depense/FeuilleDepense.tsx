@@ -1,5 +1,7 @@
 // Feuille « Noter une dépense » (E3). Composant d'affichage : les jours proposés et
-// l'enregistrement lui sont passés ; les bornes viennent du domaine.
+// l'enregistrement lui sont passés ; les bornes viennent du domaine. Ouverte depuis le carnet
+// avec une dépense (J5.4, #103), c'est la même feuille, pré-remplie, avec « Supprimer » et sa
+// confirmation.
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -10,6 +12,7 @@ import {
   Text,
   TextInput,
   View,
+  type ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -19,7 +22,7 @@ import type { DayKey } from '../../domain/scellement';
 import { fr } from '../../i18n/fr';
 import { type CategorieId, theme } from '../theme';
 import { IconeCategorie } from './IconeCategorie';
-import { lireMontant } from './montant';
+import { ecrireMontant, lireMontant } from './montant';
 
 const c = theme.couleurs;
 const ESPACE = 16;
@@ -38,6 +41,10 @@ export interface PropsFeuilleDepense {
   aujourdhui: DayKey;
   /** Jour choisi à l'ouverture (« Ajouter une dépense oubliée », E4) ; sinon le premier proposé. */
   jourInitial?: DayKey;
+  /** Dépense à modifier (carnet, #103) : la feuille s'ouvre pré-remplie. */
+  depense?: DepenseSaisie;
+  /** Avec une dépense : « Supprimer », après confirmation. Rend false si c'est refusé. */
+  onSupprimer?(): Promise<boolean>;
   /** Rend false si la dépense est refusée : la feuille reste ouverte. */
   onEnregistrer(depense: DepenseSaisie): Promise<boolean>;
   onFermer: () => void;
@@ -52,16 +59,20 @@ export function FeuilleDepense({
   jourInitial,
   onEnregistrer,
   onFermer,
+  depense,
+  onSupprimer,
 }: PropsFeuilleDepense) {
-  const [texte, setTexte] = useState('');
-  const [note, setNote] = useState('');
+  const modification = depense !== undefined;
+  const debut = depense?.day ?? jourInitial;
+  const [texte, setTexte] = useState(depense === undefined ? '' : ecrireMontant(depense.amount));
+  const [note, setNote] = useState(depense?.note ?? '');
   const [jour, setJour] = useState<DayKey>(
-    jourInitial !== undefined && jours.includes(jourInitial)
-      ? jourInitial
-      : (jours[0] ?? aujourdhui),
+    debut !== undefined && jours.includes(debut) ? debut : (jours[0] ?? aujourdhui),
   );
   const [refuse, setRefuse] = useState(false);
   const [envoi, setEnvoi] = useState(false);
+  const [confirmer, setConfirmer] = useState(false);
+  const [suppressionRefusee, setSuppressionRefusee] = useState(false);
 
   const centimes = lireMontant(texte);
   const valide = centimes !== null && isValidAmount(centimes);
@@ -73,6 +84,18 @@ export function FeuilleDepense({
     setEnvoi(false);
     if (ok) onFermer();
     else setRefuse(true);
+  };
+
+  const supprimer = async () => {
+    if (onSupprimer === undefined || envoi) return;
+    setEnvoi(true);
+    const ok = await onSupprimer();
+    setEnvoi(false);
+    if (ok) onFermer();
+    else {
+      setConfirmer(false);
+      setSuppressionRefusee(true);
+    }
   };
 
   return (
@@ -108,7 +131,7 @@ export function FeuilleDepense({
                 accessibilityRole="header"
                 style={{ flex: 1, fontSize: 20, fontWeight: '600', color: c.texte }}
               >
-                {fr.depense.titre}
+                {modification ? fr.depense.titreModifier : fr.depense.titre}
               </Text>
               <Pressable
                 accessibilityRole="button"
@@ -155,12 +178,17 @@ export function FeuilleDepense({
               {CATEGORIES.map((id) => {
                 const nom = fr.categories[id].nom;
                 const inactif = !valide || envoi;
+                const actuelle = depense?.category === id;
                 return (
                   <Pressable
                     key={id}
                     accessibilityRole="button"
-                    accessibilityLabel={fr.depense.categorieLibelle(nom)}
-                    accessibilityState={{ disabled: inactif }}
+                    accessibilityLabel={
+                      actuelle
+                        ? fr.depense.categorieActuelleLibelle(nom)
+                        : fr.depense.categorieLibelle(nom)
+                    }
+                    accessibilityState={{ disabled: inactif, selected: actuelle }}
                     disabled={inactif}
                     onPress={() => void enregistrer(id)}
                     style={{
@@ -173,6 +201,8 @@ export function FeuilleDepense({
                       alignItems: 'center',
                       gap: 8,
                       backgroundColor: theme.categories[id].couleur,
+                      borderWidth: actuelle ? 3 : 0,
+                      borderColor: c.texte,
                       opacity: inactif ? 0.4 : 1,
                     }}
                   >
@@ -180,13 +210,21 @@ export function FeuilleDepense({
                     <Text style={{ color: c.surPrincipal, fontSize: 17, fontWeight: '600' }}>
                       {nom}
                     </Text>
+                    {actuelle && (
+                      <Text style={{ color: c.surPrincipal, fontSize: 15 }}>
+                        {fr.depense.categorieActuelle}
+                      </Text>
+                    )}
                   </Pressable>
                 );
               })}
             </View>
+            {modification && (
+              <Text style={{ color: c.texteDiscret }}>{fr.depense.modifierConsigne}</Text>
+            )}
             {refuse && (
               <Text accessibilityLiveRegion="polite" style={{ color: c.texte }}>
-                {fr.depense.refus}
+                {modification ? fr.depense.refusModification : fr.depense.refus}
               </Text>
             )}
 
@@ -242,12 +280,82 @@ export function FeuilleDepense({
             <Text style={{ color: c.texteDiscret, alignSelf: 'flex-end' }}>
               {fr.depense.noteCompteur(Array.from(note).length)}
             </Text>
+
+            {onSupprimer !== undefined && !confirmer && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={fr.depense.supprimerLibelle}
+                accessibilityState={{ disabled: envoi }}
+                disabled={envoi}
+                onPress={() => {
+                  setConfirmer(true);
+                  setSuppressionRefusee(false);
+                }}
+                style={styleBoutonSecondaire}
+              >
+                <Text style={{ color: c.texte, fontSize: 17, fontWeight: '600' }}>
+                  {fr.depense.supprimer}
+                </Text>
+              </Pressable>
+            )}
+            {suppressionRefusee && (
+              <Text accessibilityLiveRegion="polite" style={{ color: c.texte }}>
+                {fr.depense.refusSuppression}
+              </Text>
+            )}
+            {onSupprimer !== undefined && confirmer && (
+              <View testID="confirmer-suppression" style={{ gap: 8 }}>
+                <Text accessibilityLiveRegion="polite" style={{ color: c.texte, fontSize: 17 }}>
+                  {fr.depense.confirmerSuppression}
+                </Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={fr.depense.garderLibelle}
+                    onPress={() => setConfirmer(false)}
+                    style={{ ...styleBoutonSecondaire, flexGrow: 1 }}
+                  >
+                    <Text style={{ color: c.texte, fontSize: 17, fontWeight: '600' }}>
+                      {fr.depense.garder}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={fr.depense.confirmerSupprimerLibelle}
+                    accessibilityState={{ disabled: envoi }}
+                    disabled={envoi}
+                    onPress={() => void supprimer()}
+                    style={{
+                      ...styleBoutonSecondaire,
+                      flexGrow: 1,
+                      borderColor: c.principal,
+                      backgroundColor: c.principal,
+                    }}
+                  >
+                    <Text style={{ color: c.surPrincipal, fontSize: 17, fontWeight: '600' }}>
+                      {fr.depense.confirmerSupprimer}
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
           </ScrollView>
         </SafeAreaView>
       </KeyboardAvoidingView>
     </Modal>
   );
 }
+
+const styleBoutonSecondaire: ViewStyle = {
+  minHeight: theme.zoneTactileMin,
+  minWidth: theme.zoneTactileMin,
+  paddingHorizontal: 16,
+  borderRadius: 8,
+  borderWidth: 1,
+  borderColor: c.texteDiscret,
+  justifyContent: 'center',
+  alignItems: 'center',
+};
 
 function libelleJour(jour: DayKey, aujourdhui: DayKey): string {
   if (jour === aujourdhui) return fr.depense.aujourdhui;

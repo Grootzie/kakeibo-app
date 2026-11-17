@@ -1,5 +1,5 @@
 // Feuille « Noter une dépense » (E3, #44) : montant, bornes, catégories, note, date.
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, within } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
 import { fr } from '../../i18n/fr';
@@ -10,6 +10,8 @@ const AUJOURDHUI = '2026-11-06';
 const JOURS = ['2026-11-06', '2026-11-05', '2026-11-04'];
 
 type Enregistrer = PropsFeuilleDepense['onEnregistrer'];
+type Supprimer = NonNullable<PropsFeuilleDepense['onSupprimer']>;
+const accepter = () => Promise.resolve(true);
 
 async function monter(enregistrer: Enregistrer = async () => true) {
   const onEnregistrer = jest.fn(enregistrer);
@@ -213,5 +215,121 @@ describe('date', () => {
     screen.getAllByRole('radio').forEach((c) => {
       expect(StyleSheet.flatten(c.props.style).minHeight).toBeGreaterThanOrEqual(44);
     });
+  });
+});
+
+describe('modifier une dépense du carnet (#103)', () => {
+  const DEPENSE = { amount: 1250, category: 'envies' as const, note: 'cinéma', day: '2026-11-04' };
+
+  async function modifier(
+    options: {
+      enregistrer?: Enregistrer;
+      supprimer?: Supprimer;
+    } = {},
+  ) {
+    const onEnregistrer = jest.fn(options.enregistrer ?? accepter);
+    const onSupprimer = jest.fn(options.supprimer ?? accepter);
+    const onFermer = jest.fn();
+    await render(
+      <FeuilleDepense
+        jours={JOURS}
+        aujourdhui={AUJOURDHUI}
+        depense={DEPENSE}
+        onEnregistrer={onEnregistrer}
+        onSupprimer={onSupprimer}
+        onFermer={onFermer}
+      />,
+    );
+    return { onEnregistrer, onSupprimer, onFermer };
+  }
+
+  it('s’ouvre pré-remplie : montant, catégorie, note et date', async () => {
+    await modifier();
+    expect(screen.getByRole('header', { name: fr.depense.titreModifier })).toBeOnTheScreen();
+    expect(montant().props.value).toBe('12,50');
+    expect(screen.getByLabelText(fr.depense.noteLibelle).props.value).toBe('cinéma');
+    expect(
+      screen.getByRole('radio', { name: fr.depense.jourLibelle('2026-11-04') }),
+    ).toBeSelected();
+    const actuelle = screen.getByRole('button', {
+      name: fr.depense.categorieActuelleLibelle('Envies'),
+    });
+    expect(actuelle).toBeSelected();
+    // La catégorie actuelle se lit aussi en texte : la bordure ne porte rien seule.
+    expect(within(actuelle).getByText(fr.depense.categorieActuelle)).toBeOnTheScreen();
+    expect(screen.getByText(fr.depense.modifierConsigne)).toBeOnTheScreen();
+  });
+
+  it('toucher une catégorie enregistre les changements et ferme la feuille', async () => {
+    const { onEnregistrer, onFermer } = await modifier();
+    await fireEvent.changeText(montant(), '20');
+    await fireEvent.press(screen.getByRole('radio', { name: fr.depense.jourLibelle(AUJOURDHUI) }));
+    await fireEvent.press(categorie('Culture'));
+    expect(onEnregistrer).toHaveBeenCalledWith({
+      amount: 2000,
+      category: 'culture',
+      note: 'cinéma',
+      day: AUJOURDHUI,
+    });
+    expect(onFermer).toHaveBeenCalledTimes(1);
+  });
+
+  it('sans rien changer, la catégorie actuelle enregistre la même dépense', async () => {
+    const { onEnregistrer } = await modifier();
+    await fireEvent.press(
+      screen.getByRole('button', { name: fr.depense.categorieActuelleLibelle('Envies') }),
+    );
+    expect(onEnregistrer).toHaveBeenCalledWith(DEPENSE);
+  });
+
+  it('reste ouverte et l’explique si la modification est refusée', async () => {
+    const { onFermer } = await modifier({ enregistrer: async () => false });
+    await fireEvent.press(categorie('Culture'));
+    expect(screen.getByText(fr.depense.refusModification)).toBeOnTheScreen();
+    expect(onFermer).not.toHaveBeenCalled();
+  });
+
+  it('« Supprimer » demande confirmation ; « La garder » ne supprime rien', async () => {
+    const { onSupprimer, onFermer } = await modifier();
+    await fireEvent.press(screen.getByRole('button', { name: fr.depense.supprimerLibelle }));
+    expect(onSupprimer).not.toHaveBeenCalled();
+    expect(screen.getByText(fr.depense.confirmerSuppression)).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: fr.depense.garderLibelle }));
+    expect(screen.queryByTestId('confirmer-suppression')).toBeNull();
+    expect(onSupprimer).not.toHaveBeenCalled();
+    expect(onFermer).not.toHaveBeenCalled();
+  });
+
+  it('« Oui, supprimer » supprime la dépense et ferme la feuille', async () => {
+    const { onSupprimer, onFermer, onEnregistrer } = await modifier();
+    await fireEvent.press(screen.getByRole('button', { name: fr.depense.supprimerLibelle }));
+    await fireEvent.press(
+      screen.getByRole('button', { name: fr.depense.confirmerSupprimerLibelle }),
+    );
+    expect(onSupprimer).toHaveBeenCalledTimes(1);
+    expect(onEnregistrer).not.toHaveBeenCalled();
+    expect(onFermer).toHaveBeenCalledTimes(1);
+  });
+
+  it('une suppression refusée laisse la feuille ouverte, avec un message', async () => {
+    const { onFermer } = await modifier({ supprimer: async () => false });
+    await fireEvent.press(screen.getByRole('button', { name: fr.depense.supprimerLibelle }));
+    await fireEvent.press(
+      screen.getByRole('button', { name: fr.depense.confirmerSupprimerLibelle }),
+    );
+    expect(screen.getByText(fr.depense.refusSuppression)).toBeOnTheScreen();
+    expect(onFermer).not.toHaveBeenCalled();
+  });
+
+  it('boutons de 44 points au moins ; pas de « Supprimer » pour une nouvelle dépense', async () => {
+    await modifier();
+    await fireEvent.press(screen.getByRole('button', { name: fr.depense.supprimerLibelle }));
+    for (const nom of [fr.depense.garderLibelle, fr.depense.confirmerSupprimerLibelle])
+      expect(
+        StyleSheet.flatten(screen.getByRole('button', { name: nom }).props.style),
+      ).toMatchObject({ minHeight: theme.zoneTactileMin, minWidth: theme.zoneTactileMin });
+    await monter();
+    expect(screen.queryByRole('button', { name: fr.depense.supprimerLibelle })).toBeNull();
+    expect(screen.queryByText(fr.depense.modifierConsigne)).toBeNull();
   });
 });

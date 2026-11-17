@@ -12,6 +12,7 @@ import {
   enveloppeSemaine,
   estRattrapable,
   joursDepense,
+  joursModification,
   jourARattraper,
   objetsReparesEntre,
   piecesOuvertesParBilan,
@@ -171,6 +172,28 @@ describe('jours proposés pour noter une dépense (E3)', () => {
     expect(joursDepense(s, at('2026-11-09', '11:00'))[0]).toBe('2026-11-09');
     expect(joursDepense(s, at('2026-11-09', '11:00'))).toHaveLength(6);
     expect(joursDepense(s, at('2026-11-09', '12:00'))).toEqual(['2026-11-09']);
+  });
+});
+
+describe('jours proposés pour modifier une dépense (#103)', () => {
+  it('dans une semaine scellée : son jour, puis les jours des semaines ouvertes, du plus récent au plus ancien', () => {
+    const s = etat('2026-11-02', [
+      depenser('2026-11-04', 1200),
+      ...['02', '03', '04', '05', '06', '07', '08'].map((j) => fermer(`2026-11-${j}`)),
+    ]);
+    expect(s.results.map((r) => r.week)).toEqual(['2026-W45']);
+    expect(joursModification(s, at('2026-11-10', '09:00'), '2026-11-04')).toEqual([
+      '2026-11-10',
+      '2026-11-09',
+      '2026-11-04',
+    ]);
+  });
+
+  it('dans une semaine ouverte : les mêmes jours que pour noter une dépense', () => {
+    const s = etat('2026-11-02', []);
+    expect(joursModification(s, at('2026-11-04', '10:00'), '2026-11-03')).toEqual(
+      joursDepense(s, at('2026-11-04', '10:00')),
+    );
   });
 });
 
