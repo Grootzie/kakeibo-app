@@ -25,6 +25,8 @@ export interface PropsAccueil {
   maison?: VueMaisonAccueil | null;
   /** Ouvre la maison (E8). */
   onMaison?: () => void;
+  /** Ouvre le carnet (E9), depuis l'en-tête. */
+  onCarnet?: () => void;
   onAppuiLongDate?: () => void;
   /** Ouvre la feuille « Noter une dépense » (E3). */
   onNoterDepense?: () => void;
@@ -47,6 +49,7 @@ export function Accueil({
   vue,
   maison = null,
   onMaison,
+  onCarnet,
   onAppuiLongDate,
   onNoterDepense,
   onCloturer,
@@ -70,7 +73,7 @@ export function Accueil({
         style={{ flex: 1, backgroundColor: c.fond }}
         contentContainerStyle={{ padding: ESPACE, gap: ESPACE }}
       >
-        {vue && <EnTete jour={vue.jour} onAppuiLong={onAppuiLongDate} />}
+        {vue && <EnTete jour={vue.jour} onAppuiLong={onAppuiLongDate} onCarnet={onCarnet} />}
         {vue?.bandeau && (
           <Bandeau
             bandeau={vue.bandeau}
@@ -98,11 +101,19 @@ export function Accueil({
   );
 }
 
-function EnTete({ jour, onAppuiLong }: { jour: string; onAppuiLong?: () => void }) {
-  // Carnet (E9) et réglages (E10) viennent en J5 : présents, mais inactifs d'ici là.
+function EnTete({
+  jour,
+  onAppuiLong,
+  onCarnet,
+}: {
+  jour: string;
+  onAppuiLong?: () => void;
+  onCarnet?: () => void;
+}) {
+  // Le carnet (E9) s'ouvre ; les réglages (E10, J5.6) restent inactifs d'ici là.
   const acces = [
-    { titre: fr.accueil.carnet, libelle: fr.accueil.carnetLibelle },
-    { titre: fr.accueil.reglages, libelle: fr.accueil.reglagesLibelle },
+    { titre: fr.accueil.carnet, libelle: fr.accueil.carnetLibelle, onPress: onCarnet },
+    { titre: fr.accueil.reglages, libelle: fr.accueil.reglagesLibelle, onPress: undefined },
   ];
   return (
     <View
@@ -131,23 +142,35 @@ function EnTete({ jour, onAppuiLong }: { jour: string; onAppuiLong?: () => void 
         </Text>
       </Pressable>
       <View style={{ flexDirection: 'row', marginLeft: 'auto' }}>
-        {acces.map(({ titre, libelle }) => (
-          <Pressable
-            key={titre}
-            disabled
-            accessibilityRole="button"
-            accessibilityLabel={libelle}
-            accessibilityState={{ disabled: true }}
-            style={{
-              minHeight: theme.zoneTactileMin,
-              minWidth: theme.zoneTactileMin,
-              paddingHorizontal: 6,
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ color: c.texteDiscret }}>{titre}</Text>
-          </Pressable>
-        ))}
+        {acces.map(({ titre, libelle, onPress }) => {
+          const inactif = onPress === undefined;
+          return (
+            <Pressable
+              key={titre}
+              disabled={inactif}
+              onPress={onPress}
+              accessibilityRole="button"
+              accessibilityLabel={libelle}
+              accessibilityState={{ disabled: inactif }}
+              style={{
+                minHeight: theme.zoneTactileMin,
+                minWidth: theme.zoneTactileMin,
+                paddingHorizontal: 6,
+                justifyContent: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  color: inactif ? c.texteDiscret : c.texte,
+                  fontWeight: inactif ? 'normal' : '600',
+                  textDecorationLine: inactif ? 'none' : 'underline',
+                }}
+              >
+                {titre}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );

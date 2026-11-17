@@ -75,10 +75,10 @@ if [ -f e2e/heure/installer.yaml ]; then
   # Parcours « bienvenue » (E1, #101), « journée type », « rattrapage » (#49), « bilans prêts » (#61), « bilan du mois » (#64),
   # « récapitulatif » (#63), « bilan de la semaine » (#62), « semaine parfaite » et « semaine hors
   # budget » (critère de J3, #67), « album » (#87), « maison » et « poussière » (critère de J4,
-  # #88), « comprendre » (#106) : appli effacée, mercredi 4 novembre 2026 à 9:00 ; l'horloge de test de l'APK de
-  # développement avance ensuite les jours.
+  # #88), « carnet » (#102), « comprendre » (#106) : appli effacée, mercredi 4 novembre 2026 à 9:00 ;
+  # l'horloge de test de l'APK de développement avance ensuite les jours.
   for parcours in bienvenue journee-type rattrapage bilans-prets bilan-mois recapitulatif bilan-semaine \
-    semaine-parfaite semaine-hors-budget maison poussiere album comprendre; do
+    semaine-parfaite semaine-hors-budget maison poussiere album carnet comprendre; do
     if [ -f "e2e/heure/$parcours.yaml" ]; then
       adb shell pm clear app.kakeibo >/dev/null 2>&1 || true
       adb shell date 110409002026.00 || true
