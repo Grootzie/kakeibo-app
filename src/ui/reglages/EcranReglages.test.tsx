@@ -4,7 +4,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { StyleSheet } from 'react-native';
+import { Keyboard, StyleSheet } from 'react-native';
 
 import catalogueJson from '../../content/catalogue.json';
 import { migrate } from '../../data/migrations';
@@ -71,6 +71,19 @@ async function monter(store: KakeiboStore) {
 
 const bouton = (nom: string) => screen.getByRole('button', { name: nom });
 const champ = (nom: string) => screen.getByLabelText(nom);
+/** Les textes affichés, dans l'ordre de l'écran. */
+function textes(): string[] {
+  const vus: string[] = [];
+  type Noeud = ReturnType<typeof screen.toJSON> | string;
+  const parcourir = (n: Noeud): void => {
+    if (n === null || typeof n === 'string') return;
+    if (Array.isArray(n)) return n.forEach(parcourir);
+    if (n.type === 'Text') vus.push((n.children ?? []).join(''));
+    (n.children ?? []).forEach((e) => parcourir(e));
+  };
+  parcourir(screen.toJSON());
+  return vus;
+}
 
 describe('Réglages (E10)', () => {
   it('un titre, quatre sections, ni abonnement ni publicité avant J7', async () => {
@@ -138,6 +151,37 @@ describe('budget du mois', () => {
       fixed_costs: euros(1100),
       effective_from: '2026-11-05',
     });
+  });
+
+  it('enregistrer ferme le clavier et dit « C’est noté » juste sous le bouton, visible aussitôt', async () => {
+    const { store } = await preparer();
+    await monter(store);
+    const fermer = jest.spyOn(Keyboard, 'dismiss');
+    await fireEvent.changeText(champ(r.budget.champLibelle(r.budget.revenus)), '2100');
+    await fireEvent.press(bouton(r.budget.enregistrer));
+    expect(fermer).toHaveBeenCalled();
+    fermer.mockRestore();
+    const ordre = textes();
+    const message = ordre.indexOf(r.budget.enregistre('2026-11-09'));
+    expect(message).toBeGreaterThan(ordre.indexOf(r.budget.enregistrer));
+    expect(message).toBeLessThan(ordre.indexOf(r.charges.titre));
+  });
+
+  it('une dépense récurrente enregistrée ferme le clavier ; « C’est noté » reste sous la liste', async () => {
+    const { store } = await preparer();
+    await monter(store);
+    await fireEvent.press(bouton(r.charges.ajouter));
+    await fireEvent.changeText(champ(r.charges.libelle), 'Abonnement');
+    await fireEvent.changeText(champ(r.budget.champLibelle(r.charges.montant)), '12');
+    const fermer = jest.spyOn(Keyboard, 'dismiss');
+    await fireEvent.press(bouton(r.charges.enregistrerLibelle));
+    expect(fermer).toHaveBeenCalled();
+    fermer.mockRestore();
+    const ordre = textes();
+    expect(ordre.indexOf(r.budget.enregistre('2026-11-09'))).toBeGreaterThan(
+      ordre.indexOf(r.charges.ajouter),
+    );
+    expect(ordre.filter((t) => t === r.budget.enregistre('2026-11-09'))).toHaveLength(1);
   });
 
   it('un budget nul ne s’enregistre pas, et l’écran le dit', async () => {

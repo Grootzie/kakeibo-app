@@ -1967,11 +1967,11 @@ describe('parcours Maestro « réglages » (J5.6, #105)', () => {
       "- inputText: '1300'",
       "- assertVisible: 'Budget du mois.: 700.€'",
       `- tapOn: '${r.budget.enregistrer}'`,
+      // Enregistrer ferme le clavier, et « C'est noté » s'affiche juste sous le bouton : la
+      // capture montre le rappel de la règle et la confirmation ensemble.
       "text: 'C’est noté\\. Ton enveloppe changera le lundi 9.novembre\\.'",
-      // Le message « C'est noté » s'affiche sous les dépenses récurrentes : avec le clavier
-      // ouvert, « Un changement s'applique… » sort de l'écran. Le parcours remonte le chercher.
-      "text: 'Un changement s’applique à ton enveloppe à partir du lundi 9.novembre\\..*'",
-      'direction: UP',
+      "- assertVisible: 'Un changement s’applique à ton enveloppe à partir du lundi 9.novembre\\..*'",
+      "- assertVisible: 'C’est noté\\. Ton enveloppe changera le lundi 9.novembre\\.'",
       '- takeScreenshot: captures/reglages-budget',
       `- tapOn: '${r.charges.ajouter}'`,
       `visible: '${r.charges.nouvelle}'`,

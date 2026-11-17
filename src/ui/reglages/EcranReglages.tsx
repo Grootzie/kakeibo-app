@@ -6,6 +6,7 @@ import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import {
   type AccessibilityActionEvent,
   AppState,
+  Keyboard,
   Pressable,
   ScrollView,
   Switch,
@@ -230,7 +231,10 @@ function SectionBudget({ store }: { store: KakeiboStore }) {
 
   const [revenus, setRevenus] = useState(null as string | null);
   const [epargne, setEpargne] = useState(null as string | null);
-  const [message, setMessage] = useState(null as string | null);
+  // Le message s'affiche sous le bouton qui l'a fait naître : visible aussitôt, clavier fermé.
+  const [message, setMessage] = useState(
+    null as { texte: string; sous: 'budget' | 'charges' } | null,
+  );
   const [fiche, setFiche] = useState(null as Fiche | null);
   const [envoi, setEnvoi] = useState(false);
 
@@ -248,15 +252,16 @@ function SectionBudget({ store }: { store: KakeiboStore }) {
     const income = lire(texteRevenus, false);
     const savingsGoal = lire(texteEpargne, true);
     if (envoi || income === null || savingsGoal === null) return;
+    Keyboard.dismiss();
     setEnvoi(true);
     const refus = await store.getState().reviserBudget({ income, savingsGoal });
     setEnvoi(false);
     if (refus === null) {
       setRevenus(null);
       setEpargne(null);
-      setMessage(r.budget.enregistre(vue.changementLe));
+      setMessage({ texte: r.budget.enregistre(vue.changementLe), sous: 'budget' });
     } else {
-      setMessage(r.budget.refus);
+      setMessage({ texte: r.budget.refus, sous: 'budget' });
     }
   };
 
@@ -287,6 +292,7 @@ function SectionBudget({ store }: { store: KakeiboStore }) {
         inactif={!apercu.peutEnregistrer || envoi}
         onPress={() => void enregistrer()}
       />
+      {message?.sous === 'budget' && <Message texte={message.texte} />}
 
       <Text
         accessibilityRole="header"
@@ -343,16 +349,20 @@ function SectionBudget({ store }: { store: KakeiboStore }) {
           onChange={setFiche}
           onFermer={(fait) => {
             setFiche(null);
-            if (fait) setMessage(r.budget.enregistre(vue.changementLe));
+            if (fait) setMessage({ texte: r.budget.enregistre(vue.changementLe), sous: 'charges' });
           }}
         />
       )}
-      {message !== null && (
-        <Text accessibilityLiveRegion="polite" style={{ color: c.texte, fontWeight: '600' }}>
-          {message}
-        </Text>
-      )}
+      {message?.sous === 'charges' && <Message texte={message.texte} />}
     </Section>
+  );
+}
+
+function Message({ texte }: { texte: string }) {
+  return (
+    <Text accessibilityLiveRegion="polite" style={{ color: c.texte, fontWeight: '600' }}>
+      {texte}
+    </Text>
   );
 }
 
@@ -391,6 +401,7 @@ function FicheCharge({
 
   const enregistrer = async () => {
     if (!valide || envoi || saisie.amount === null) return;
+    Keyboard.dismiss();
     setEnvoi(true);
     const charge = {
       label: saisie.label,

@@ -55,18 +55,15 @@ appId: app.kakeibo
     direction: DOWN
     centerElement: true
 - tapOn: 'Enregistrer mes revenus et mon épargne'
+# Enregistrer ferme le clavier, et « C'est noté » s'affiche juste sous le bouton : la capture montre
+# le rappel de la règle et la confirmation ensemble.
 - scrollUntilVisible:
     element:
       text: 'C’est noté\. Ton enveloppe changera le lundi 9.novembre\.'
     direction: DOWN
     centerElement: true
-# « C'est noté » s'affiche sous les dépenses récurrentes : avec le clavier ouvert, le rappel de la
-# règle sort de l'écran. On remonte le chercher.
-- scrollUntilVisible:
-    element:
-      text: 'Un changement s’applique à ton enveloppe à partir du lundi 9.novembre\..*'
-    direction: UP
-    centerElement: true
+- assertVisible: 'Un changement s’applique à ton enveloppe à partir du lundi 9.novembre\..*'
+- assertVisible: 'C’est noté\. Ton enveloppe changera le lundi 9.novembre\.'
 - takeScreenshot: captures/reglages-budget
 # 3. Une dépense récurrente : 12 € chaque mois, le 15 (comme le scénario 23) ; les charges fixes
 #    de novembre passent à 612 €. Ajoutée le 4 novembre, une échéance le 1er ne tomberait qu'en
