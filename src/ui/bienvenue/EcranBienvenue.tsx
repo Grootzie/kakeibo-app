@@ -1,5 +1,6 @@
 // Bienvenue (E1), à la première ouverture : la méthode, les quatre catégories, mon mois, mon
-// rappel du soir. À la fin, le store pose le budget, la charge « Charges fixes » et le rappel,
+// rappel du soir. Les trois premières étapes ont chacune leur carte de première fois (J5.8, #107),
+// montrée une seule fois : vue avant l'ouverture de E1, ou fermée, elle ne revient pas. À la fin, le store pose le budget, la charge « Charges fixes » et le rappel,
 // demande l'autorisation des notifications (un refus n'empêche rien), puis l'accueil s'ouvre.
 // Ne parle qu'au store, qui seul appelle le domaine et les dépôts.
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
@@ -9,10 +10,12 @@ import { useStore } from 'zustand';
 
 import { fr } from '../../i18n/fr';
 import { apercuBudget } from '../../state/bienvenue';
+import type { IdExplication } from '../../state/explications';
 import { maisonAccueil } from '../../state/maison';
 import { HEURE_RAPPEL_DEFAUT, type KakeiboStore } from '../../state/store';
 import { lireMontant } from '../depense/montant';
 import { IconeCategorie } from '../depense/IconeCategorie';
+import { CarteExplication } from '../explication/CarteExplication';
 import { Maison } from '../maison/Maison';
 import { ReglageHeure } from '../ReglageHeure';
 import { type CategorieId, theme } from '../theme';
@@ -22,6 +25,12 @@ const b = fr.bienvenue;
 const ESPACE = 16;
 const ETAPES = 4;
 const CATEGORIES: readonly CategorieId[] = ['essentiel', 'envies', 'culture', 'imprevus'];
+/** La carte de première fois de chaque étape (Messages d'explication). */
+const CARTE_ETAPE: Readonly<Record<number, IdExplication>> = {
+  1: 'welcome_method',
+  2: 'welcome_categories',
+  3: 'welcome_month',
+};
 
 const styleBouton = {
   minHeight: theme.zoneTactileMin,
@@ -47,6 +56,11 @@ export function EcranBienvenue({ store, onArrivee }: PropsEcranBienvenue) {
   const maintenant = useStore(store, (s) => s.maintenant);
   const catalogue = useStore(store, (s) => s.catalogue);
   const horlogeTest = useStore(store, (s) => s.horlogeTest);
+  const vues = useStore(store, (s) => s.explicationsVues);
+  // Cartes vues avant l'ouverture de E1 (redémarrage pendant la bienvenue) : elles ne reviennent
+  // pas. Une carte montrée ici reste à son étape jusqu'à sa fermeture.
+  const [vuesAvant] = useState(() => store.getState().explicationsVues);
+  const [fermees, setFermees] = useState([] as readonly IdExplication[]);
 
   const [etape, setEtape] = useState(1);
   const [revenus, setRevenus] = useState('');
@@ -71,6 +85,23 @@ export function EcranBienvenue({ store, onArrivee }: PropsEcranBienvenue) {
     const vue = maisonAccueil(etat, catalogue, maintenant);
     return vue?.pieces[vue.courante] ?? null;
   }, [etat, catalogue, maintenant]);
+
+  const idCarte = CARTE_ETAPE[etape] as IdExplication | undefined;
+  const carte =
+    idCarte !== undefined && !vuesAvant.includes(idCarte) && !fermees.includes(idCarte)
+      ? idCarte
+      : null;
+
+  // Dès qu'elle s'affiche, la carte est marquée vue (settings.seen_explanations).
+  useEffect(() => {
+    if (carte !== null && !vues.includes(carte)) {
+      void store.getState().marquerExplicationVue(carte);
+    }
+  }, [carte, vues, store]);
+
+  const carteEtape = carte !== null && (
+    <CarteExplication key={carte} id={carte} onFermer={() => setFermees((f) => [...f, carte])} />
+  );
 
   const titres = [b.methode.titre, b.categories.titre, b.mois.titre, b.rappel.titre];
   const titre = titres[etape - 1];
@@ -159,13 +190,13 @@ export function EcranBienvenue({ store, onArrivee }: PropsEcranBienvenue) {
               </View>
             ))}
             <Text style={{ color: c.texte }}>{b.methode.maison}</Text>
-            <Texte>{fr.explications.bienvenueMethode}</Texte>
+            {carteEtape}
           </>
         )}
 
         {etape === 2 && (
           <>
-            <Texte>{fr.explications.bienvenueCategories}</Texte>
+            {carteEtape}
             {CATEGORIES.map((id) => {
               const nom = fr.categories[id].nom;
               const exemples = b.categories.exemples[id];
@@ -199,7 +230,7 @@ export function EcranBienvenue({ store, onArrivee }: PropsEcranBienvenue) {
 
         {etape === 3 && (
           <>
-            <Texte>{fr.explications.bienvenueMois}</Texte>
+            {carteEtape}
             <ChampMontant nom={b.mois.revenus} valeur={revenus} onChange={changer(setRevenus)} />
             <ChampMontant
               nom={b.mois.chargesFixes}

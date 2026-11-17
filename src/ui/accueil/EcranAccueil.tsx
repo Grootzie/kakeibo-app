@@ -3,6 +3,7 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 
+import { EXPLICATIONS_ACCUEIL } from '../../state/explications';
 import { maisonAccueil } from '../../state/maison';
 import { joursDepense, vueAccueil } from '../../state/selecteurs';
 import type { KakeiboStore } from '../../state/store';
@@ -65,7 +66,7 @@ export function EcranAccueil({
   const maintenant = useStore(store, (s) => s.maintenant);
   const catalogue = useStore(store, (s) => s.catalogue);
   // Pas de carte pendant que la feuille « Noter une dépense » est ouverte.
-  const { carte, fermer } = useCarteExplication(store, undefined, visible && !feuille);
+  const { carte, fermer } = useCarteExplication(store, EXPLICATIONS_ACCUEIL, visible && !feuille);
 
   const vue = useMemo(
     () => (etat && maintenant ? vueAccueil(etat, maintenant) : null),
