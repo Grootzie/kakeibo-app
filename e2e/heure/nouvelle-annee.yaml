@@ -73,12 +73,17 @@ appId: app.kakeibo
     notVisible: 'Nouvelle année'
     timeout: 10000
 - takeScreenshot: captures/nouvelle-annee-fermee
-# 3. Le lendemain, mardi 5 janvier : plus de carte.
+# 3. Le lendemain, mardi 5 janvier : plus de carte. La semaine 53 est scellée le lundi 4 à 12:00,
+# et « Retour à l’accueil » n'a pas marqué les semaines vues : le récapitulatif (E6) se rouvre.
 - scrollUntilVisible:
     element:
       text: '\+1 jour'
     direction: DOWN
 - tapOn: '\+1 jour'
+- extendedWaitUntil:
+    visible: 'Tes dernières semaines'
+    timeout: 15000
+- tapOn: 'Retour à l’accueil'
 - scrollUntilVisible:
     element:
       text: 'mardi.5.janvier'

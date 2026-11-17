@@ -1961,8 +1961,21 @@ describe('parcours Maestro des dernières cartes de première fois (J5.8, #107)'
       `notVisible: '${titres.new_year}'`,
       '- takeScreenshot: captures/nouvelle-annee-fermee',
       "- tapOn: '\\+1 jour'",
+      // La semaine 53 est scellée le lundi 4 à 12:00, et « Retour » n'a pas marqué les semaines
+      // vues : le récapitulatif (E6) se rouvre le mardi. Le parcours le referme.
+      `visible: '${fr.recapitulatif.titre}'`,
+      `- tapOn: '${fr.bilan.retourLibelle}'`,
+      "text: 'mardi.5.janvier'",
       "visible: 'mardi.5.janvier'",
       `- assertNotVisible: '${titres.new_year}'`,
     ]);
+  });
+
+  it('le mardi 5 janvier, le récapitulatif est refermé avant de chercher la date', () => {
+    const mardi = parcours.slice(parcours.indexOf("- tapOn: '\\+1 jour'"));
+    expect(mardi.indexOf(`visible: '${fr.recapitulatif.titre}'`)).toBeGreaterThan(0);
+    expect(mardi.indexOf(`visible: '${fr.recapitulatif.titre}'`)).toBeLessThan(
+      mardi.indexOf("text: 'mardi.5.janvier'"),
+    );
   });
 });
