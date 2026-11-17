@@ -4,9 +4,13 @@
 # « Tout effacer » avec ses deux confirmations, qui ramène à la bienvenue (E1).
 # Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
 # du téléphone au mercredi 4 novembre 2026 à 9:00.
+# Notifications refusées : `pm clear` ne retire pas l'autorisation accordée par les parcours
+# précédents (bienvenue, rappel du soir) ; sans ce refus, l'explication ne s'afficherait pas.
 appId: app.kakeibo
 ---
-- launchApp
+- launchApp:
+    permissions:
+      notifications: deny
 # Bienvenue (E1, #101) : l'APK de développement la passe (réglage caché), sans budget.
 - extendedWaitUntil:
     visible: 'Passer la bienvenue \(horloge de test\)'

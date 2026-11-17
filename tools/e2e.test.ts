@@ -1905,7 +1905,11 @@ describe('parcours Maestro « réglages » (J5.6, #105)', () => {
   it('est joué par le script de l’émulateur, appli effacée, le 4 novembre 2026 à 9:00', () => {
     expect(script).toMatch(/for parcours in [^;]*\bcomprendre reglages\b[^;]*; do/);
     expect(parcours).toMatch(/appId: app\.kakeibo/);
-    expect(parcours).toContain(`---\n- launchApp\n${PASSER_BIENVENUE}`);
+    // Notifications refusées au lancement : `pm clear` ne retire pas l'autorisation accordée par
+    // les parcours précédents (bienvenue, rappel), et l'explication ne s'afficherait pas.
+    expect(parcours).toContain(
+      `---\n- launchApp:\n    permissions:\n      notifications: deny\n${PASSER_BIENVENUE}`,
+    );
     expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
   });
 
