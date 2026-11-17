@@ -6,10 +6,19 @@
     "orientation": "portrait",
     "scheme": "kakeibo",
     "userInterfaceStyle": "automatic",
-    "android": { "package": "app.kakeibo" },
-    "ios": { "bundleIdentifier": "app.kakeibo" },
-    "web": { "bundler": "metro", "output": "single" },
-    "plugins": ["expo-router"],
-    "experiments": { "typedRoutes": true }
+    "android": {
+      "package": "app.kakeibo"
+    },
+    "ios": {
+      "bundleIdentifier": "app.kakeibo"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": ["expo-router", "./plugins/sansGwpAsan.js"],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }

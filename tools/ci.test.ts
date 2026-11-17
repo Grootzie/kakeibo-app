@@ -120,3 +120,13 @@ describe('intégration continue', () => {
     expect(ci + lire('android.yml')).not.toMatch(/secrets\./);
   });
 });
+
+describe('GWP-ASan désactivé sur Android (#101)', () => {
+  it('app.json charge le plugin qui pose android:gwpAsanMode="never"', () => {
+    const racine = join(__dirname, '..');
+    const config = JSON.parse(readFileSync(join(racine, 'app.json'), 'utf8'));
+    expect(config.expo.plugins).toContain('./plugins/sansGwpAsan.js');
+    const source = readFileSync(join(racine, 'plugins', 'sansGwpAsan.js'), 'utf8');
+    expect(source).toContain("application.$['android:gwpAsanMode'] = 'never'");
+  });
+});

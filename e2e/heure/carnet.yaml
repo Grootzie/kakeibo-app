@@ -7,6 +7,11 @@
 appId: app.kakeibo
 ---
 - launchApp
+# Bienvenue (E1, #101) : l'APK de développement la passe (réglage caché), sans budget.
+- extendedWaitUntil:
+    visible: 'Passer la bienvenue \(horloge de test\)'
+    timeout: 60000
+- tapOn: 'Passer la bienvenue \(horloge de test\)'
 - extendedWaitUntil:
     visible: 'Clôturer ma journée'
     timeout: 60000

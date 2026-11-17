@@ -22,7 +22,7 @@ export function HorlogeDev() {
     void kakeibo.getState().ouvrir();
   };
   const poserBudgetDemo = async () => setBudgetDemo(await kakeibo.getState().poserBudgetDemo());
-  // En attendant E1 (J5) : la demande d'autorisation du rappel du soir.
+  // La demande d'autorisation du rappel du soir, comme à la fin de la bienvenue (E1).
   const autoriserRappel = async () =>
     setRappel(await kakeibo.getState().demanderAutorisationRappel());
   // Raccourci des parcours : E6 (J3.2) marque lui-même les bilans de semaine vus.

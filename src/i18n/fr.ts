@@ -198,6 +198,74 @@ export const fr = {
     chargesFixes: 'Charges fixes',
   },
 
+  /** Bienvenue (E1), à la première ouverture : quatre étapes, puis l'accueil. */
+  bienvenue: {
+    etape: (n: number, total: number) => `Étape ${n} sur ${total}`,
+    continuer: 'Continuer',
+    continuerLibelle: `Continuer${NBSP}: étape suivante`,
+    retour: 'Retour',
+    retourLibelle: 'Retour à l’étape précédente',
+    commencer: 'Commencer',
+    commencerLibelle: `Commencer${NBSP}: enregistrer mon budget et mon rappel, puis aller à l’accueil`,
+    methode: {
+      titre: 'La méthode en une minute',
+      gestes: [
+        { titre: 'Noter', texte: 'Chaque dépense, toi-même, au moment où tu la fais.' },
+        {
+          titre: 'Clôturer chaque soir',
+          texte: `Tu confirmes avoir tout noté${NBSP}: un tampon se pose sur ta journée.`,
+        },
+        {
+          titre: 'Faire le bilan',
+          texte: 'Chaque semaine et chaque mois, tu regardes où va ton argent.',
+        },
+      ],
+      maison: `Ta régularité fait vivre une maison japonaise${NBSP}: une semaine complète y fait entrer un objet.`,
+    },
+    categories: {
+      titre: 'Les quatre catégories',
+      /**
+       * Deux exemples par catégorie (E1). Ce sont les deux premiers de la liste
+       * donnée par le propriétaire dans #101.
+       */
+      exemples: {
+        essentiel: 'les courses, le transport',
+        envies: 'un restaurant, des vêtements',
+        culture: 'un livre, une place de cinéma',
+        imprevus: 'une réparation, un médicament',
+      },
+      ligneLibelle: (categorie: string, exemples: string) =>
+        `${categorie}${NBSP}: par exemple ${exemples}`,
+    },
+    mois: {
+      titre: 'Mon mois',
+      revenus: 'Mes revenus du mois',
+      chargesFixes: 'Mes charges fixes du mois',
+      chargesFixesAide: 'Loyer, abonnements, assurances… Tu pourras les détailler ensuite.',
+      epargne: 'Mon épargne visée',
+      champLibelle: (nom: string) => `${nom}, en euros`,
+      budgetMois: (centimes: number) => `Budget du mois${NBSP}: ${formatEuros(centimes)}`,
+      enveloppeSemaine: (centimes: number) =>
+        `Enveloppe de cette semaine${NBSP}: ${formatEuros(centimes)}`,
+      remplir: 'Indique tes revenus pour voir ton budget du mois.',
+      budgetPositif: `Ton budget du mois doit être supérieur à ${formatEuros(0)} pour continuer.`,
+      refus: 'Ton budget n’a pas pu être enregistré. Vérifie les montants.',
+    },
+    rappel: {
+      titre: 'Mon rappel du soir',
+      texte: `Chaque soir, à l’heure choisie, un rappel t’invite à clôturer ta journée, si ce n’est pas déjà fait. Une notification par jour, au plus.`,
+      heureLibelle: (heure: string) => `Heure du rappel${NBSP}: ${heure.replace(':', ' h ')}`,
+      heureIndice: 'Balaie vers le haut ou vers le bas pour changer l’heure.',
+      plusTot: 'Plus tôt',
+      plusTotLibelle: (minutes: number) => `Rappel ${minutes} minutes plus tôt`,
+      plusTard: 'Plus tard',
+      plusTardLibelle: (minutes: number) => `Rappel ${minutes} minutes plus tard`,
+      autorisation: `En commençant, ton téléphone te demande d’autoriser les notifications. Tu peux refuser${NBSP}: l’appli fonctionne aussi sans.`,
+    },
+    /** Réglage caché des builds de développement : les parcours existants partent de l'accueil. */
+    passer: 'Passer la bienvenue (horloge de test)',
+  },
+
   categories: {
     essentiel: { nom: 'Essentiel', libelleAccessibilite: 'Catégorie Essentiel' },
     envies: { nom: 'Envies', libelleAccessibilite: 'Catégorie Envies' },
