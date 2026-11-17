@@ -1891,6 +1891,89 @@ describe('parcours Maestro « carnet » (J5.3, #102)', () => {
   });
 });
 
+describe('parcours Maestro « modifier une dépense » (J5.4, #103)', () => {
+  const parcours = readFileSync(
+    join(__dirname, '..', 'e2e', 'heure', 'modifier-depense.yaml'),
+    'utf8',
+  );
+  const script = readFileSync(join(__dirname, 'parcours-android.sh'), 'utf8');
+  const t = fr.carnet;
+  const d = fr.depense;
+  /** Texte de l'appli -> motif Maestro : points échappés, espaces insécables en « . ». */
+  const motif = (texte: string) =>
+    texte
+      .replace(/\./g, '\\.')
+      .replace(/\?/g, '\\?')
+      .replace(/\u00a0/g, '.');
+
+  it('est joué par le script de l’émulateur après le carnet, appli effacée, le 4 novembre 2026 à 9:00', () => {
+    expect(script).toMatch(/for parcours in [^;]*\bcarnet modifier-depense\b[^;]*; do/);
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+
+  it('semaine ouverte : la feuille pré-remplie, la modification, puis le carnet et l’enveloppe qui suivent', () => {
+    dansLOrdre(parcours, [
+      `- tapOn: '${fr.accueil.carnetLibelle}'`,
+      `- tapOn: '${motif(t.depenseLibelle(1250, 'Envies', ''))}'`,
+      `visible: '${d.titreModifier}'`,
+      `- assertVisible: '${motif(d.categorieActuelleLibelle('Envies'))}'`,
+      `- assertVisible: '${d.modifierConsigne.replace(/\./g, '\\.')}'`,
+      '- takeScreenshot: captures/modifier-depense-feuille',
+      '- eraseText',
+      "- inputText: '20'",
+      `- tapOn: '${d.categorieLibelle('Culture')}'`,
+      `- assertVisible: '${motif(t.depenseLibelle(2000, 'Culture', ''))}'`,
+      `- assertVisible: '${motif(t.totalCategorie('Culture', 2000))}'`,
+      `- assertVisible: '${motif(t.totalCategorie('Envies', 0))}'`,
+      `- assertVisible: '${motif(t.totalSemaine(5500))}'`,
+      '- takeScreenshot: captures/modifier-depense-carnet',
+      `- tapOn: '${t.retourLibelle}'`,
+      `- assertVisible: '${motif(fr.accueil.reste(4500, 'dimanche'))}'`,
+      '- takeScreenshot: captures/modifier-depense-accueil',
+    ]);
+  });
+
+  it('supprimer demande confirmation, puis le carnet et l’enveloppe suivent', () => {
+    dansLOrdre(parcours, [
+      '- takeScreenshot: captures/modifier-depense-accueil',
+      `- tapOn: '${motif(t.depenseLibelle(3500, 'Essentiel', ''))}'`,
+      `- tapOn: '${d.supprimerLibelle}'`,
+      `- assertVisible: '${motif(d.confirmerSuppression)}'`,
+      '- takeScreenshot: captures/supprimer-depense-confirmation',
+      `- tapOn: '${d.confirmerSupprimerLibelle}'`,
+      `- assertNotVisible: '${motif(t.depenseLibelle(3500, 'Essentiel', ''))}'`,
+      `- assertVisible: '${motif(t.totalSemaine(2000))}'`,
+      '- takeScreenshot: captures/supprimer-depense-carnet',
+      `- tapOn: '${t.retourLibelle}'`,
+      `- assertVisible: '${motif(fr.accueil.reste(8000, 'dimanche'))}'`,
+    ]);
+  });
+
+  it('semaine scellée : son jour et ceux de la semaine ouverte, le nouveau montant, le résultat figé', () => {
+    const resultat = motif(
+      t.resultatLibelle([t.tampons(0, 5), t.depense(2000, 10000), t.dansEnveloppe]),
+    );
+    dansLOrdre(parcours, [
+      `- assertVisible: '${motif(fr.accueil.reste(8000, 'dimanche'))}'`,
+      "- tapOn: '\\+1 semaine'",
+      "- openLink: 'kakeibo://carnet'",
+      `- assertVisible: '${resultat}'`,
+      `- tapOn: '${motif(t.depenseLibelle(2000, 'Culture', ''))}'`,
+      `- assertVisible: '${motif(d.jourLibelle('2026-11-04'))}'`,
+      `- assertVisible: '${motif(d.jourLibelle('2026-11-11'))}'`,
+      `- assertNotVisible: '${motif(d.jourLibelle('2026-11-05'))}'`,
+      '- takeScreenshot: captures/modifier-depense-semaine-scellee',
+      '- eraseText',
+      "- inputText: '50'",
+      `- tapOn: '${motif(d.categorieActuelleLibelle('Culture'))}'`,
+      `- assertVisible: '${motif(t.depenseLibelle(5000, 'Culture', ''))}'`,
+      `- assertVisible: '${resultat}'`,
+      '- takeScreenshot: captures/modifier-depense-resultat-fige',
+    ]);
+  });
+});
+
 describe('parcours Maestro des dernières cartes de première fois (J5.8, #107)', () => {
   const racine = join(__dirname, '..', 'e2e', 'heure');
   const bienvenue = readFileSync(join(racine, 'bienvenue.yaml'), 'utf8');

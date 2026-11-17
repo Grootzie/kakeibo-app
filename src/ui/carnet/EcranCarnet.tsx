@@ -2,7 +2,8 @@
 // par catégorie et un filtre par mois. Une semaine à cheval sur deux mois est coupée aux jours
 // du mois affiché, et le dit (#102). Les semaines scellées affichent leur résultat figé
 // (tampons, enveloppe et dépensé, dans l'enveloppe ou au-delà), sans ton de reproche. L'écran
-// défile et les lignes passent à la ligne : rien ne se perd à 200 %. Ne parle qu'au store.
+// défile et les lignes passent à la ligne : rien ne se perd à 200 %. Toucher une dépense ouvre
+// la feuille de E3 pré-remplie, pour la modifier ou la supprimer (J5.4, #103). Ne parle qu'au store.
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,7 +17,9 @@ import {
   moisCourantDuCarnet,
   vueCarnet,
 } from '../../state/carnet';
+import { joursModification } from '../../state/selecteurs';
 import type { KakeiboStore } from '../../state/store';
+import { type DepenseSaisie, FeuilleDepense } from '../depense/FeuilleDepense';
 import { IconeCategorie } from '../depense/IconeCategorie';
 import { theme } from '../theme';
 
@@ -146,14 +149,39 @@ function Totaux({ semaine }: { semaine: SemaineCarnet }) {
   );
 }
 
-function Depense({ depense }: { depense: DepenseCarnet }) {
+/**
+ * Vrai si l'écriture est acceptée. Un refus du domaine ou une écriture qui échoue (rien n'est
+ * alors écrit : transaction) laissent la feuille ouverte avec son message.
+ */
+async function accepte(ecriture: Promise<unknown>): Promise<boolean> {
+  try {
+    return (await ecriture) === null;
+  } catch {
+    return false;
+  }
+}
+
+/** Dépense touchée dans le carnet : elle et son jour. */
+type Ouvrir = (depense: DepenseCarnet, jour: string) => void;
+
+function Depense({
+  depense,
+  jour,
+  onOuvrir,
+}: {
+  depense: DepenseCarnet;
+  jour: string;
+  onOuvrir: Ouvrir;
+}) {
   const nom = fr.categories[depense.categorie].nom;
   return (
-    <View
+    <Pressable
       testID={`depense-${depense.id}`}
-      accessible
+      accessibilityRole="button"
       accessibilityLabel={t.depenseLibelle(depense.montant, nom, depense.note)}
-      style={{ ...styleLigne, minHeight: theme.zoneTactileMin }}
+      accessibilityHint={t.depenseIndice}
+      onPress={() => onOuvrir(depense, jour)}
+      style={{ ...styleLigne, minHeight: theme.zoneTactileMin, minWidth: theme.zoneTactileMin }}
     >
       <IconeCategorie
         categorie={depense.categorie}
@@ -164,11 +192,11 @@ function Depense({ depense }: { depense: DepenseCarnet }) {
         {depense.note !== '' && <Text style={{ color: c.texteDiscret }}>{depense.note}</Text>}
       </View>
       <Text style={{ color: c.texte, fontWeight: '600' }}>{t.montant(depense.montant)}</Text>
-    </View>
+    </Pressable>
   );
 }
 
-function Jour({ jour }: { jour: JourCarnet }) {
+function Jour({ jour, onOuvrir }: { jour: JourCarnet; onOuvrir: Ouvrir }) {
   return (
     <View style={{ gap: 4 }}>
       <View
@@ -181,13 +209,13 @@ function Jour({ jour }: { jour: JourCarnet }) {
         <Text style={{ color: c.texte, fontWeight: '600' }}>{t.totalJour(jour.total)}</Text>
       </View>
       {jour.depenses.map((d) => (
-        <Depense key={d.id} depense={d} />
+        <Depense key={d.id} depense={d} jour={jour.jour} onOuvrir={onOuvrir} />
       ))}
     </View>
   );
 }
 
-function Semaine({ semaine }: { semaine: SemaineCarnet }) {
+function Semaine({ semaine, onOuvrir }: { semaine: SemaineCarnet; onOuvrir: Ouvrir }) {
   return (
     <View testID={`semaine-${semaine.semaine}`} style={{ gap: 12 }}>
       <Text accessibilityRole="header" style={{ fontSize: 18, fontWeight: '600', color: c.texte }}>
@@ -205,7 +233,7 @@ function Semaine({ semaine }: { semaine: SemaineCarnet }) {
         <>
           <Totaux semaine={semaine} />
           {semaine.jours.map((j) => (
-            <Jour key={j.jour} jour={j} />
+            <Jour key={j.jour} jour={j} onOuvrir={onOuvrir} />
           ))}
         </>
       )}
@@ -218,12 +246,23 @@ export function EcranCarnet({ store, onRetour }: PropsEcranCarnet) {
   const depenses = useStore(store, (s) => s.depenses);
   const maintenant = useStore(store, (s) => s.maintenant);
   const [moisChoisi, setMoisChoisi] = useState(null as string | null);
+  const [ouverte, setOuverte] = useState(null as { id: string; saisie: DepenseSaisie } | null);
 
   const vue = useMemo(() => {
     if (etat === null || maintenant === null) return null;
     const mois = moisChoisi ?? moisCourantDuCarnet(maintenant.day);
     return vueCarnet(depenses, etat.results, etat.installDay, maintenant, mois);
   }, [etat, depenses, maintenant, moisChoisi]);
+
+  const ouvrir: Ouvrir = (d, jour) =>
+    setOuverte({
+      id: d.id,
+      saisie: { amount: d.montant, category: d.categorie, note: d.note, day: jour },
+    });
+  const jours =
+    ouverte !== null && etat !== null && maintenant !== null
+      ? joursModification(etat, maintenant, ouverte.saisie.day)
+      : [];
 
   return (
     <SafeAreaView
@@ -259,11 +298,24 @@ export function EcranCarnet({ store, onRetour }: PropsEcranCarnet) {
               onChoisir={setMoisChoisi}
             />
             {vue.semaines.map((s) => (
-              <Semaine key={s.semaine} semaine={s} />
+              <Semaine key={s.semaine} semaine={s} onOuvrir={ouvrir} />
             ))}
           </>
         )}
       </ScrollView>
+      {ouverte !== null && maintenant !== null && (
+        <FeuilleDepense
+          key={ouverte.id}
+          jours={jours}
+          aujourdhui={maintenant.day}
+          depense={ouverte.saisie}
+          onEnregistrer={(saisie) =>
+            accepte(store.getState().enregistrerDepense({ ...saisie, id: ouverte.id }))
+          }
+          onSupprimer={() => accepte(store.getState().supprimerDepense(ouverte.id))}
+          onFermer={() => setOuverte(null)}
+        />
+      )}
     </SafeAreaView>
   );
 }

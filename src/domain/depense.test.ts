@@ -4,6 +4,7 @@ import {
   MAX_AMOUNT,
   MIN_AMOUNT,
   NOTE_MAX_LENGTH,
+  editExpenseDays,
   expenseDays,
   isValidAmount,
   isValidNote,
@@ -78,6 +79,38 @@ describe('jours proposés pour une dépense', () => {
   test('à partir du lundi 12:00, ou une fois scellée, la semaine précédente ne l’est plus', () => {
     expect(expenseDays(at('2026-11-09', '12:00'), ctx)).toEqual(['2026-11-09']);
     expect(expenseDays(at('2026-11-09', '08:00'), { ...ctx, sealedWeeks: ['2026-W45'] })).toEqual([
+      '2026-11-09',
+    ]);
+  });
+});
+
+describe('jours proposés pour modifier une dépense (#103)', () => {
+  const ctx = { installDay: '2026-11-02', closedDays: [], sealedWeeks: [] };
+
+  test('dans une semaine ouverte : les mêmes jours que pour une nouvelle dépense', () => {
+    expect(editExpenseDays('2026-11-04', at('2026-11-06', '10:00'), ctx)).toEqual(
+      expenseDays(at('2026-11-06', '10:00'), ctx),
+    );
+  });
+
+  test('dans une semaine scellée : son jour actuel, puis les jours des semaines ouvertes', () => {
+    const scellee = { ...ctx, sealedWeeks: ['2026-W45'] };
+    expect(editExpenseDays('2026-11-04', at('2026-11-10', '09:00'), scellee)).toEqual([
+      '2026-11-04',
+      '2026-11-09',
+      '2026-11-10',
+    ]);
+  });
+
+  test('aucun autre jour d’une semaine scellée n’est proposé', () => {
+    const scellee = { ...ctx, sealedWeeks: ['2026-W45'] };
+    const jours = editExpenseDays('2026-11-04', at('2026-11-10', '09:00'), scellee);
+    expect(jours.filter((j) => j < '2026-11-09')).toEqual(['2026-11-04']);
+  });
+
+  test('après le délai de grâce, la semaine précédente n’est plus proposée, sauf le jour actuel', () => {
+    expect(editExpenseDays('2026-11-03', at('2026-11-09', '12:00'), ctx)).toEqual([
+      '2026-11-03',
       '2026-11-09',
     ]);
   });

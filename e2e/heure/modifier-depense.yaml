@@ -1,0 +1,216 @@
+# Modifier ou supprimer une dépense (J5.4, #103) : depuis le carnet, toucher une dépense ouvre la
+# feuille de E3 pré-remplie. Une modification ou une suppression se voit aussitôt dans le carnet et
+# dans l'enveloppe de l'accueil. Dans une semaine scellée, la dépense se modifie, mais le résultat
+# reste figé (scénario 15), et la feuille ne propose que son jour et ceux des semaines ouvertes.
+# Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
+# du téléphone au mercredi 4 novembre 2026 à 9:00. L'horloge de test avance d'une semaine.
+# Budget de démonstration : 600 € par mois, soit 100 € pour les 5 jours décomptés de la semaine 45.
+appId: app.kakeibo
+---
+- launchApp
+# Bienvenue (E1, #101) : l'APK de développement la passe (réglage caché), sans budget.
+- extendedWaitUntil:
+    visible: 'Passer la bienvenue \(horloge de test\)'
+    timeout: 60000
+- tapOn: 'Passer la bienvenue \(horloge de test\)'
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 60000
+- longPressOn: 'mercredi.4.novembre'
+- extendedWaitUntil:
+    visible: 'Horloge de test'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Poser un budget de démonstration.*'
+    direction: DOWN
+- tapOn: 'Poser un budget de démonstration.*'
+- assertVisible: 'Budget de démonstration posé'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.4.novembre'
+    direction: UP
+# 1. Mercredi 4 novembre : 35 € en Essentiel et 12,50 € en Envies.
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Essentiel'
+- inputText: '35'
+# Pas de « hideKeyboard » : sur Android, Maestro envoie « Retour », qui ferme la feuille (Modal).
+- tapOn: 'Enregistrer en Essentiel'
+- extendedWaitUntil:
+    visible: 'Première dépense'
+    timeout: 10000
+- tapOn: 'Fermer l’explication .*Première dépense.*'
+- extendedWaitUntil:
+    notVisible: 'Première dépense'
+    timeout: 10000
+- tapOn: 'Noter une dépense'
+- assertVisible: 'Enregistrer en Envies'
+- inputText: '12.50'
+- tapOn: 'Enregistrer en Envies'
+- assertVisible: '12,50.€ noté en Envies\.'
+# 2. Le carnet : toucher les 12,50 € en Envies ouvre la feuille pré-remplie.
+- tapOn: 'Ouvrir le carnet'
+- extendedWaitUntil:
+    visible: 'Novembre 2026'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: '12,50.€ en Envies'
+    direction: DOWN
+    centerElement: true
+- tapOn: '12,50.€ en Envies'
+- extendedWaitUntil:
+    visible: 'Modifier la dépense'
+    timeout: 10000
+- assertVisible: '12,50'
+- assertVisible: 'Enregistrer en Envies, la catégorie actuelle'
+- assertVisible: 'Touche une catégorie pour enregistrer tes changements\.'
+- takeScreenshot: captures/modifier-depense-feuille
+# 3. 20 € en Culture : le carnet et les totaux suivent.
+- eraseText
+- inputText: '20'
+- tapOn: 'Enregistrer en Culture'
+- extendedWaitUntil:
+    notVisible: 'Modifier la dépense'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: '20.€ en Culture'
+    direction: DOWN
+    centerElement: true
+- assertVisible: '20.€ en Culture'
+- scrollUntilVisible:
+    element:
+      text: 'Culture.: 20.€'
+    direction: UP
+    centerElement: true
+- assertVisible: 'Culture.: 20.€'
+- assertVisible: 'Envies.: 0.€'
+- assertVisible: 'Total de la semaine.: 55.€'
+- takeScreenshot: captures/modifier-depense-carnet
+# 4. L'enveloppe de l'accueil suit : 100 € - 55 € = 45 €.
+- scrollUntilVisible:
+    element:
+      text: 'Fermer le carnet'
+    direction: UP
+- tapOn: 'Fermer le carnet'
+- extendedWaitUntil:
+    visible: 'mercredi.4.novembre'
+    timeout: 10000
+- assertVisible: 'Il te reste 45.€ jusqu’à dimanche'
+- takeScreenshot: captures/modifier-depense-accueil
+# 5. Supprimer les 35 € en Essentiel : « Supprimer », puis la confirmation.
+- tapOn: 'Ouvrir le carnet'
+- extendedWaitUntil:
+    visible: 'Novembre 2026'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: '35.€ en Essentiel'
+    direction: DOWN
+    centerElement: true
+- tapOn: '35.€ en Essentiel'
+- extendedWaitUntil:
+    visible: 'Modifier la dépense'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Supprimer cette dépense'
+    direction: DOWN
+- tapOn: 'Supprimer cette dépense'
+- scrollUntilVisible:
+    element:
+      text: 'Oui, supprimer cette dépense'
+    direction: DOWN
+- assertVisible: 'Supprimer cette dépense.\? Elle disparaîtra du carnet\.'
+- assertVisible: 'Garder cette dépense'
+- takeScreenshot: captures/supprimer-depense-confirmation
+- tapOn: 'Oui, supprimer cette dépense'
+- extendedWaitUntil:
+    notVisible: 'Modifier la dépense'
+    timeout: 10000
+- assertNotVisible: '35.€ en Essentiel'
+- scrollUntilVisible:
+    element:
+      text: 'Total de la semaine.: 20.€'
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Total de la semaine.: 20.€'
+- takeScreenshot: captures/supprimer-depense-carnet
+- scrollUntilVisible:
+    element:
+      text: 'Fermer le carnet'
+    direction: UP
+- tapOn: 'Fermer le carnet'
+- extendedWaitUntil:
+    visible: 'mercredi.4.novembre'
+    timeout: 10000
+- assertVisible: 'Il te reste 80.€ jusqu’à dimanche'
+# 6. Mercredi 11 novembre : la semaine 45 est scellée depuis lundi 12:00, avec 0 tampon sur 5
+#    et 20 € dépensés. Son bilan (E6) s'ouvre de lui-même ; on revient à l'accueil sans le faire.
+- scrollUntilVisible:
+    element:
+      text: '\+1 semaine'
+    direction: DOWN
+- tapOn: '\+1 semaine'
+- extendedWaitUntil:
+    visible: 'Temps 1 sur 4'
+    timeout: 10000
+- tapOn: 'Retour à l’accueil'
+- scrollUntilVisible:
+    element:
+      text: 'mercredi.11.novembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'mercredi.11.novembre'
+    timeout: 10000
+- tapOn:
+    text: 'Fermer l’explication .*Premier jour à rattraper.*'
+    optional: true
+# 7. Dans le carnet, la dépense de la semaine scellée : la feuille propose son jour (mercredi 4)
+#    et ceux de la semaine ouverte, aucun autre jour de la semaine 45. 50 € : le carnet affiche
+#    le nouveau montant, le résultat reste celui du scellement.
+- openLink: 'kakeibo://carnet'
+- extendedWaitUntil:
+    visible: 'Novembre 2026'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Résultat.: 0 tampon sur 5.*'
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Résultat.: 0 tampon sur 5, Dépensé.: 20.€ sur 100.€, Dans ton enveloppe\.'
+- scrollUntilVisible:
+    element:
+      text: '20.€ en Culture'
+    direction: DOWN
+    centerElement: true
+- tapOn: '20.€ en Culture'
+- extendedWaitUntil:
+    visible: 'Modifier la dépense'
+    timeout: 10000
+- assertVisible: 'mercredi 4.novembre'
+- assertVisible: 'mercredi 11.novembre'
+- assertNotVisible: 'jeudi 5.novembre'
+- takeScreenshot: captures/modifier-depense-semaine-scellee
+- eraseText
+- inputText: '50'
+- tapOn: 'Enregistrer en Culture, la catégorie actuelle'
+- extendedWaitUntil:
+    notVisible: 'Modifier la dépense'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: '50.€ en Culture'
+    direction: DOWN
+    centerElement: true
+- assertVisible: '50.€ en Culture'
+- scrollUntilVisible:
+    element:
+      text: 'Résultat.: 0 tampon sur 5.*'
+    direction: UP
+    centerElement: true
+- assertVisible: 'Résultat.: 0 tampon sur 5, Dépensé.: 20.€ sur 100.€, Dans ton enveloppe\.'
+- takeScreenshot: captures/modifier-depense-resultat-fige
+- launchApp:
+    clearState: true
