@@ -90,6 +90,33 @@ export interface RecurringChargeRow {
   ends_on: string | null;
 }
 
+/** Toutes les tables de l'appli, vidées par « Tout effacer ». */
+const TABLES = [
+  'settings',
+  'budget_version',
+  'expense',
+  'day_closure',
+  'week_result',
+  'owned_item',
+  'unlocked_room',
+  'month_review',
+  'recurring_charge',
+] as const;
+
+/** Déclencheurs de la migration 2 qui interdisent de supprimer une version ou une clôture. */
+const PROTECTIONS_SUPPRESSION = [
+  'budget_version_sans_suppression',
+  'day_closure_sans_suppression',
+] as const;
+
+/** Les mêmes déclencheurs, tels que la migration 2 les crée. */
+const RECREER_PROTECTIONS = `
+CREATE TRIGGER budget_version_sans_suppression BEFORE DELETE ON budget_version
+BEGIN SELECT RAISE(ABORT, 'budget_version : une version ne se supprime jamais'); END;
+CREATE TRIGGER day_closure_sans_suppression BEFORE DELETE ON day_closure
+BEGIN SELECT RAISE(ABORT, 'day_closure : une clôture ne se supprime jamais'); END;
+`;
+
 let compteurPoints = 0;
 
 /**
@@ -236,6 +263,18 @@ export function createRepositories(db: Db) {
         db.getAllAsync<MonthReviewRow>('SELECT * FROM month_review ORDER BY month'),
       add: ajouter<MonthReviewRow>('month_review'),
     },
+
+    /**
+     * Tout effacer (E10), dans une seule transaction : les protections de la migration 2 sont
+     * levées le temps de vider les tables, puis remises à l'identique. Rien n'est effacé si une
+     * étape échoue.
+     */
+    eraseAll: () =>
+      inTransaction(db, async () => {
+        for (const nom of PROTECTIONS_SUPPRESSION) await db.execAsync(`DROP TRIGGER ${nom}`);
+        for (const table of TABLES) await db.runAsync(`DELETE FROM ${table}`);
+        await db.execAsync(RECREER_PROTECTIONS);
+      }),
 
     recurringCharges: {
       all: (): Promise<RecurringChargeRow[]> =>

@@ -280,7 +280,7 @@ export const fr = {
     carnet: 'Carnet',
     carnetLibelle: 'Carnet',
     reglages: 'Réglages',
-    reglagesLibelle: 'Réglages',
+    reglagesLibelle: 'Ouvrir les réglages',
     budgetSemaine: (centimes: number) => `Budget de la semaine${NBSP}: ${formatEuros(centimes)}`,
     jaugeLibelle: (depense: number, enveloppe: number) =>
       `Dépensé${NBSP}: ${formatEuros(depense)} sur ${formatEuros(enveloppe)}`,
@@ -697,6 +697,100 @@ export const fr = {
    * des fiches tirés de la liste de E12 ; les autres textes, absents de « Textes et ton », sont
    * proposés au propriétaire dans la demande de fusion.
    */
+  /** Réglages (E10, J5.6) : budget du mois, rappel du soir, données, à propos. */
+  reglages: {
+    titre: 'Réglages',
+    retour: 'Retour',
+    retourLibelle: 'Fermer les réglages',
+    budget: {
+      titre: 'Budget du mois',
+      revenus: 'Mes revenus du mois',
+      epargne: 'Mon épargne visée',
+      champLibelle: (nom: string) => `${nom}, en euros`,
+      chargesFixes: (centimes: number) => `Charges fixes du mois${NBSP}: ${formatEuros(centimes)}`,
+      budgetMois: (centimes: number) => `Budget du mois${NBSP}: ${formatEuros(centimes)}`,
+      budgetPositif: `Ton budget du mois doit être supérieur à ${formatEuros(0)} pour l’enregistrer.`,
+      /** Lundi 'AAAA-MM-JJ' à partir duquel l'enveloppe change. */
+      quand: (lundi: string) =>
+        `Un changement s’applique à ton enveloppe à partir du ${jourEtDate(lundi)}. La semaine en cours ne change pas.`,
+      enregistrer: 'Enregistrer mes revenus et mon épargne',
+      enregistre: (lundi: string) => `C’est noté. Ton enveloppe changera le ${jourEtDate(lundi)}.`,
+      refus: 'Ton budget n’a pas pu être enregistré. Vérifie les montants.',
+    },
+    charges: {
+      titre: 'Mes dépenses récurrentes',
+      aide: `Loyer, abonnements, assurances${NBSP}: elles forment tes charges fixes. Elles ne comptent ni dans ton enveloppe ni dans tes dépenses de la semaine.`,
+      aucune: 'Aucune dépense récurrente pour l’instant.',
+      ajouter: 'Ajouter une dépense récurrente',
+      /** « Chaque mois, le 15 », « Chaque semaine, le lundi ». */
+      echeance: (frequence: 'monthly' | 'weekly', jour: number) =>
+        frequence === 'monthly'
+          ? `Chaque mois, le ${jour === 1 ? '1er' : jour}`
+          : `Chaque semaine, le ${JOURS[jour % 7]}`,
+      ligneLibelle: (libelle: string, centimes: number, echeance: string) =>
+        `${libelle}, ${formatEuros(centimes)}, ${echeance.toLowerCase()}`,
+      ligneIndice: 'Ouvre sa fiche pour la modifier ou l’arrêter',
+      nouvelle: 'Nouvelle dépense récurrente',
+      modifier: 'Modifier la dépense récurrente',
+      libelle: 'Libellé',
+      libelleExemple: 'Loyer',
+      montant: 'Montant de chaque échéance',
+      frequence: 'Fréquence',
+      mensuelle: 'Chaque mois',
+      hebdomadaire: 'Chaque semaine',
+      jourLibelle: (echeance: string) => `Échéance${NBSP}: ${echeance.toLowerCase()}`,
+      jourIndice: 'Balaie vers le haut ou vers le bas pour changer le jour.',
+      jourPrecedent: 'Jour précédent',
+      jourSuivant: 'Jour suivant',
+      finDeMois: 'Les mois plus courts, l’échéance tombe le dernier jour du mois.',
+      enregistrer: 'Enregistrer',
+      enregistrerLibelle: 'Enregistrer la dépense récurrente',
+      annuler: 'Annuler',
+      annulerLibelle: 'Annuler, sans rien changer',
+      arreter: 'Arrêter cette dépense',
+      arreterLibelle: (libelle: string) => `Arrêter ${libelle} à partir d’aujourd’hui`,
+      arreterAide: 'Elle ne compte plus à partir d’aujourd’hui et garde son historique.',
+      refus: `Cette dépense récurrente n’a pas pu être enregistrée. Vérifie le libellé et le montant${NBSP}; ton budget du mois doit rester supérieur à ${formatEuros(0)}.`,
+    },
+    rappel: {
+      titre: 'Rappel du soir',
+      texte:
+        'Chaque soir, à l’heure choisie, un rappel t’invite à clôturer ta journée, si ce n’est pas déjà fait. Une notification par jour, au plus.',
+      active: 'Rappel activé',
+      activeLibelle: 'Rappel du soir activé',
+      refuse: `Les notifications sont désactivées pour Kakeibo${NBSP}: ton rappel ne peut pas s’afficher. Pour les activer, ouvre les réglages de ton téléphone, puis Notifications. L’appli fonctionne aussi sans.`,
+      ouvrirReglages: 'Ouvrir les réglages du téléphone',
+    },
+    donnees: {
+      titre: 'Données',
+      texte: 'Tes données restent sur ce téléphone, et nulle part ailleurs.',
+      effacer: 'Tout effacer',
+      effacerLibelle: `Tout effacer${NBSP}: dépenses, tampons, maison et budget`,
+      confirmation1: `Tout effacer${NBSP}? Tes dépenses, tes tampons, ta maison et ton budget seront supprimés de ce téléphone.`,
+      continuer: 'Continuer',
+      continuerLibelle: 'Continuer vers la dernière confirmation',
+      annuler: 'Annuler',
+      annulerLibelle: 'Annuler, ne rien effacer',
+      confirmation2: `Dernière confirmation${NBSP}: une fois effacées, tes données ne pourront pas être retrouvées. L’appli repartira de la bienvenue.`,
+      confirmer: 'Oui, tout effacer',
+      confirmerLibelle: 'Oui, tout effacer définitivement',
+    },
+    /**
+     * À propos : la méthode, la confidentialité et les mentions. Textes légaux, en brouillon :
+     * à valider par le propriétaire (#105). Le contact attend sa réponse.
+     */
+    aPropos: {
+      titre: 'À propos',
+      methode: `Le kakeibo est une méthode japonaise de suivi du budget${NBSP}: tu notes toi-même chaque dépense, tu clôtures chaque soir et tu fais le bilan chaque semaine et chaque mois.`,
+      comprendre: 'Comprendre',
+      comprendreLibelle: `Comprendre${NBSP}: la méthode kakeibo et les règles de la maison`,
+      confidentialiteTitre: 'Confidentialité',
+      confidentialite: `Tes données restent sur ton téléphone${NBSP}: pas de compte, pas de serveur, aucun traceur. L’appli n’envoie rien hors de ton téléphone.`,
+      mentionsTitre: 'Mentions',
+      mentions: 'Kakeibo est un outil de suivi personnel. Il ne donne pas de conseil financier.',
+    },
+  },
+
   comprendre: {
     titre: 'Comprendre',
     retour: 'Retour',

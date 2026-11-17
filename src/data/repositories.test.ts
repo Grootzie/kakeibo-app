@@ -335,4 +335,90 @@ describe('dépôts', () => {
       expect(await repos.dayClosures.all()).toHaveLength(1);
     });
   });
+
+  describe('tout effacer (E10)', () => {
+    async function remplie() {
+      const { db, repos } = await depots();
+      await repos.settings.save(settings);
+      await repos.budgetVersions.add(budget);
+      await repos.expenses.save(depense('a', '2026-11-03'));
+      await repos.dayClosures.add(cloture);
+      await repos.weekResults.add(resultat);
+      await repos.ownedItems.save(objet);
+      await repos.unlockedRooms.add({ year: 2026, room_id: 'room-11', unlocked_at: 'x' });
+      await repos.monthReviews.add({
+        month: '2026-11',
+        completed_at: 'x',
+        q1: null,
+        q2: null,
+        q3: null,
+        real_savings: null,
+        resolution: 'r',
+      });
+      await repos.recurringCharges.save(abonnement);
+      return { db, repos };
+    }
+
+    const TABLES = [
+      'settings',
+      'budget_version',
+      'expense',
+      'day_closure',
+      'week_result',
+      'owned_item',
+      'unlocked_room',
+      'month_review',
+      'recurring_charge',
+    ];
+
+    it('vide toutes les tables, clôtures et versions du budget comprises', async () => {
+      const { db, repos } = await remplie();
+      await repos.eraseAll();
+      for (const table of TABLES) {
+        const n = await db.getFirstAsync<{ n: number }>(`SELECT COUNT(*) AS n FROM ${table}`);
+        expect({ table, n: n?.n }).toEqual({ table, n: 0 });
+      }
+    });
+
+    it('garde ensuite les protections : une clôture ou une version ne se supprime toujours pas', async () => {
+      const { db, repos } = await remplie();
+      await repos.eraseAll();
+      await repos.budgetVersions.add(budget);
+      await repos.dayClosures.add(cloture);
+      await expect(db.runAsync('DELETE FROM day_closure')).rejects.toThrow();
+      await expect(db.runAsync('DELETE FROM budget_version')).rejects.toThrow();
+      await expect(db.runAsync('UPDATE budget_version SET income = 1')).rejects.toThrow();
+      await expect(db.runAsync("UPDATE day_closure SET kind = 'no_spend'")).rejects.toThrow();
+    });
+
+    it('remet les déclencheurs exactement tels que la migration 2 les crée', async () => {
+      const { db, repos } = await remplie();
+      const declencheurs = () =>
+        db.getAllAsync<{ name: string; sql: string }>(
+          "SELECT name, sql FROM sqlite_master WHERE type = 'trigger' ORDER BY name",
+        );
+      const avant = await declencheurs();
+      expect(avant).toHaveLength(4);
+      await repos.eraseAll();
+      expect(await declencheurs()).toEqual(avant);
+    });
+
+    it('dans une seule transaction : si elle échoue, rien n’est effacé', async () => {
+      const { db, repos } = await remplie();
+      const casse: Db = {
+        ...db,
+        runAsync: async (q, p) => {
+          if (q.startsWith('DELETE FROM recurring_charge')) throw new Error('panne');
+          return db.runAsync(q, p);
+        },
+      };
+      await expect(createRepositories(casse).eraseAll()).rejects.toThrow('panne');
+      expect(await repos.expenses.all()).toHaveLength(1);
+      expect(await repos.dayClosures.all()).toHaveLength(1);
+      expect(await repos.budgetVersions.all()).toHaveLength(1);
+      expect(await repos.settings.get()).toEqual(settings);
+      await expect(db.runAsync('DELETE FROM day_closure')).rejects.toThrow();
+      await expect(db.runAsync('DELETE FROM budget_version')).rejects.toThrow();
+    });
+  });
 });

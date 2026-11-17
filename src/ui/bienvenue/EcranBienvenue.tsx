@@ -3,25 +3,18 @@
 // demande l'autorisation des notifications (un refus n'empêche rien), puis l'accueil s'ouvre.
 // Ne parle qu'au store, qui seul appelle le domaine et les dépôts.
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
-import {
-  type AccessibilityActionEvent,
-  AccessibilityInfo,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { AccessibilityInfo, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from 'zustand';
 
 import { fr } from '../../i18n/fr';
-import { PAS_RAPPEL_MINUTES, apercuBudget, decalerHeure } from '../../state/bienvenue';
+import { apercuBudget } from '../../state/bienvenue';
 import { maisonAccueil } from '../../state/maison';
 import { HEURE_RAPPEL_DEFAUT, type KakeiboStore } from '../../state/store';
 import { lireMontant } from '../depense/montant';
 import { IconeCategorie } from '../depense/IconeCategorie';
 import { Maison } from '../maison/Maison';
+import { ReglageHeure } from '../ReglageHeure';
 import { type CategorieId, theme } from '../theme';
 
 const c = theme.couleurs;
@@ -29,7 +22,6 @@ const b = fr.bienvenue;
 const ESPACE = 16;
 const ETAPES = 4;
 const CATEGORIES: readonly CategorieId[] = ['essentiel', 'envies', 'culture', 'imprevus'];
-const ACTIONS_HEURE = [{ name: 'increment' }, { name: 'decrement' }];
 
 const styleBouton = {
   minHeight: theme.zoneTactileMin,
@@ -335,53 +327,6 @@ function ChampMontant({
           borderColor: c.texte,
         }}
       />
-    </View>
-  );
-}
-
-/** Heure du rappel par quarts d'heure : deux boutons, et un curseur pour le lecteur d'écran. */
-function ReglageHeure({ heure, onChange }: { heure: string; onChange: (h: string) => void }) {
-  const pas = PAS_RAPPEL_MINUTES;
-  const action = (e: AccessibilityActionEvent) => {
-    if (e.nativeEvent.actionName === 'increment') onChange(decalerHeure(heure, pas));
-    if (e.nativeEvent.actionName === 'decrement') onChange(decalerHeure(heure, -pas));
-  };
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: ESPACE,
-        flexWrap: 'wrap',
-      }}
-    >
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={b.rappel.plusTotLibelle(pas)}
-        onPress={() => onChange(decalerHeure(heure, -pas))}
-        style={{ ...styleBouton, borderWidth: 1, borderColor: c.texte }}
-      >
-        <Text style={{ color: c.texte }}>{b.rappel.plusTot}</Text>
-      </Pressable>
-      <View
-        accessible
-        accessibilityRole="adjustable"
-        accessibilityLabel={b.rappel.heureLibelle(heure)}
-        accessibilityHint={b.rappel.heureIndice}
-        accessibilityActions={ACTIONS_HEURE}
-        onAccessibilityAction={action}
-      >
-        <Text style={{ color: c.texte, fontSize: 36, fontWeight: '600' }}>{heure}</Text>
-      </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={b.rappel.plusTardLibelle(pas)}
-        onPress={() => onChange(decalerHeure(heure, pas))}
-        style={{ ...styleBouton, borderWidth: 1, borderColor: c.texte }}
-      >
-        <Text style={{ color: c.texte }}>{b.rappel.plusTard}</Text>
-      </Pressable>
     </View>
   );
 }

@@ -82,9 +82,23 @@ describe('en-tête', () => {
     expect(zone).toContainElement(screen.getByTestId('date-accueil'));
   });
 
-  it('montre le carnet et les réglages, inactifs tant que E9 et E10 n’existent pas', async () => {
-    await render(<Accueil vue={vue()} />);
+  it('l’en-tête ouvre les réglages (E10, #105) ; le carnet reste inactif sans action', async () => {
+    const onReglages = jest.fn();
+    await render(<Accueil vue={vue()} onReglages={onReglages} />);
+    const reglages = screen.getByRole('button', { name: fr.accueil.reglagesLibelle });
+    expect(fr.accueil.reglagesLibelle).toBe('Ouvrir les réglages');
+    expect(reglages).toBeEnabled();
+    expect(StyleSheet.flatten(reglages.props.style)).toMatchObject({
+      minHeight: theme.zoneTactileMin,
+      minWidth: theme.zoneTactileMin,
+    });
+    await fireEvent.press(reglages);
+    expect(onReglages).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('button', { name: fr.accueil.carnetLibelle })).toBeDisabled();
+  });
+
+  it('sans action, les réglages restent inactifs', async () => {
+    await render(<Accueil vue={vue()} />);
     expect(screen.getByRole('button', { name: fr.accueil.reglagesLibelle })).toBeDisabled();
   });
 });

@@ -170,6 +170,20 @@ export interface EtatKakeibo {
    * budget, afin que les parcours existants partent de l'accueil. Faux sans l'horloge de test.
    */
   passerBienvenue(): boolean;
+  /**
+   * Revenus et épargne visée changés dans les réglages (E10) : une nouvelle version du budget,
+   * en vigueur demain, donc à l'enveloppe à partir de la semaine suivante. Les charges fixes
+   * viennent des dépenses récurrentes en cours. Sans aucun changement, rien ne s'ajoute.
+   */
+  reviserBudget(montants: { income: number; savingsGoal: number }): Promise<Refusal | null>;
+  /** L'autorisation des notifications est-elle accordée ? Ne la demande pas (E10). */
+  autorisationRappel(): Promise<boolean>;
+  /**
+   * Tout effacer (E10), après double confirmation : la base est vidée dans une seule transaction,
+   * les rappels annulés, puis l'appli s'installe de nouveau, le jour même, sans budget : la
+   * bienvenue (E1) s'affiche.
+   */
+  toutEffacer(): Promise<void>;
 }
 
 /** Budget de démonstration : 1 200 € de revenus, 600 € de charges fixes, 0 € d'épargne. */
@@ -571,6 +585,47 @@ export function createKakeiboStore(deps: DependancesStore) {
         if (!deps.horloge.actif) return false;
         set({ bienvenuePassee: true });
         return true;
+      },
+
+      reviserBudget: ({ income, savingsGoal }) =>
+        traiter(() => ({
+          type: 'revise_budget',
+          id: deps.nouvelId(),
+          income,
+          savingsGoal,
+          charges: get().charges.map(chargeDepuisLigne),
+        })),
+
+      autorisationRappel: async () => {
+        const service = deps.rappels;
+        if (service === undefined) return false;
+        try {
+          return await service.autorise();
+        } catch (erreur: unknown) {
+          if (__DEV__) console.warn(erreur);
+          return false;
+        }
+      },
+
+      toutEffacer: async () => {
+        await enFile(async () => {
+          const r = await repos();
+          await r.eraseAll();
+          // L'état de l'interface repart de zéro : la prochaine lecture réinstalle l'appli.
+          dernierPlan = null;
+          set({
+            etat: null,
+            depenses: [],
+            clotures: [],
+            charges: [],
+            maintenant: null,
+            reglagesRappel: null,
+            explicationsVues: [],
+            bienvenuePassee: false,
+          });
+        });
+        // Installation du jour, puis rappels replanifiés depuis elle (tous remplacés).
+        await traiter({ type: 'open' });
       },
 
       // Même chemin que la bienvenue (E1) : une première charge « Charges fixes », puis la

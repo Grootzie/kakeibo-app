@@ -106,7 +106,19 @@ export type AppEvent =
    * Les dépenses récurrentes ont changé (ajout, modification, arrêt) : `charges` est leur liste
    * complète après le changement. Ajoute une version du budget, identifiée par `id`.
    */
-  | { type: 'revise_fixed_costs'; id: string; charges: RecurringCharge[] };
+  | { type: 'revise_fixed_costs'; id: string; charges: RecurringCharge[] }
+  /**
+   * Revenus et épargne visée changés dans les réglages (E10) : ajoute une version du budget,
+   * identifiée par `id`, avec les charges fixes tirées de `charges` (liste complète). Sans aucun
+   * changement, rien ne s'ajoute.
+   */
+  | {
+      type: 'revise_budget';
+      id: string;
+      income: Cents;
+      savingsGoal: Cents;
+      charges: RecurringCharge[];
+    };
 
 export type Refusal =
   | RefusalReason
@@ -263,7 +275,8 @@ function revisedBudget(
   id: string,
   charges: RecurringCharge[],
   now: LocalDateTime,
-): { version: BudgetVersion } | { refusal: Refusal } {
+  amounts?: { income: Cents; savingsGoal: Cents },
+): { version: BudgetVersion | null } | { refusal: Refusal } {
   if (!charges.every(isValidCharge)) return { refusal: 'invalid_charge' };
   const effectiveFrom = confirmedBudgetStart(now);
   const month = effectiveFrom.slice(0, 7);
@@ -272,11 +285,22 @@ function revisedBudget(
   const version: BudgetVersion = {
     id,
     month,
-    income: base.income,
+    income: amounts?.income ?? base.income,
     fixedCosts: monthFixedCosts(month, charges),
-    savingsGoal: base.savingsGoal,
+    savingsGoal: amounts?.savingsGoal ?? base.savingsGoal,
     effectiveFrom,
   };
+  if (amounts !== undefined) {
+    if (![amounts.income, amounts.savingsGoal].every(isValidCents)) {
+      return { refusal: 'invalid_budget' };
+    }
+    const unchanged =
+      version.income === base.income &&
+      version.savingsGoal === base.savingsGoal &&
+      version.fixedCosts === base.fixedCosts;
+    // On n'écrase jamais une version : on en ajoute une, et seulement si un montant change.
+    if (unchanged) return { version: null };
+  }
   return budgetOf(version) > 0 ? { version } : { refusal: 'invalid_budget' };
 }
 
@@ -392,12 +416,16 @@ function record(
       return { state: { ...state, budgets: [...state.budgets, version] }, refusal: null };
     }
     case 'set_initial_budget':
-    case 'revise_fixed_costs': {
+    case 'revise_fixed_costs':
+    case 'revise_budget': {
       const r =
         event.type === 'set_initial_budget'
           ? initialBudget(state, event)
-          : revisedBudget(state, event.id, event.charges, now);
+          : event.type === 'revise_fixed_costs'
+            ? revisedBudget(state, event.id, event.charges, now)
+            : revisedBudget(state, event.id, event.charges, now, event);
       if ('refusal' in r) return { state, refusal: r.refusal };
+      if (r.version === null) return { state, refusal: null };
       return { state: { ...state, budgets: [...state.budgets, r.version] }, refusal: null };
     }
   }

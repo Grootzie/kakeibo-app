@@ -1820,3 +1820,127 @@ describe('parcours Maestro « comprendre » (J5.7, #106)', () => {
     ]);
   });
 });
+
+describe('parcours Maestro « réglages » (J5.6, #105)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'heure', 'reglages.yaml'), 'utf8');
+  const script = readFileSync(join(__dirname, 'parcours-android.sh'), 'utf8');
+  const r = fr.reglages;
+  /** Texte de l'appli -> motif Maestro : espaces insécables, points, ? et parenthèses. */
+  const motif = (texte: string) =>
+    texte
+      .replace(/[.?()]/g, '\\$&')
+      .replace(/ /g, '.')
+      .replace(/\\\.(?=€)/g, '.');
+
+  it('est joué par le script de l’émulateur, appli effacée, le 4 novembre 2026 à 9:00', () => {
+    expect(script).toMatch(/for parcours in [^;]*\bcomprendre reglages\b[^;]*; do/);
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    expect(parcours).toContain(`---\n- launchApp\n${PASSER_BIENVENUE}`);
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+
+  it('calcule les textes attendus avec ceux de l’appli', () => {
+    expect(fr.accueil.reglagesLibelle).toBe('Ouvrir les réglages');
+    expect(motif(r.budget.chargesFixes(60000))).toBe('Charges fixes du mois.: 600.€');
+    expect(motif(r.budget.budgetMois(70000))).toBe('Budget du mois.: 700.€');
+    expect(motif(r.budget.enregistre('2026-11-09'))).toBe(
+      'C’est noté\\. Ton enveloppe changera le lundi 9.novembre\\.',
+    );
+    expect(r.budget.quand('2026-11-09')).toMatch(
+      /^Un changement s’applique à ton enveloppe à partir du lundi 9.novembre\./,
+    );
+    expect(
+      motif(r.charges.ligneLibelle('Abonnement', 1200, r.charges.echeance('monthly', 1))),
+    ).toBe('Abonnement, 12.€, chaque mois, le 1er');
+    expect(
+      motif(
+        r.charges.ligneLibelle(fr.budget.chargesFixes, 60000, r.charges.echeance('monthly', 1)),
+      ),
+    ).toBe('Charges fixes, 600.€, chaque mois, le 1er');
+    expect(motif(r.budget.chargesFixes(61200))).toBe('Charges fixes du mois.: 612.€');
+    expect(motif(r.budget.budgetMois(68800))).toBe('Budget du mois.: 688.€');
+    expect(motif(fr.bienvenue.rappel.heureLibelle('21:00'))).toBe('Heure du rappel.: 21 h 00');
+    expect(r.rappel.refuse).toMatch(/^Les notifications sont désactivées pour Kakeibo/);
+    expect(motif(r.aPropos.mentions)).toBe(
+      'Kakeibo est un outil de suivi personnel\\. Il ne donne pas de conseil financier\\.',
+    );
+    expect(motif(r.aPropos.comprendreLibelle)).toBe(
+      'Comprendre.: la méthode kakeibo et les règles de la maison',
+    );
+    expect(motif(r.donnees.effacerLibelle)).toBe(
+      'Tout effacer.: dépenses, tampons, maison et budget',
+    );
+    expect(motif(r.donnees.confirmation1)).toBe(
+      'Tout effacer.\\? Tes dépenses, tes tampons, ta maison et ton budget seront supprimés de ce téléphone\\.',
+    );
+    expect(motif(r.donnees.confirmation2)).toMatch(
+      /^Dernière confirmation\.: une fois effacées, tes données ne pourront pas être retrouvées\\\./,
+    );
+  });
+
+  it('ouvre les réglages depuis l’en-tête, change les revenus et ajoute une dépense récurrente', () => {
+    dansLOrdre(parcours, [
+      "- tapOn: 'Poser un budget de démonstration.*'",
+      `- tapOn: '${fr.accueil.reglagesLibelle}'`,
+      `visible: '${r.retourLibelle}'`,
+      `- assertVisible: '${r.budget.titre}'`,
+      "- assertVisible: 'Charges fixes du mois.: 600.€'",
+      '- takeScreenshot: captures/reglages',
+      `- tapOn: '${r.budget.champLibelle(r.budget.revenus)}'`,
+      "- inputText: '1300'",
+      "- assertVisible: 'Budget du mois.: 700.€'",
+      `- tapOn: '${r.budget.enregistrer}'`,
+      "text: 'C’est noté\\. Ton enveloppe changera le lundi 9.novembre\\.'",
+      '- takeScreenshot: captures/reglages-budget',
+      `- tapOn: '${r.charges.ajouter}'`,
+      `visible: '${r.charges.nouvelle}'`,
+      `- tapOn: '${r.charges.libelle}'`,
+      "- inputText: 'Abonnement'",
+      `- tapOn: '${r.budget.champLibelle(r.charges.montant)}'`,
+      "- inputText: '12'",
+      '- takeScreenshot: captures/reglages-fiche-charge',
+      `- tapOn: '${r.charges.enregistrerLibelle}'`,
+      "text: 'Abonnement, 12.€, chaque mois, le 1er'",
+      "text: 'Charges fixes du mois.: 612.€'",
+      "- assertVisible: 'Budget du mois.: 688.€'",
+      '- takeScreenshot: captures/reglages-charges',
+    ]);
+    // Pas de « hideKeyboard » : « Retour » fermerait les réglages.
+    expect(parcours).not.toMatch(/^- hideKeyboard/m);
+  });
+
+  it('montre le rappel et l’explication des notifications refusées, puis À propos et Comprendre', () => {
+    dansLOrdre(parcours, [
+      `text: '${r.rappel.ouvrirReglages}'`,
+      `- assertVisible: '${r.rappel.activeLibelle}'`,
+      "- assertVisible: 'Heure du rappel.: 21 h 00'",
+      "- assertVisible: 'Les notifications sont désactivées pour Kakeibo.*'",
+      '- takeScreenshot: captures/reglages-rappel',
+      `text: '${motif(r.aPropos.mentions)}'`,
+      `- assertVisible: '${r.aPropos.confidentialiteTitre}'`,
+      '- takeScreenshot: captures/reglages-a-propos',
+      `- tapOn: '${motif(r.aPropos.comprendreLibelle)}'`,
+      `visible: '${fr.comprendre.retourLibelle}'`,
+      `- assertVisible: '${fr.comprendre.fiches.methode}'`,
+      `- tapOn: '${fr.comprendre.retourLibelle}'`,
+      `visible: '${r.retourLibelle}'`,
+    ]);
+  });
+
+  it('tout effacer : deux confirmations, puis la bienvenue, qui reste au redémarrage', () => {
+    dansLOrdre(parcours, [
+      `- tapOn: '${motif(r.donnees.effacerLibelle)}'`,
+      `- assertVisible: '${motif(r.donnees.confirmation1)}'`,
+      `- tapOn: '${r.donnees.continuerLibelle}'`,
+      `text: '${r.donnees.confirmerLibelle}'`,
+      '- takeScreenshot: captures/reglages-effacer',
+      `- tapOn: '${r.donnees.confirmerLibelle}'`,
+      `visible: '${fr.bienvenue.methode.titre}'`,
+      `- assertVisible: '${fr.bienvenue.etape(1, 4)}'`,
+      '- takeScreenshot: captures/reglages-efface-bienvenue',
+      '- stopApp',
+      '- launchApp\n',
+      `visible: '${fr.bienvenue.methode.titre}'`,
+    ]);
+  });
+});
