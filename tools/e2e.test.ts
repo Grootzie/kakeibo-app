@@ -1,5 +1,13 @@
 import { execFileSync } from 'child_process';
-import { chmodSync, existsSync, mkdtempSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import {
+  chmodSync,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+  mkdirSync,
+} from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { fr } from '../src/i18n/fr';
@@ -29,6 +37,14 @@ const PIECE_ECHELLE_FELEE =
   'Kura, la réserve, novembre 2026\\. .*L’échelle, fêlée[^.]*\\. 4 emplacements libres\\..*';
 const PIECE_ECHELLE_FELEE_RATEAU =
   'Kura, la réserve, novembre 2026\\. .*L’échelle, fêlée[^.]*\\. Le râteau porte-bonheur kumade\\. 3 emplacements libres\\..*';
+
+/** Étape qui passe la bienvenue (E1, #101) par le réglage caché de l'APK de développement. */
+const PASSER_BIENVENUE = `# Bienvenue (E1, #101) : l'APK de développement la passe (réglage caché), sans budget.
+- extendedWaitUntil:
+    visible: '${fr.bienvenue.passer.replace(/[()]/g, '\\$&')}'
+    timeout: 60000
+- tapOn: '${fr.bienvenue.passer.replace(/[()]/g, '\\$&')}'
+`;
 
 describe('parcours Maestro de démarrage', () => {
   const parcours = readFileSync(join(__dirname, '..', 'e2e', 'accueil.yaml'), 'utf8');
@@ -144,7 +160,8 @@ describe('parcours Maestro « Rattraper un jour » (#46)', () => {
     expect(installer).toContain(
       `- assertVisible: '${fr.accueil.caseLibelle('2026-11-04', 'a_cloturer')}'`,
     );
-    expect(installer).not.toMatch(/tapOn/);
+    // Seule touche : passer la bienvenue (E1, #101) ; aucune clôture.
+    expect(installer.replace(PASSER_BIENVENUE, '')).not.toMatch(/tapOn/);
   });
 
   it('E5 fait tomber le jeton dans la machine, avec une capture, avant le retour (J3.8, #74)', () => {
@@ -222,7 +239,9 @@ describe('parcours Maestro « Cartes de première fois » (#48)', () => {
   const t = fr.carteExplication.titres;
 
   it('part d’une appli effacée et la laisse effacée', () => {
-    expect(parcours).toMatch(/^- launchApp:\n    clearState: true\n- extendedWaitUntil:/m);
+    expect(parcours).toContain(
+      `- launchApp:\n    clearState: true\n${PASSER_BIENVENUE}- extendedWaitUntil:`,
+    );
     expect(parcours.trimEnd()).toMatch(/- launchApp:\n    clearState: true$/);
   });
 
@@ -1663,6 +1682,75 @@ describe('parcours Maestro « poussière » : niveaux 0, 1 et 2 (J4, #88)', () =
       "- extendedWaitUntil:\n    visible:\n      id: 'maison-dessinee'\n    timeout: 10000\n- waitForAnimationToEnd\n";
     for (const capture of ['poussiere-0', 'poussiere-1', 'poussiere-2', 'poussiere-aeree'])
       expect(parcours).toContain(`${attente}- takeScreenshot: captures/${capture}\n`);
+  });
+});
+
+describe('bienvenue (E1, #101) dans les parcours Maestro', () => {
+  const racine = join(__dirname, '..', 'e2e');
+  const parcoursYaml = [
+    ...readdirSync(racine)
+      .filter((f) => f.endsWith('.yaml'))
+      .map((f) => join(racine, f)),
+    ...readdirSync(join(racine, 'heure'))
+      .filter((f) => f.endsWith('.yaml'))
+      .map((f) => join(racine, 'heure', f)),
+  ];
+
+  it('chaque parcours qui lance l’appli neuve passe la bienvenue juste après le lancement', () => {
+    // rappel-toucher ne lance pas l'appli (la notification l'ouvre) ; bienvenue la parcourt.
+    const sansPassage = ['rappel-toucher.yaml', 'bienvenue.yaml'];
+    const concernes = parcoursYaml.filter((f) => !sansPassage.some((s) => f.endsWith(s)));
+    expect(concernes.length).toBeGreaterThan(15);
+    for (const f of concernes) {
+      const texte = readFileSync(f, 'utf8');
+      expect({
+        f,
+        ok: /---\n- launchApp(:\n( {4}.*\n)+|\n)# Bienvenue \(E1, #101\)/.test(texte),
+      }).toEqual({ f, ok: true });
+      expect({ f, passe: texte.includes(PASSER_BIENVENUE) }).toEqual({ f, passe: true });
+    }
+  });
+
+  const bienvenue = readFileSync(join(racine, 'heure', 'bienvenue.yaml'), 'utf8');
+  const b = fr.bienvenue;
+  const motif = (t: string) => t.replace(/[.()?]/g, '\\$&').replace(/\u00a0/g, '.');
+
+  it('parcourt les quatre étapes, une capture chacune, puis l’accueil', () => {
+    dansLOrdre(bienvenue, [
+      `visible: '${b.methode.titre}'`,
+      `- assertVisible: '${b.etape(1, 4)}'`,
+      '- takeScreenshot: captures/bienvenue-1-methode',
+      `visible: '${b.categories.titre}'`,
+      '- takeScreenshot: captures/bienvenue-2-categories',
+      `visible: '${b.mois.titre}'`,
+      `- assertVisible: '${motif(b.mois.budgetPositif)}'`,
+      '- takeScreenshot: captures/bienvenue-3-budget-nul',
+      `- assertVisible: '${motif(b.mois.budgetMois(60000))}'`,
+      `- assertVisible: '${motif(b.mois.enveloppeSemaine(10000))}'`,
+      '- takeScreenshot: captures/bienvenue-3-mois',
+      `visible: '${b.rappel.titre}'`,
+      `- assertVisible: '${motif(b.rappel.heureLibelle('21:00'))}'`,
+      `- tapOn: '${b.rappel.plusTardLibelle(15)}'`,
+      '- takeScreenshot: captures/bienvenue-4-rappel',
+      `- tapOn: 'Commencer.: .*'`,
+      `- assertVisible: '${motif(fr.accueil.reste(10000, 'dimanche'))}'`,
+      '- takeScreenshot: captures/bienvenue-accueil',
+      `- assertNotVisible: '${b.methode.titre}'`,
+    ]);
+    expect(b.categories.ligneLibelle('Essentiel', 'x')).toMatch(/^Essentiel.: par exemple x$/);
+    expect(b.commencerLibelle).toMatch(/^Commencer.: /);
+    expect(b.continuerLibelle).toBe('Continuer : étape suivante');
+    expect(bienvenue).toContain(`- tapOn: '${motif(b.continuerLibelle)}'`);
+  });
+
+  it('accorde les notifications d’avance et finit en effaçant les données', () => {
+    expect(bienvenue).toMatch(/---\n- launchApp:\n {4}permissions:\n {6}notifications: allow\n/);
+    expect(bienvenue.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+
+  it('est joué par le script, appli effacée, le mercredi 4 novembre 2026 à 9:00', () => {
+    const script = readFileSync(join(__dirname, 'parcours-android.sh'), 'utf8');
+    expect(script).toMatch(/for parcours in bienvenue journee-type/);
   });
 });
 
