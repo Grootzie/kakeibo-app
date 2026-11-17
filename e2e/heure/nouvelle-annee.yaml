@@ -1,0 +1,96 @@
+# Carte « Nouvelle année » (J5.8, #107) : le lundi de la semaine 1, l'accueil l'affiche une fois.
+# L'horloge de test avance de deux mois, du mercredi 4 novembre 2026 au lundi 4 janvier 2027,
+# premier jour de la semaine 1 de 2027. Les semaines sans tampon ouvrent leur récapitulatif (E6) ;
+# « Premier jour à rattraper » passe en décembre. Le lendemain, la carte ne revient pas.
+# Joué par tools/parcours-android.sh après avoir effacé les données de l'appli et réglé l'heure
+# du téléphone au mercredi 4 novembre 2026 à 9:00.
+# Budget de démonstration : 1 200 € de revenus, 600 € de charges fixes, 0 € d'épargne.
+appId: app.kakeibo
+---
+- launchApp
+# Bienvenue (E1, #101) : l'APK de développement la passe (réglage caché), sans budget.
+- extendedWaitUntil:
+    visible: 'Passer la bienvenue \(horloge de test\)'
+    timeout: 60000
+- tapOn: 'Passer la bienvenue \(horloge de test\)'
+- extendedWaitUntil:
+    visible: 'Clôturer ma journée'
+    timeout: 60000
+- longPressOn: 'mercredi.4.novembre'
+- extendedWaitUntil:
+    visible: 'Horloge de test'
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'Poser un budget de démonstration.*'
+    direction: DOWN
+- tapOn: 'Poser un budget de démonstration.*'
+- assertVisible: 'Budget de démonstration posé'
+# 1. Un mois plus tard, vendredi 4 décembre : récapitulatif, puis « Premier jour à rattraper ».
+- scrollUntilVisible:
+    element:
+      text: '\+1 mois'
+    direction: DOWN
+- tapOn: '\+1 mois'
+- extendedWaitUntil:
+    visible: 'Tes dernières semaines'
+    timeout: 15000
+- tapOn: 'Retour à l’accueil'
+- scrollUntilVisible:
+    element:
+      text: 'vendredi.4.décembre'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'Premier jour à rattraper'
+    timeout: 10000
+- assertNotVisible: 'Nouvelle année'
+- tapOn: 'Fermer l’explication .*Premier jour à rattraper.*'
+- extendedWaitUntil:
+    notVisible: 'Premier jour à rattraper'
+    timeout: 10000
+# 2. Lundi 4 janvier 2027, semaine 1 : la carte « Nouvelle année », capturée puis fermée.
+- scrollUntilVisible:
+    element:
+      text: '\+1 mois'
+    direction: DOWN
+- tapOn: '\+1 mois'
+- extendedWaitUntil:
+    visible: 'Tes dernières semaines'
+    timeout: 15000
+- tapOn: 'Retour à l’accueil'
+- scrollUntilVisible:
+    element:
+      text: 'lundi.4.janvier'
+    direction: UP
+- scrollUntilVisible:
+    element:
+      text: 'Nouvelle année'
+    direction: DOWN
+- assertVisible: 'Au Japon, on fait le grand ménage de fin d’année.*'
+- takeScreenshot: captures/nouvelle-annee
+- tapOn: 'Fermer l’explication .*Nouvelle année.*'
+- extendedWaitUntil:
+    notVisible: 'Nouvelle année'
+    timeout: 10000
+- takeScreenshot: captures/nouvelle-annee-fermee
+# 3. Le lendemain, mardi 5 janvier : plus de carte. La semaine 53 est scellée le lundi 4 à 12:00,
+# et « Retour à l’accueil » n'a pas marqué les semaines vues : le récapitulatif (E6) se rouvre.
+- scrollUntilVisible:
+    element:
+      text: '\+1 jour'
+    direction: DOWN
+- tapOn: '\+1 jour'
+- extendedWaitUntil:
+    visible: 'Tes dernières semaines'
+    timeout: 15000
+- tapOn: 'Retour à l’accueil'
+- scrollUntilVisible:
+    element:
+      text: 'mardi.5.janvier'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'mardi.5.janvier'
+    timeout: 10000
+- assertNotVisible: 'Nouvelle année'
+- launchApp:
+    clearState: true

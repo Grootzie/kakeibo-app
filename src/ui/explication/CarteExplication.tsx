@@ -16,6 +16,9 @@ const c = theme.couleurs;
 
 /** Texte de chaque carte, tiré de « Messages d'explication ». */
 export const TEXTES_EXPLICATION: Record<IdExplication, string> = {
+  welcome_method: fr.explications.bienvenueMethode,
+  welcome_categories: fr.explications.bienvenueCategories,
+  welcome_month: fr.explications.bienvenueMois,
   first_expense: fr.explications.premiereDepense,
   first_stamp: fr.explications.premierTampon,
   first_catch_up: fr.explications.premierJourARattraper,
@@ -25,6 +28,7 @@ export const TEXTES_EXPLICATION: Record<IdExplication, string> = {
   first_repair: fr.explications.premiereReparation,
   first_month_review: fr.explications.premierBilanDuMois,
   new_room: fr.explications.nouvellePiece,
+  new_year: fr.explications.nouvelleAnnee,
 };
 
 const styleBouton = {
