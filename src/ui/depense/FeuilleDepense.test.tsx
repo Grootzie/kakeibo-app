@@ -260,6 +260,18 @@ describe('modifier une dépense du carnet (#103)', () => {
     expect(screen.getByText(fr.depense.modifierConsigne)).toBeOnTheScreen();
   });
 
+  it('« · actuelle » passe à la ligne plutôt que de déborder du bouton', async () => {
+    await modifier();
+    // Capture modifier-depense de #115 : « Essentiel · actuelle » touchait le bord du bouton.
+    const libelle = screen.getByTestId('libelle-categorie-envies');
+    expect(StyleSheet.flatten(libelle.props.style)).toMatchObject({
+      flexShrink: 1,
+      flexWrap: 'wrap',
+    });
+    expect(within(libelle).getByText('Envies')).toBeOnTheScreen();
+    expect(within(libelle).getByText(fr.depense.categorieActuelle)).toBeOnTheScreen();
+  });
+
   it('toucher une catégorie enregistre les changements et ferme la feuille', async () => {
     const { onEnregistrer, onFermer } = await modifier();
     await fireEvent.changeText(montant(), '20');

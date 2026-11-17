@@ -197,6 +197,7 @@ export function FeuilleDepense({
                       minHeight: 56,
                       borderRadius: 8,
                       paddingHorizontal: 12,
+                      paddingVertical: 8,
                       flexDirection: 'row',
                       alignItems: 'center',
                       gap: 8,
@@ -207,14 +208,25 @@ export function FeuilleDepense({
                     }}
                   >
                     <IconeCategorie categorie={id} couleur={c.surPrincipal} />
-                    <Text style={{ color: c.surPrincipal, fontSize: 17, fontWeight: '600' }}>
-                      {nom}
-                    </Text>
-                    {actuelle && (
-                      <Text style={{ color: c.surPrincipal, fontSize: 15 }}>
-                        {fr.depense.categorieActuelle}
+                    <View
+                      testID={`libelle-categorie-${id}`}
+                      style={{
+                        flexShrink: 1,
+                        flexDirection: 'row',
+                        flexWrap: 'wrap',
+                        alignItems: 'baseline',
+                        columnGap: 6,
+                      }}
+                    >
+                      <Text style={{ color: c.surPrincipal, fontSize: 17, fontWeight: '600' }}>
+                        {nom}
                       </Text>
-                    )}
+                      {actuelle && (
+                        <Text style={{ color: c.surPrincipal, fontSize: 15 }}>
+                          {fr.depense.categorieActuelle}
+                        </Text>
+                      )}
+                    </View>
                   </Pressable>
                 );
               })}
