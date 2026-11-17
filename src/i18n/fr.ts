@@ -224,7 +224,10 @@ export const fr = {
     },
     categories: {
       titre: 'Les quatre catégories',
-      /** Deux exemples par catégorie (E1). */
+      /**
+       * Deux exemples par catégorie (E1). Ce sont les deux premiers de la liste
+       * donnée par le propriétaire dans #101.
+       */
       exemples: {
         essentiel: 'les courses, le transport',
         envies: 'un restaurant, des vêtements',
