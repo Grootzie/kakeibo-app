@@ -58,7 +58,9 @@ appId: app.kakeibo
     centerElement: true
 - assertVisible: 'Un changement s’applique à ton enveloppe à partir du lundi 9.novembre\..*'
 - takeScreenshot: captures/reglages-budget
-# 3. Une dépense récurrente : 12 € chaque mois, le 1er ; les charges fixes passent à 612 €.
+# 3. Une dépense récurrente : 12 € chaque mois, le 15 (comme le scénario 23) ; les charges fixes
+#    de novembre passent à 612 €. Ajoutée le 4 novembre, une échéance le 1er ne tomberait qu'en
+#    décembre : novembre resterait à 600 €.
 - scrollUntilVisible:
     element:
       text: 'Ajouter une dépense récurrente'
@@ -79,6 +81,15 @@ appId: app.kakeibo
 - inputText: '12'
 - scrollUntilVisible:
     element:
+      text: 'Jour suivant'
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    text: 'Jour suivant'
+    repeat: 14
+- assertVisible: 'Échéance.: chaque mois, le 15'
+- scrollUntilVisible:
+    element:
       text: 'Enregistrer la dépense récurrente'
     direction: DOWN
     centerElement: true
@@ -86,7 +97,7 @@ appId: app.kakeibo
 - tapOn: 'Enregistrer la dépense récurrente'
 - scrollUntilVisible:
     element:
-      text: 'Abonnement, 12.€, chaque mois, le 1er'
+      text: 'Abonnement, 12.€, chaque mois, le 15'
     direction: UP
     centerElement: true
 - assertVisible: 'Charges fixes, 600.€, chaque mois, le 1er'

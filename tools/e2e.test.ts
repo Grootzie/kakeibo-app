@@ -1920,8 +1920,11 @@ describe('parcours Maestro « réglages » (J5.6, #105)', () => {
       /^Un changement s’applique à ton enveloppe à partir du lundi 9.novembre\./,
     );
     expect(
-      motif(r.charges.ligneLibelle('Abonnement', 1200, r.charges.echeance('monthly', 1))),
-    ).toBe('Abonnement, 12.€, chaque mois, le 1er');
+      motif(r.charges.ligneLibelle('Abonnement', 1200, r.charges.echeance('monthly', 15))),
+    ).toBe('Abonnement, 12.€, chaque mois, le 15');
+    expect(motif(r.charges.jourLibelle(r.charges.echeance('monthly', 15)))).toBe(
+      'Échéance.: chaque mois, le 15',
+    );
     expect(
       motif(
         r.charges.ligneLibelle(fr.budget.chargesFixes, 60000, r.charges.echeance('monthly', 1)),
@@ -1968,9 +1971,13 @@ describe('parcours Maestro « réglages » (J5.6, #105)', () => {
       "- inputText: 'Abonnement'",
       `- tapOn: '${r.budget.champLibelle(r.charges.montant)}'`,
       "- inputText: '12'",
+      // Le 15, comme le scénario 23 : ajoutée le 4 novembre, une échéance le 1er ne tomberait
+      // qu'en décembre, et les charges fixes de novembre resteraient à 600 €.
+      `- tapOn:\n    text: '${r.charges.jourSuivant}'\n    repeat: 14`,
+      "- assertVisible: 'Échéance.: chaque mois, le 15'",
       '- takeScreenshot: captures/reglages-fiche-charge',
       `- tapOn: '${r.charges.enregistrerLibelle}'`,
-      "text: 'Abonnement, 12.€, chaque mois, le 1er'",
+      "text: 'Abonnement, 12.€, chaque mois, le 15'",
       "text: 'Charges fixes du mois.: 612.€'",
       "- assertVisible: 'Budget du mois.: 688.€'",
       '- takeScreenshot: captures/reglages-charges',
