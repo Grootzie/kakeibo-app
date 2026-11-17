@@ -1821,6 +1821,76 @@ describe('parcours Maestro « comprendre » (J5.7, #106)', () => {
   });
 });
 
+describe('parcours Maestro « carnet » (J5.3, #102)', () => {
+  const parcours = readFileSync(join(__dirname, '..', 'e2e', 'heure', 'carnet.yaml'), 'utf8');
+  const script = readFileSync(join(__dirname, 'parcours-android.sh'), 'utf8');
+  const t = fr.carnet;
+  /** Texte de l'appli -> motif Maestro : points échappés, espaces insécables en « . ». */
+  const motif = (texte: string) => texte.replace(/\./g, '\\.').replace(/ /g, '.');
+
+  it('est joué par le script de l’émulateur, appli effacée, le 4 novembre 2026 à 9:00', () => {
+    expect(script).toMatch(/for parcours in [^;]*\bcarnet\b[^;]*; do/);
+    expect(parcours).toMatch(/appId: app\.kakeibo/);
+    expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
+  });
+
+  it('ouvre le carnet depuis l’en-tête de l’accueil, puis revient à l’accueil', () => {
+    dansLOrdre(parcours, [
+      `- tapOn: '${fr.accueil.carnetLibelle}'`,
+      `visible: '${t.mois('2026-11')}'`,
+      `- tapOn: '${t.retourLibelle}'`,
+      "visible: 'mercredi.11.novembre'",
+    ]);
+  });
+
+  it('montre la semaine ouverte, puis le résultat figé de la semaine scellée, avec une capture par étape', () => {
+    dansLOrdre(parcours, [
+      `- assertVisible: '${motif(t.semaine('2026-11-09', '2026-11-15'))}'`,
+      `- assertVisible: '${t.semaineOuverte}'`,
+      `- assertVisible: '${motif(t.jourLibelle('2026-11-11', 800))}'`,
+      `- assertVisible: '${motif(t.depenseLibelle(800, 'Culture', ''))}'`,
+      `- assertVisible: '${motif(t.totalSemaine(800))}'`,
+      '- takeScreenshot: captures/carnet',
+      `text: '${motif(t.semaine('2026-11-02', '2026-11-08'))}'`,
+      `- assertVisible: '${motif(
+        t.resultatLibelle([t.tampons(1, 5), t.depense(4750, 10000), t.dansEnveloppe]),
+      )}'`,
+      `- assertVisible: '${motif(t.totalCategorie('Essentiel', 3500))}'`,
+      `- assertVisible: '${motif(t.totalCategorie('Envies', 1250))}'`,
+      '- takeScreenshot: captures/carnet-semaine-scellee',
+      // Défilement jusqu'aux dépenses elles-mêmes, centrées : défiler jusqu'au titre du jour
+      // s'arrêtait dès qu'il dépassait du bas de l'écran, ses dépenses encore cachées.
+      `text: '${motif(t.depenseLibelle(1250, 'Envies', ''))}'\n    direction: DOWN\n    centerElement: true`,
+      `text: '${motif(t.depenseLibelle(3500, 'Essentiel', ''))}'\n    direction: DOWN\n    centerElement: true`,
+      `- assertVisible: '${motif(t.jourLibelle('2026-11-04', 4750))}'`,
+      `- assertVisible: '${motif(t.depenseLibelle(3500, 'Essentiel', ''))}'`,
+      `- assertVisible: '${motif(t.depenseLibelle(1250, 'Envies', ''))}'`,
+      '- takeScreenshot: captures/carnet-jours',
+    ]);
+  });
+
+  it('montre la semaine 49 coupée aux jours de décembre, puis de novembre (#102, option 2)', () => {
+    const semaine49 = motif(t.semaine('2026-11-30', '2026-12-06'));
+    dansLOrdre(parcours, [
+      '- takeScreenshot: captures/carnet-jours',
+      "- tapOn: '\\+1 mois'",
+      "visible: 'vendredi.11.décembre'",
+      "- openLink: 'kakeibo://carnet'",
+      `visible: '${t.mois('2026-12')}'`,
+      `text: '${semaine49}'`,
+      `- assertVisible: '${motif(t.joursDuMois('2026-12-01', '2026-12-06'))}'`,
+      `- assertVisible: '${motif(`${t.resultatLibelle([t.tampons(0, 7)]).slice(0, -1)}`)}.*'`,
+      `- assertVisible: '${motif(t.aucuneDepenseJours)}'`,
+      '- takeScreenshot: captures/carnet-semaine-coupee-decembre',
+      `- tapOn: '${motif(t.moisPrecedentLibelle('2026-11'))}'`,
+      `visible: '${t.mois('2026-11')}'`,
+      `- assertVisible: '${semaine49}'`,
+      `- assertVisible: '${motif(t.joursDuMois('2026-11-30', '2026-11-30'))}'`,
+      '- takeScreenshot: captures/carnet-semaine-coupee-novembre',
+    ]);
+  });
+});
+
 describe('parcours Maestro « réglages » (J5.6, #105)', () => {
   const parcours = readFileSync(join(__dirname, '..', 'e2e', 'heure', 'reglages.yaml'), 'utf8');
   const script = readFileSync(join(__dirname, 'parcours-android.sh'), 'utf8');

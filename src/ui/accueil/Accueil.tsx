@@ -122,7 +122,7 @@ function EnTete({
   onCarnet?: () => void;
   onReglages?: () => void;
 }) {
-  // Sans action, un accès reste visible mais inactif (le carnet, E9, tant que #102 n'est pas là).
+  // Sans action, un accès reste visible mais inactif.
   const acces = [
     { titre: fr.accueil.carnet, libelle: fr.accueil.carnetLibelle, onPress: onCarnet },
     { titre: fr.accueil.reglages, libelle: fr.accueil.reglagesLibelle, onPress: onReglages },
