@@ -33,6 +33,7 @@ export default function Home() {
       onBilanMois={() => router.push('/bilan-mois')}
       onMaison={() => router.push('/maison')}
       onCarnet={() => router.push('/carnet')}
+      onReglages={() => router.push('/reglages')}
     >
       {horlogeVisible && <HorlogeDev />}
     </EcranAccueil>

@@ -82,23 +82,31 @@ describe('en-tête', () => {
     expect(zone).toContainElement(screen.getByTestId('date-accueil'));
   });
 
-  it('l’en-tête ouvre le carnet (E9, #102) ; les réglages restent inactifs tant que E10 n’existe pas', async () => {
+  it('l’en-tête ouvre le carnet (E9, #102) et les réglages (E10, #105)', async () => {
     const onCarnet = jest.fn();
-    await render(<Accueil vue={vue()} onCarnet={onCarnet} />);
+    const onReglages = jest.fn();
+    await render(<Accueil vue={vue()} onCarnet={onCarnet} onReglages={onReglages} />);
+    expect(fr.accueil.reglagesLibelle).toBe('Ouvrir les réglages');
     const carnet = screen.getByRole('button', { name: fr.accueil.carnetLibelle });
-    expect(carnet).toBeEnabled();
-    expect(StyleSheet.flatten(carnet.props.style)).toMatchObject({
-      minHeight: theme.zoneTactileMin,
-      minWidth: theme.zoneTactileMin,
-    });
+    const reglages = screen.getByRole('button', { name: fr.accueil.reglagesLibelle });
+    for (const bouton of [carnet, reglages]) {
+      expect(bouton).toBeEnabled();
+      expect(StyleSheet.flatten(bouton.props.style)).toMatchObject({
+        minHeight: theme.zoneTactileMin,
+        minWidth: theme.zoneTactileMin,
+      });
+    }
     await fireEvent.press(carnet);
     expect(onCarnet).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole('button', { name: fr.accueil.reglagesLibelle })).toBeDisabled();
+    expect(onReglages).not.toHaveBeenCalled();
+    await fireEvent.press(reglages);
+    expect(onReglages).toHaveBeenCalledTimes(1);
   });
 
-  it('sans action, le carnet reste inactif', async () => {
+  it('sans action, le carnet et les réglages restent inactifs', async () => {
     await render(<Accueil vue={vue()} />);
     expect(screen.getByRole('button', { name: fr.accueil.carnetLibelle })).toBeDisabled();
+    expect(screen.getByRole('button', { name: fr.accueil.reglagesLibelle })).toBeDisabled();
   });
 });
 

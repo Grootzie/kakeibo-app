@@ -30,6 +30,9 @@ adb shell settings put global auto_time 0 || true
 adb shell date 110410002026.00 || true
 
 adb install "$APK" || exit 1
+# Au premier champ texte, le clavier Android (AOSP) peut ouvrir une boîte système « accès aux
+# contacts » par-dessus l'appli (vu dans « réglages », #105) : on lui accorde l'accès d'avance.
+adb shell pm grant com.android.inputmethod.latin android.permission.READ_CONTACTS || true
 adb logcat -c || true
 
 statut=0
@@ -75,10 +78,10 @@ if [ -f e2e/heure/installer.yaml ]; then
   # Parcours « bienvenue » (E1, #101), « journée type », « rattrapage » (#49), « bilans prêts » (#61), « bilan du mois » (#64),
   # « récapitulatif » (#63), « bilan de la semaine » (#62), « semaine parfaite » et « semaine hors
   # budget » (critère de J3, #67), « album » (#87), « maison » et « poussière » (critère de J4,
-  # #88), « carnet » (#102), « comprendre » (#106), « nouvelle année » (#107) : appli effacée, mercredi 4 novembre 2026 à 9:00 ;
-  # l'horloge de test de l'APK de développement avance ensuite les jours.
+  # #88), « carnet » (#102), « comprendre » (#106), « réglages » (#105), « nouvelle année » (#107) : appli effacée,
+  # mercredi 4 novembre 2026 à 9:00 ; l'horloge de test de l'APK de développement avance ensuite les jours.
   for parcours in bienvenue journee-type rattrapage bilans-prets bilan-mois recapitulatif bilan-semaine \
-    semaine-parfaite semaine-hors-budget maison poussiere album carnet comprendre nouvelle-annee; do
+    semaine-parfaite semaine-hors-budget maison poussiere album carnet comprendre reglages nouvelle-annee; do
     if [ -f "e2e/heure/$parcours.yaml" ]; then
       adb shell pm clear app.kakeibo >/dev/null 2>&1 || true
       adb shell date 110409002026.00 || true

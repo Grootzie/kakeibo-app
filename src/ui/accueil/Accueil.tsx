@@ -27,6 +27,8 @@ export interface PropsAccueil {
   onMaison?: () => void;
   /** Ouvre le carnet (E9), depuis l'en-tête. */
   onCarnet?: () => void;
+  /** Ouvre les réglages (E10), depuis l'en-tête. */
+  onReglages?: () => void;
   onAppuiLongDate?: () => void;
   /** Ouvre la feuille « Noter une dépense » (E3). */
   onNoterDepense?: () => void;
@@ -50,6 +52,7 @@ export function Accueil({
   maison = null,
   onMaison,
   onCarnet,
+  onReglages,
   onAppuiLongDate,
   onNoterDepense,
   onCloturer,
@@ -73,7 +76,14 @@ export function Accueil({
         style={{ flex: 1, backgroundColor: c.fond }}
         contentContainerStyle={{ padding: ESPACE, gap: ESPACE }}
       >
-        {vue && <EnTete jour={vue.jour} onAppuiLong={onAppuiLongDate} onCarnet={onCarnet} />}
+        {vue && (
+          <EnTete
+            jour={vue.jour}
+            onAppuiLong={onAppuiLongDate}
+            onCarnet={onCarnet}
+            onReglages={onReglages}
+          />
+        )}
         {vue?.bandeau && (
           <Bandeau
             bandeau={vue.bandeau}
@@ -105,15 +115,17 @@ function EnTete({
   jour,
   onAppuiLong,
   onCarnet,
+  onReglages,
 }: {
   jour: string;
   onAppuiLong?: () => void;
   onCarnet?: () => void;
+  onReglages?: () => void;
 }) {
-  // Le carnet (E9) s'ouvre ; les réglages (E10, J5.6) restent inactifs d'ici là.
+  // Sans action, un accès reste visible mais inactif.
   const acces = [
     { titre: fr.accueil.carnet, libelle: fr.accueil.carnetLibelle, onPress: onCarnet },
-    { titre: fr.accueil.reglages, libelle: fr.accueil.reglagesLibelle, onPress: undefined },
+    { titre: fr.accueil.reglages, libelle: fr.accueil.reglagesLibelle, onPress: onReglages },
   ];
   return (
     <View
