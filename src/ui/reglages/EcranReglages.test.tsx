@@ -85,6 +85,13 @@ function textes(): string[] {
   return vus;
 }
 
+// Le premier rendu charge les modules de l'écran (plus de 5 s à froid en intégration continue) :
+// on le fait une fois ici, pour que la limite de 5 s de chaque test ne mesure que le test.
+beforeAll(async () => {
+  const { store } = await preparer();
+  await monter(store);
+}, 30_000);
+
 describe('Réglages (E10)', () => {
   it('un titre, quatre sections, ni abonnement ni publicité avant J7', async () => {
     const { store } = await preparer();
