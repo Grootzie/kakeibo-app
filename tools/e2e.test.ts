@@ -1990,6 +1990,10 @@ describe('parcours Maestro « réglages » (J5.6, #105)', () => {
       "- inputText: 'Abonnement'",
       `- tapOn: '${r.budget.champLibelle(r.charges.montant)}'`,
       "- inputText: '12'",
+      // Le pavé numérique cache les boutons du jour : sans le fermer (touche ✓), les touches
+      // « Jour suivant » tombaient sur le clavier et tapaient des 3 dans le montant.
+      '- pressKey: Enter',
+      `text: '${r.charges.jourSuivant}'`,
       // Le 15, comme le scénario 23 : ajoutée le 4 novembre, une échéance le 1er ne tomberait
       // qu'en décembre, et les charges fixes de novembre resteraient à 600 €.
       `- tapOn:\n    text: '${r.charges.jourSuivant}'\n    repeat: 14`,

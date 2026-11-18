@@ -86,6 +86,10 @@ appId: app.kakeibo
     centerElement: true
 - tapOn: 'Montant de chaque échéance, en euros'
 - inputText: '12'
+# Le pavé numérique cache les boutons du jour, que Maestro croit visibles : sans le fermer, les
+# touches « Jour suivant » tombaient sur le clavier et tapaient des 3 dans le montant. La touche ✓
+# (Entrée) le ferme ; « hideKeyboard » enverrait « Retour », qui fermerait les réglages.
+- pressKey: Enter
 - scrollUntilVisible:
     element:
       text: 'Jour suivant'
