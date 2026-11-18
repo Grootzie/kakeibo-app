@@ -30,6 +30,9 @@ adb shell settings put global auto_time 0 || true
 adb shell date 110410002026.00 || true
 
 adb install "$APK" || exit 1
+# Au premier champ texte, le clavier Android (AOSP) peut ouvrir une boîte système « accès aux
+# contacts » par-dessus l'appli (vu dans « réglages », #105) : on lui accorde l'accès d'avance.
+adb shell pm grant com.android.inputmethod.latin android.permission.READ_CONTACTS || true
 adb logcat -c || true
 
 statut=0

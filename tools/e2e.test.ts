@@ -1913,6 +1913,17 @@ describe('parcours Maestro « réglages » (J5.6, #105)', () => {
     expect(parcours.trimEnd()).toMatch(/- launchApp:\n {4}clearState: true$/);
   });
 
+  it('ne laisse pas le clavier de l’émulateur demander l’accès aux contacts', () => {
+    // Le libellé d'une dépense récurrente est le premier champ texte des parcours : le clavier
+    // Android (AOSP) y ouvrait une boîte système « accès aux contacts » par-dessus la fiche.
+    const accord =
+      'adb shell pm grant com.android.inputmethod.latin android.permission.READ_CONTACTS';
+    const lignes = script.split('\n').map((l) => l.trim());
+    const ligne = lignes.findIndex((l) => l.startsWith(accord));
+    expect(ligne).toBeGreaterThan(lignes.findIndex((l) => l.startsWith('adb install')));
+    expect(ligne).toBeLessThan(lignes.findIndex((l) => l.startsWith('for parcours in')));
+  });
+
   it('calcule les textes attendus avec ceux de l’appli', () => {
     expect(fr.accueil.reglagesLibelle).toBe('Ouvrir les réglages');
     expect(motif(r.budget.chargesFixes(60000))).toBe('Charges fixes du mois.: 600.€');
